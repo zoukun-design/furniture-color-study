@@ -126,18 +126,12 @@ select[hidden],.seltx[hidden]{display:none}
 .pick{appearance:none;border:0;background:none;padding:0;position:absolute;top:0;left:0;width:44px;height:44px;display:flex;align-items:flex-start;justify-content:flex-start;cursor:pointer}
 .pick span{margin:5px 0 0 5px;width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center}
 
-.pick.on span{background:var(--ink);width:auto;border-radius:13px;padding:0 9px 0 6px;gap:3px}
-.pick span b{font-size:11.5px;font-weight:700;color:#fff;white-space:nowrap}
-.pick.on{width:auto;min-width:44px;padding-right:6px}
 .ph{container-type:inline-size}
 @container (max-width:135px){
  .ph .pick span,.ph .fvb span{width:23px;height:23px}
  .ph .pick span{margin:4px 0 0 4px}.ph .fvb span{margin:4px 4px 0 0}
- .ph .pick span>svg[width="26"],.ph .fvb span>svg{width:23px;height:23px}
- .ph .pick.on span{width:auto;padding:0 6px 0 4px;gap:2px;border-radius:12px}
- .ph .pick.on span svg{width:11px;height:11px}
- .ph .pick span b{font-size:10px;letter-spacing:-.01em}
-}
+ .ph .pick span>svg,.ph .fvb span>svg{width:23px;height:23px}
+ .ph  .ph  .ph }
 
 .ph img{width:100%;height:100%;object-fit:cover;display:block}
 .ph em{position:absolute;left:5px;bottom:5px;font-style:normal;font-size:11px;font-weight:700;background:rgba(255,255,255,.92);padding:2px 6px;border-radius:4px;display:flex;align-items:center;gap:5px}
@@ -266,9 +260,6 @@ select[hidden],.seltx[hidden]{display:none}
 @keyframes swTap{0%{opacity:0}12%{opacity:.28}62%{opacity:.28}78%,100%{opacity:0}}
 
 /* select feedback on thumbnails */
-.pick.anim span{transform-origin:14px 50%;animation:pkPop .5s cubic-bezier(.2,.9,.3,1.3)}
-.pick.anim span b{animation:pkTxt .45s ease .08s both}
-.pick.anim span svg path{stroke-dasharray:12;stroke-dashoffset:12;animation:pkChk .32s ease .05s forwards}
 .ph.anim::after{animation:pkRing .5s ease}
 @keyframes pkPop{0%{transform:scale(.55);opacity:.4}60%{transform:scale(1.08);opacity:1}100%{transform:scale(1)}}
 @keyframes pkTxt{0%{opacity:0;transform:translateX(-4px)}100%{opacity:1;transform:none}}
@@ -280,6 +271,15 @@ select[hidden],.seltx[hidden]{display:none}
 .gdots{position:absolute;right:0;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;align-items:center;gap:8px;z-index:2}
 .gdot{appearance:none;border:0;padding:0;width:6px;height:6px;border-radius:3px;background:var(--ink);opacity:.22;cursor:pointer;position:relative}
 .gdot::before{content:"";position:absolute;inset:-4px -8px}
+
+/* thumbnail select: persistent filled check + a brief centred "Selected" */
+.pick .chk svg circle{transform-origin:13px 13px}
+.pick.anim .chk svg circle{animation:chkFill .36s cubic-bezier(.45,0,.25,1)}
+.pick.anim .chk svg path{stroke-dasharray:16;stroke-dashoffset:16;animation:pkChk .3s cubic-bezier(.45,0,.25,1) .18s forwards}
+@keyframes chkFill{0%{transform:scale(.4);opacity:0}100%{transform:scale(1);opacity:1}}
+.selflash{position:absolute;left:50%;top:50%;z-index:4;display:inline-flex;align-items:center;gap:5px;padding:7px 12px 7px 10px;border-radius:16px;background:rgba(20,20,20,.86);color:#fff;font-size:12px;font-weight:700;white-space:nowrap;pointer-events:none;opacity:0;transform:translate(-50%,-50%) scale(.9);animation:selFlash 1.2s cubic-bezier(.45,0,.25,1) .12s forwards}
+@keyframes selFlash{0%{opacity:0;transform:translate(-50%,-50%) scale(.9)}22%{opacity:1;transform:translate(-50%,-50%) scale(1)}78%{opacity:1;transform:translate(-50%,-50%) scale(1)}100%{opacity:0;transform:translate(-50%,-50%) scale(.9)}}
+@media (prefers-reduced-motion:reduce){.selflash{animation-duration:.01s}}
 </style>
 </head>
 <body>
@@ -1138,12 +1138,12 @@ function render(){
 }
 var justPick=null;
 function tiles(K,g){g.innerHTML='';
- COL[K].forEach(function(c,i){var w=mk('div','ph');var b=mk('button','phb');b.type='button';var on=st[K]===i;b.setAttribute('aria-label',c[0]+(on?' (selected)':''));var mksp=null;function mkb(){if(!mksp){mksp=mk('span','marks');b.appendChild(mksp);}return mksp;}if(on)w.classList.add('on');var im=mk('img');im.src=PH[K][i];im.alt=c[0];var em=mk('em');var dot=mk('i');dot.style.background=c[1];em.appendChild(dot);em.appendChild(document.createTextNode(c[0]));b.appendChild(im);b.appendChild(em);b.onclick=function(){if(swiped)return;pk=K;li=i;showLb();};w.appendChild(b);var pc=mk('button','pick'+(on?' on':''));pc.type='button';pc.setAttribute('aria-label',on?c[0]+' is selected':'Select '+c[0]);if(on)pc.style.cursor='default';pc.setAttribute('aria-pressed',on?'true':'false');pc.innerHTML=on?'<span><svg width="14" height="14" viewBox="0 0 12 12" fill="none" stroke="#fff" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.5 6.2 5 8.6 9.6 3.6"/></svg><b>Selected</b></span>':'<span><svg width="26" height="26" viewBox="0 0 26 26" aria-hidden="true"><circle cx="13" cy="13" r="12.6" fill="rgba(255,255,255,.75)" stroke="rgba(20,20,20,.5)" stroke-width=".8"/></svg></span>';pc.onclick=function(){justPick=K+i;togglePick(K,i);};if(on&&justPick===K+i){pc.classList.add('anim');w.classList.add('anim');}w.appendChild(pc);var fb=mk('button','fvb');fb.type='button';fvDraw(fb,K,i);fb.onclick=function(){togFav(K,i);fvDraw(fb,K,i);fb.classList.remove('pop');void fb.offsetWidth;fb.classList.add('pop');};fb.addEventListener('animationend',function(){fb.classList.remove('pop');});w.appendChild(fb);g.appendChild(w);});
+ COL[K].forEach(function(c,i){var w=mk('div','ph');var b=mk('button','phb');b.type='button';var on=st[K]===i;b.setAttribute('aria-label',c[0]+(on?' (selected)':''));var mksp=null;function mkb(){if(!mksp){mksp=mk('span','marks');b.appendChild(mksp);}return mksp;}if(on)w.classList.add('on');var im=mk('img');im.src=PH[K][i];im.alt=c[0];var em=mk('em');var dot=mk('i');dot.style.background=c[1];em.appendChild(dot);em.appendChild(document.createTextNode(c[0]));b.appendChild(im);b.appendChild(em);b.onclick=function(){if(swiped)return;pk=K;li=i;showLb();};w.appendChild(b);var pc=mk('button','pick'+(on?' on':''));pc.type='button';pc.setAttribute('aria-label',on?c[0]+' is selected':'Select '+c[0]);if(on)pc.style.cursor='default';pc.setAttribute('aria-pressed',on?'true':'false');pc.innerHTML=on?'<span class="chk"><svg width="26" height="26" viewBox="0 0 26 26" aria-hidden="true"><circle cx="13" cy="13" r="13" fill="#141414"/><path d="M8 13.3l3.4 3.4 6.6-7.1" fill="none" stroke="#fff" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></svg></span>':'<span><svg width="26" height="26" viewBox="0 0 26 26" aria-hidden="true"><circle cx="13" cy="13" r="12.6" fill="rgba(255,255,255,.75)" stroke="rgba(20,20,20,.5)" stroke-width=".8"/></svg></span>';pc.onclick=function(){justPick=K+i;togglePick(K,i);};if(on&&justPick===K+i){pc.classList.add('anim');w.classList.add('anim');var fl=mk('span','selflash');fl.setAttribute('aria-hidden','true');fl.innerHTML='<svg width="13" height="13" viewBox="0 0 12 12" fill="none" stroke="#fff" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 6.2 5 8.6 9.6 3.6"/></svg>Selected';w.appendChild(fl);}w.appendChild(pc);var fb=mk('button','fvb');fb.type='button';fvDraw(fb,K,i);fb.onclick=function(){togFav(K,i);fvDraw(fb,K,i);fb.classList.remove('pop');void fb.offsetWidth;fb.classList.add('pop');};fb.addEventListener('animationend',function(){fb.classList.remove('pop');});w.appendChild(fb);g.appendChild(w);});
 }
 function photos(){
  document.querySelectorAll('[data-p]').forEach(function(x){x.setAttribute('aria-selected',x.dataset.p===pk?'true':'false');});
  $('pBrand').textContent=INFO[pk].maker;$('pName').textContent=INFO[pk].name;fitTitle();
- tiles('a',$('gridA'));tiles('b',$('gridB'));justPick=null;requestAnimationFrame(fitPicks);if(!gDrag)gSet(pk==='a'?0:1,0);
+ tiles('a',$('gridA'));tiles('b',$('gridB'));justPick=null;if(!gDrag)gSet(pk==='a'?0:1,0);
 }
 var track=$('track'),strip=$('strip'),lb=$('lb'),SL=[].slice.call(strip.children),busy=false;
 [].forEach.call(strip.querySelectorAll('img'),function(im){im.addEventListener('load',function(){if(!busy&&!P){lay();}frame();sinfos();});});
@@ -1333,13 +1333,6 @@ function fitTitle(){var t=document.querySelector('.ptitle'),b=$('pBrand'),n=$('p
 window.addEventListener('resize',fitTitle);if(document.fonts&&document.fonts.ready)document.fonts.ready.then(fitTitle);
 if(window.ResizeObserver)new ResizeObserver(fitTitle).observe(document.querySelector('.ptitle'));
 
-// keep "✓ Selected" clear of the star: shrink the label only as much as the tile needs
-function fitPicks(){document.querySelectorAll('.ph .pick.on span').forEach(function(sp){var ph=sp.closest('.ph'),st=ph&&ph.querySelector('.fvb span'),b=sp.querySelector('b');if(!st||!b||!ph.offsetWidth)return;
- b.style.fontSize='';sp.style.paddingRight='';var f=parseFloat(getComputedStyle(b).fontSize),g=0;
- while(g++<40&&sp.getBoundingClientRect().right>st.getBoundingClientRect().left-4&&f>8.5){f-=0.25;b.style.fontSize=f+'px';}
- if(sp.getBoundingClientRect().right>st.getBoundingClientRect().left-4){sp.style.paddingRight='5px';}});}
-if(window.ResizeObserver)new ResizeObserver(function(){fitPicks();}).observe($('grid'));
-if(document.fonts&&document.fonts.ready)document.fonts.ready.then(fitPicks);
 render();photos();
 </script>
 </body>
