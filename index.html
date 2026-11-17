@@ -312,14 +312,22 @@ body.splashing .app .logo{visibility:hidden}
 .insts .gl{vertical-align:-3px;margin:0 2px}
 .insts b{font-weight:700}
 .instb{flex:none;width:100%;max-width:360px;appearance:none;border:0;background:var(--ink);color:#fff;font:inherit;font-size:15px;font-weight:700;height:50px;border-radius:25px;cursor:pointer}
+
+.lseg{position:relative;display:grid;grid-template-columns:1fr 1fr;width:180px;flex:none;background:#f0efec;border-radius:18px;padding:3px}
+.lseg button{position:relative;appearance:none;border:0;background:none;font:inherit;font-size:12px;color:var(--mute);height:30px;border-radius:15px;cursor:pointer}
+.lseg button[aria-selected="true"]{color:var(--ink);font-weight:700}
+.lsegi{position:absolute;top:3px;left:3px;width:calc(50% - 3px);height:30px;border-radius:15px;background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.08);transition:transform .3s cubic-bezier(.45,0,.25,1)}
+.lseg[data-l="ja"] .lsegi{transform:translateX(100%)}
+.instc .instt,.instc .instd,.instc .insts{transition:opacity .2s ease}
+.instc.sw .instt,.instc.sw .instd,.instc.sw .insts{opacity:0}
 </style>
 </head>
 <body>
 <div class="splash" id="splash" aria-hidden="true"><span class="sbig" id="sbig"></span><div class="slogo" id="slogo"><span class="stx" id="stx">234Lab</span><span class="sdot" id="sdot"></span></div></div>
-<div class="inst" id="inst" role="dialog" aria-label="Add to Home Screen" hidden><div class="instc">
+<div class="inst" id="inst" role="dialog" aria-label="Add to Home Screen" hidden><div class="lseg" role="tablist"><span class="lsegi" id="lsegi"></span><button type="button" role="tab" data-l="en">English</button><button type="button" role="tab" data-l="ja">日本語</button></div><div class="instc">
 <img src="icon-192.png" alt="" class="insti">
-<b class="instt">Add to Home Screen</b>
-<p class="instd">Open it from your Home Screen<br>full screen, like an app.</p>
+<b class="instt" id="instT"></b>
+<p class="instd" id="instD"></p>
 <ol class="insts" id="instSteps"></ol>
 </div><button type="button" class="instb" id="instOk">Got it</button></div>
 <div class="app">
@@ -1384,9 +1392,9 @@ if(window.ResizeObserver)new ResizeObserver(fitTitle).observe(document.querySele
   var S=56,vw=window.innerWidth,lr=sl.getBoundingClientRect(),cx=lr.left+lr.width/2,base=dr.bottom,restX=cx-S/2,restY=base-S;
   if(reduce||!big.animate){big.remove();sp.classList.add('s1','s2');setTimeout(fly,250);return;}
   // roll in: quarter turns pivoting on the leading bottom corner, decelerating to rest at centre
-  var N=Math.max(3,Math.ceil((restX+S)/S)),K=10,frames=[];
-  for(var q=0;q<N;q++){for(var k=0;k<=K;k++){if(q>0&&k===0)continue;var th=90*k/K,rad=(135-th)*Math.PI/180,R=S/Math.SQRT2,px=restX-(N-q)*S+S,
-    cxp=px+R*Math.cos(rad),cyp=base-R*Math.sin(rad);frames.push({transform:'translate('+(cxp-S/2)+'px,'+(cyp-S/2)+'px) translate('+S/2+'px,'+S/2+'px) rotate('+(90*q+th)+'deg) translate('+(-S/2)+'px,'+(-S/2)+'px)'});}}
+  var N=Math.max(3,Math.ceil((vw-restX)/S)),K=10,frames=[];
+  for(var q=0;q<N;q++){for(var k=0;k<=K;k++){if(q>0&&k===0)continue;var th=90*k/K,rad=(45+th)*Math.PI/180,R=S/Math.SQRT2,px=restX+(N-q)*S,
+    cxp=px+R*Math.cos(rad),cyp=base-R*Math.sin(rad);frames.push({transform:'translate('+(cxp-S/2)+'px,'+(cyp-S/2)+'px) translate('+S/2+'px,'+S/2+'px) rotate('+(-(90*q+th))+'deg) translate('+(-S/2)+'px,'+(-S/2)+'px)'});}}
   var roll=big.animate(frames,{duration:1150,easing:'cubic-bezier(.25,.6,.3,1)',fill:'forwards'});
   roll.onfinish=function(){
    // land: a small squash, then shrink into the dot at the start of the word
@@ -1400,11 +1408,20 @@ if(window.ResizeObserver)new ResizeObserver(fitTitle).observe(document.querySele
  setTimeout(end,6000);})();
 function isStandalone(){return (window.matchMedia&&matchMedia('(display-mode: standalone)').matches)||navigator.standalone===true;}
 function installSheet(){if(isStandalone())return;var ua=navigator.userAgent||'',ios=/iPhone|iPad|iPod/.test(ua)||(/Macintosh/.test(ua)&&navigator.maxTouchPoints>1),and=/Android/.test(ua),inapp=/Line\/|Instagram|FBAN|FBAV|Messenger|MicroMessenger|KAKAOTALK/i.test(ua);
- if(!ios&&!and)return;var st=[];
- if(inapp)st.push('Open this page in <b>'+(ios?'Safari':'Chrome')+'</b> (menu → Open in browser)');
- if(ios){var v=(ua.match(/Version\/(\d+)/)||[])[1]|0;if(v>=26){st.push('Tap <svg class="gl" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="5" cy="12" r="1.9"/><circle cx="12" cy="12" r="1.9"/><circle cx="19" cy="12" r="1.9"/></svg> <b>More</b> at the bottom');st.push('Tap <svg class="gl" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 15V3M7.5 7.5 12 3l4.5 4.5"/><path d="M6 11H5a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-8a1 1 0 0 0-1-1h-1"/></svg> <b>Share</b>');}else{st.push('Tap <svg class="gl" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 15V3M7.5 7.5 12 3l4.5 4.5"/><path d="M6 11H5a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-8a1 1 0 0 0-1-1h-1"/></svg> <b>Share</b>');}st.push('Choose <b>Add to Home Screen</b>, then <b>Add</b>');}
- else{st.push('Tap '+'<svg class="gl" width="15" height="15" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="12" cy="5" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="12" cy="19" r="1.8"/></svg>'+' <b>Menu</b>');st.push('Choose <b>Add to Home screen</b>, then <b>Add</b>');}
- $('instSteps').innerHTML=st.map(function(x){return '<li><span>'+x+'</span></li>';}).join('');
+ if(!ios&&!and)return;var v=(ua.match(/Version\/(\d+)/)||[])[1]|0,B=ios?'Safari':'Chrome',SH='<svg class="gl" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 15V3M7.5 7.5 12 3l4.5 4.5"/><path d="M6 11H5a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-8a1 1 0 0 0-1-1h-1"/></svg>',MO='<svg class="gl" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="5" cy="12" r="1.9"/><circle cx="12" cy="12" r="1.9"/><circle cx="19" cy="12" r="1.9"/></svg>',DT='<svg class="gl" width="15" height="15" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="12" cy="5" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="12" cy="19" r="1.8"/></svg>';
+ var T={en:{t:'Add to Home Screen',d:'Open it from your Home Screen<br>full screen, like an app.',ok:'Got it',st:[]},ja:{t:'ホーム画面に追加',d:'ホーム画面のアイコンから<br>アプリのように全画面で開けます。',ok:'OK',st:[]}};
+ if(inapp){T.en.st.push('Open this page in <b>'+B+'</b> (menu → Open in browser)');T.ja.st.push('<b>'+B+'</b>で開き直す（メニュー →「ブラウザで開く」）');}
+ if(ios){if(v>=26){T.en.st.push('Tap '+MO+' <b>More</b> at the bottom');T.ja.st.push('下の '+MO+' <b>その他</b> をタップ');}
+  T.en.st.push('Tap '+SH+' <b>Share</b>');T.ja.st.push(SH+' <b>共有</b> をタップ');
+  T.en.st.push('Choose <b>Add to Home Screen</b>, then <b>Add</b>');T.ja.st.push('<b>ホーム画面に追加</b> → <b>追加</b>');}
+ else{T.en.st.push('Tap '+DT+' <b>Menu</b> at the top right');T.ja.st.push('右上の '+DT+' <b>メニュー</b> をタップ');
+  T.en.st.push('Choose <b>Add to Home screen</b>, then <b>Add</b>');T.ja.st.push('<b>ホーム画面に追加</b> → <b>追加</b>');}
+ var seg=document.querySelector('.lseg'),cur=null;
+ function setL(l,anim){var c=document.querySelector('.instc');function put(){var x=T[l];$('instT').innerHTML=x.t;$('instD').innerHTML=x.d;$('instSteps').innerHTML=x.st.map(function(y){return '<li><span>'+y+'</span></li>';}).join('');$('instOk').textContent=x.ok;}
+  cur=l;seg.dataset.l=l;seg.querySelectorAll('button').forEach(function(b){b.setAttribute('aria-selected',b.dataset.l===l?'true':'false');});$('inst').setAttribute('lang',l);
+  if(anim){c.classList.add('sw');setTimeout(function(){put();c.classList.remove('sw');},200);}else put();}
+ seg.querySelectorAll('button').forEach(function(b){b.onclick=function(){if(b.dataset.l!==cur)setL(b.dataset.l,true);};});
+ setL(/^ja/i.test(navigator.language||'')?'ja':'en',false);
  var el=$('inst');el.hidden=false;requestAnimationFrame(function(){requestAnimationFrame(function(){el.classList.add('show');});});
  $('instOk').onclick=function(){el.classList.remove('show');setTimeout(function(){el.hidden=true;},460);};}
 render();photos();
