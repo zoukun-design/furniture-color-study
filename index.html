@@ -290,7 +290,7 @@ select[hidden],.seltx[hidden]{display:none}
 .slogo{font-family:'Barlow',sans-serif;font-weight:700;font-size:44px;letter-spacing:-.01em;line-height:1;color:var(--ink);display:flex;align-items:baseline;position:relative;transform-origin:0 0}
 .stx{clip-path:inset(0 100% 0 0);transition:clip-path .7s cubic-bezier(.45,0,.25,1)}
 .sdot{display:inline-block;width:.242em;height:.242em;background:#e0301e;margin-left:.0605em;transform:translateX(var(--sx,0));opacity:0;transition:transform .7s cubic-bezier(.45,0,.25,1)}
-.sbig{position:fixed;left:0;top:0;width:56px;height:56px;background:#e0301e;transform-origin:0 0;will-change:transform}
+.sbig{position:fixed;left:0;top:0;width:56px;height:56px;background:#e0301e;transform-origin:0 0;will-change:transform;visibility:hidden}
 .splash.s1 .sdot{opacity:1}
 .splash.s2 .stx{clip-path:inset(0 0 0 0)}
 .splash.s2 .sdot{transform:translateX(0)}
@@ -311,6 +311,8 @@ body.splashing .app .logo{visibility:hidden}
 .insts li::before{content:counter(st);width:24px;height:24px;border-radius:50%;background:var(--ink);color:#fff;font-size:12px;font-weight:700;display:inline-flex;align-items:center;justify-content:center;flex:none}
 .insts .gl{vertical-align:-3px;margin:0 2px}
 .insts b{font-weight:700}
+.instl{flex:none;appearance:none;border:0;background:none;font:inherit;font-size:13px;color:var(--mute);height:36px;margin-top:4px;cursor:pointer}
+.instl[hidden]{display:none}
 .instb{flex:none;width:100%;max-width:360px;appearance:none;border:0;background:var(--ink);color:#fff;font:inherit;font-size:15px;font-weight:700;height:50px;border-radius:25px;cursor:pointer}
 
 .lseg{position:relative;display:grid;grid-template-columns:1fr 1fr;width:180px;flex:none;background:#f0efec;border-radius:18px;padding:3px}
@@ -329,7 +331,7 @@ body.splashing .app .logo{visibility:hidden}
 <b class="instt" id="instT"></b>
 <p class="instd" id="instD"></p>
 <ol class="insts" id="instSteps"></ol>
-</div><button type="button" class="instb" id="instOk">Got it</button></div>
+</div><button type="button" class="instb" id="instOk">Got it</button><button type="button" class="instl" id="instLater" hidden>Later</button></div>
 <div class="app">
 <header>
 <div class="tb">
@@ -1395,6 +1397,7 @@ if(window.ResizeObserver)new ResizeObserver(fitTitle).observe(document.querySele
   var N=Math.max(3,Math.ceil((vw-restX)/S)),K=10,frames=[];
   for(var q=0;q<N;q++){for(var k=0;k<=K;k++){if(q>0&&k===0)continue;var th=90*k/K,rad=(45+th)*Math.PI/180,R=S/Math.SQRT2,px=restX+(N-q)*S,
     cxp=px+R*Math.cos(rad),cyp=base-R*Math.sin(rad);frames.push({transform:'translate('+(cxp-S/2)+'px,'+(cyp-S/2)+'px) translate('+S/2+'px,'+S/2+'px) rotate('+(-(90*q+th))+'deg) translate('+(-S/2)+'px,'+(-S/2)+'px)'});}}
+  big.style.transform=frames[0].transform;big.style.visibility='visible';
   var roll=big.animate(frames,{duration:1150,easing:'cubic-bezier(.25,.6,.3,1)',fill:'forwards'});
   roll.onfinish=function(){
    // land: a small squash, then shrink into the dot at the start of the word
@@ -1408,22 +1411,33 @@ if(window.ResizeObserver)new ResizeObserver(fitTitle).observe(document.querySele
  setTimeout(end,6000);})();
 function isStandalone(){return (window.matchMedia&&matchMedia('(display-mode: standalone)').matches)||navigator.standalone===true;}
 function installSheet(){if(isStandalone())return;var ua=navigator.userAgent||'',ios=/iPhone|iPad|iPod/.test(ua)||(/Macintosh/.test(ua)&&navigator.maxTouchPoints>1),and=/Android/.test(ua),inapp=/Line\/|Instagram|FBAN|FBAV|Messenger|MicroMessenger|KAKAOTALK/i.test(ua);
- if(!ios&&!and)return;var v=(ua.match(/Version\/(\d+)/)||[])[1]|0,B=ios?'Safari':'Chrome',SH='<svg class="gl" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 15V3M7.5 7.5 12 3l4.5 4.5"/><path d="M6 11H5a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-8a1 1 0 0 0-1-1h-1"/></svg>',MO='<svg class="gl" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="5" cy="12" r="1.9"/><circle cx="12" cy="12" r="1.9"/><circle cx="19" cy="12" r="1.9"/></svg>',DT='<svg class="gl" width="15" height="15" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="12" cy="5" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="12" cy="19" r="1.8"/></svg>';
+ if(!ios&&!and)return;
+ // which browser: steps differ by where each one keeps its Share / menu button
+ var v=(ua.match(/Version\/(\d+)/)||[])[1]|0,crios=/CriOS/.test(ua),fxios=/FxiOS/.test(ua),edgios=/EdgiOS/.test(ua),safari=ios&&!crios&&!fxios&&!edgios&&!inapp,
+  SH='<svg class="gl" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 15V3M7.5 7.5 12 3l4.5 4.5"/><path d="M6 11H5a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-8a1 1 0 0 0-1-1h-1"/></svg>',PM='<svg class="gl" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" aria-hidden="true"><path d="M5 7h14M5 12h14M5 17h9"/></svg>',MO='<svg class="gl" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="5" cy="12" r="1.9"/><circle cx="12" cy="12" r="1.9"/><circle cx="19" cy="12" r="1.9"/></svg>',DT='<svg class="gl" width="15" height="15" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="12" cy="5" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="12" cy="19" r="1.8"/></svg>',B=ios?'Safari':'Chrome',canInstall=!!window.__bip&&and;
  var T={en:{t:'Add to Home Screen',d:'Open it from your Home Screen<br>full screen, like an app.',ok:'Got it',st:[]},ja:{t:'ホーム画面に追加',d:'ホーム画面のアイコンから<br>アプリのように全画面で開けます。',ok:'OK',st:[]}};
- if(inapp){T.en.st.push('Open this page in <b>'+B+'</b> (menu → Open in browser)');T.ja.st.push('<b>'+B+'</b>で開き直す（メニュー →「ブラウザで開く」）');}
- if(ios){if(v>=26){T.en.st.push('Tap '+MO+' <b>More</b> at the bottom');T.ja.st.push('下の '+MO+' <b>その他</b> をタップ');}
-  T.en.st.push('Tap '+SH+' <b>Share</b>');T.ja.st.push(SH+' <b>共有</b> をタップ');
-  T.en.st.push('Choose <b>Add to Home Screen</b>, then <b>Add</b>');T.ja.st.push('<b>ホーム画面に追加</b> → <b>追加</b>');}
- else{T.en.st.push('Tap '+DT+' <b>Menu</b> at the top right');T.ja.st.push('右上の '+DT+' <b>メニュー</b> をタップ');
-  T.en.st.push('Choose <b>Add to Home screen</b>, then <b>Add</b>');T.ja.st.push('<b>ホーム画面に追加</b> → <b>追加</b>');}
+ function add(en,ja){T.en.st.push(en);T.ja.st.push(ja);}
+ if(inapp){add('Open this page in <b>'+B+'</b> (menu → Open in browser)','<b>'+B+'</b>で開き直す（メニュー →「ブラウザで開く」）');}
+ if(canInstall){T.en.ok='Install';T.ja.ok='ホーム画面に追加';T.en.d='One tap — it installs like an app.';T.ja.d='ボタンひとつで、アプリのように追加できます。';}
+ else if(ios&&(safari||inapp)){
+  if(v>=26){add('Tap '+PM+' or '+MO+' next to the address bar','アドレスバー横の '+PM+' か '+MO+' をタップ');add('Tap '+SH+' <b>Share</b>',SH+' <b>共有</b> をタップ');}
+  else add('Tap '+SH+' <b>Share</b> at the bottom','下の '+SH+' <b>共有</b> をタップ');
+  add('Scroll down, tap <b>Add to Home Screen</b>','下にスクロールして <b>ホーム画面に追加</b>');
+  add('Keep <b>Open as Web App</b> on, tap <b>Add</b>','<b>Webアプリとして開く</b> はオンのまま <b>追加</b>');}
+ else if(crios){add('Tap '+SH+' <b>Share</b> in the address bar','アドレスバーの '+SH+' <b>共有</b> をタップ');add('Tap <b>Add to Home Screen</b>, then <b>Add</b>','<b>ホーム画面に追加</b> → <b>追加</b>');}
+ else if(ios){add('Open the browser menu, tap '+SH+' <b>Share</b>','ブラウザのメニューから '+SH+' <b>共有</b> をタップ');add('Tap <b>Add to Home Screen</b>, then <b>Add</b>','<b>ホーム画面に追加</b> → <b>追加</b>');}
+ else{add('Tap '+DT+' <b>Menu</b> at the top right','右上の '+DT+' <b>メニュー</b> をタップ');add('Tap <b>Add to Home screen</b> or <b>Install app</b>','<b>ホーム画面に追加</b> か <b>アプリをインストール</b>');add('Confirm with <b>Add</b> / <b>Install</b>','<b>追加</b>（<b>インストール</b>）で完了');}
+ $('instLater').hidden=!canInstall;
  var seg=document.querySelector('.lseg'),cur=null;
- function setL(l,anim){var c=document.querySelector('.instc');function put(){var x=T[l];$('instT').innerHTML=x.t;$('instD').innerHTML=x.d;$('instSteps').innerHTML=x.st.map(function(y){return '<li><span>'+y+'</span></li>';}).join('');$('instOk').textContent=x.ok;}
+ function setL(l,anim){var c=document.querySelector('.instc');function put(){var x=T[l];$('instT').innerHTML=x.t;$('instD').innerHTML=x.d;$('instSteps').innerHTML=x.st.map(function(y){return '<li><span>'+y+'</span></li>';}).join('');$('instOk').textContent=x.ok;$('instLater').textContent=l==='ja'?'あとで':'Later';}
   cur=l;seg.dataset.l=l;seg.querySelectorAll('button').forEach(function(b){b.setAttribute('aria-selected',b.dataset.l===l?'true':'false');});$('inst').setAttribute('lang',l);
   if(anim){c.classList.add('sw');setTimeout(function(){put();c.classList.remove('sw');},200);}else put();}
  seg.querySelectorAll('button').forEach(function(b){b.onclick=function(){if(b.dataset.l!==cur)setL(b.dataset.l,true);};});
  setL(/^ja/i.test(navigator.language||'')?'ja':'en',false);
  var el=$('inst');el.hidden=false;requestAnimationFrame(function(){requestAnimationFrame(function(){el.classList.add('show');});});
- $('instOk').onclick=function(){el.classList.remove('show');setTimeout(function(){el.hidden=true;},460);};}
+ function closeI(){el.classList.remove('show');setTimeout(function(){el.hidden=true;},460);}
+ $('instLater').onclick=closeI;
+ $('instOk').onclick=function(){if(canInstall&&window.__bip){var e=window.__bip;window.__bip=null;e.prompt();(e.userChoice||Promise.resolve()).then(closeI,closeI);}else closeI();};}
 render();photos();
 </script>
 </body>
