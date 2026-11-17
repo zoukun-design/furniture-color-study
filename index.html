@@ -280,6 +280,9 @@ select[hidden],.seltx[hidden]{display:none}
 .selflash{position:absolute;left:50%;top:50%;z-index:4;display:inline-flex;align-items:center;gap:0;padding:6px 11px;border-radius:14px;background:rgba(20,20,20,.86);color:#fff;font-size:10.5px;letter-spacing:.01em;font-weight:700;white-space:nowrap;pointer-events:none;opacity:0;transform:translate(-50%,-50%) scale(.9);animation:selFlash 1.2s cubic-bezier(.45,0,.25,1) .12s forwards}
 @keyframes selFlash{0%{opacity:0;transform:translate(-50%,-50%) scale(.9)}22%{opacity:1;transform:translate(-50%,-50%) scale(1)}78%{opacity:1;transform:translate(-50%,-50%) scale(1)}100%{opacity:0;transform:translate(-50%,-50%) scale(.9)}}
 @media (prefers-reduced-motion:reduce){.selflash{animation-duration:.01s}}
+
+/* home-screen launch: iOS blurs a band under the status bar, so start the content below it */
+@media (display-mode: standalone){.app{padding-top:calc(env(safe-area-inset-top) + 44px)}}
 </style>
 </head>
 <body>
