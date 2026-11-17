@@ -283,9 +283,43 @@ select[hidden],.seltx[hidden]{display:none}
 
 /* home-screen launch: iOS blurs a band under the status bar, so start the content below it */
 @media (display-mode: standalone){.app{padding-top:calc(env(safe-area-inset-top) + 30px);padding-bottom:calc(env(safe-area-inset-bottom) + 22px)}header{gap:8px;padding-bottom:8px}.tbl{padding-bottom:6px}}
+
+/* opening logo: the red dot writes the wordmark, then the mark settles into the header */
+.splash{position:fixed;inset:0;z-index:50;background:#fff;display:flex;align-items:center;justify-content:center;transition:background-color .5s cubic-bezier(.45,0,.25,1)}
+.splash.go{background-color:rgba(255,255,255,0)}
+.slogo{font-family:'Barlow',sans-serif;font-weight:700;font-size:44px;letter-spacing:-.01em;line-height:1;color:var(--ink);display:flex;align-items:baseline;position:relative;transform-origin:0 0}
+.stx{clip-path:inset(0 100% 0 0);transition:clip-path .7s cubic-bezier(.45,0,.25,1)}
+.sdot{display:inline-block;width:.242em;height:.242em;background:#e0301e;margin-left:.0605em;transform:translateX(var(--sx,0)) scale(0);transition:transform .7s cubic-bezier(.45,0,.25,1)}
+.splash.s1 .sdot{transform:translateX(var(--sx,0)) scale(1);transition-duration:.35s}
+.splash.s2 .stx{clip-path:inset(0 0 0 0)}
+.splash.s2 .sdot{transform:translateX(0) scale(1);transition-duration:.7s}
+.splash.go .slogo{transition:transform .55s cubic-bezier(.45,0,.25,1)}
+body.splashing .app .logo{visibility:hidden}
+/* add-to-home sheet (browser only) */
+.inst[hidden]{display:none}
+.inst{position:fixed;left:0;right:0;bottom:0;z-index:40;display:flex;justify-content:center;padding:0 12px calc(env(safe-area-inset-bottom) + 12px);pointer-events:none}
+.instc{pointer-events:auto;width:100%;max-width:420px;background:#fff;border-radius:18px;box-shadow:0 10px 40px rgba(0,0,0,.16),0 1px 3px rgba(0,0,0,.08);padding:18px 18px 14px;display:flex;flex-direction:column;align-items:center;text-align:center;transform:translateY(120%);transition:transform .45s cubic-bezier(.45,0,.25,1)}
+.inst.show .instc{transform:none}
+.insti{width:48px;height:48px;border-radius:11px;box-shadow:0 0 0 1px rgba(0,0,0,.08)}
+.instt{margin-top:10px;font-size:15px}
+.instd{margin:3px 0 0;font-size:12px;color:var(--mute)}
+.insts{list-style:none;margin:12px 0 0;padding:10px 0 0;border-top:1px solid var(--line);width:100%;display:flex;flex-direction:column;gap:7px;font-size:13px;counter-reset:st}
+.insts li{display:flex;align-items:center;justify-content:center;gap:6px;counter-increment:st}
+.insts li::before{content:counter(st);width:18px;height:18px;border-radius:50%;background:var(--ink);color:#fff;font-size:11px;font-weight:700;display:inline-flex;align-items:center;justify-content:center;flex:none}
+.insts .gl{vertical-align:-2px}
+.insts b{font-weight:700}
+.instb{margin-top:14px;appearance:none;border:0;background:var(--ink);color:#fff;font:inherit;font-size:14px;font-weight:700;height:42px;border-radius:21px;width:100%;cursor:pointer}
 </style>
 </head>
 <body>
+<div class="splash" id="splash" aria-hidden="true"><div class="slogo" id="slogo"><span class="stx" id="stx">234Lab</span><span class="sdot" id="sdot"></span></div></div>
+<div class="inst" id="inst" role="dialog" aria-label="Add to Home Screen" hidden><div class="instc">
+<img src="icon-192.png" alt="" class="insti">
+<b class="instt">Add to Home Screen</b>
+<p class="instd">Opens full screen, like an app.</p>
+<ol class="insts" id="instSteps"></ol>
+<button type="button" class="instb" id="instOk">Got it</button>
+</div></div>
 <div class="app">
 <header>
 <div class="tb">
@@ -1336,6 +1370,29 @@ function fitTitle(){var t=document.querySelector('.ptitle'),b=$('pBrand'),n=$('p
 window.addEventListener('resize',fitTitle);if(document.fonts&&document.fonts.ready)document.fonts.ready.then(fitTitle);
 if(window.ResizeObserver)new ResizeObserver(fitTitle).observe(document.querySelector('.ptitle'));
 
+
+// ---- opening logo animation (every launch) -> then the add-to-home sheet (browser only)
+(function(){var sp=$('splash'),sl=$('slogo'),tx=$('stx'),dot=$('sdot');if(!sp)return;document.body.classList.add('splashing');
+ var reduce=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches,done=false;
+ function end(){if(done)return;done=true;document.body.classList.remove('splashing');sp.remove();setTimeout(installSheet,250);}
+ function fly(){var h=document.querySelector('.app .logo'),a=sl.getBoundingClientRect(),b=h?h.getBoundingClientRect():null;
+  sp.classList.add('go');if(b&&a.width){var k=b.height/a.height;sl.style.transform='translate('+(b.left-a.left)+'px,'+(b.top-a.top)+'px) scale('+k+')';}
+  setTimeout(end,560);}
+ function run(){var w=tx.getBoundingClientRect().width;sl.style.setProperty('--sx',(-w-dot.getBoundingClientRect().width*0.25)+'px');
+  if(reduce){sp.classList.add('s1','s2');setTimeout(fly,200);return;}
+  requestAnimationFrame(function(){sp.classList.add('s1');setTimeout(function(){sp.classList.add('s2');},420);setTimeout(fly,420+700+380);});}
+ sp.addEventListener('click',fly);
+ if(document.fonts&&document.fonts.ready){var t=setTimeout(run,600);document.fonts.ready.then(function(){clearTimeout(t);run();});}else run();
+ setTimeout(end,4000);})();
+function isStandalone(){return (window.matchMedia&&matchMedia('(display-mode: standalone)').matches)||navigator.standalone===true;}
+function installSheet(){if(isStandalone())return;var ua=navigator.userAgent||'',ios=/iPhone|iPad|iPod/.test(ua)||(/Macintosh/.test(ua)&&navigator.maxTouchPoints>1),and=/Android/.test(ua),inapp=/Line\/|Instagram|FBAN|FBAV|Messenger|MicroMessenger|KAKAOTALK/i.test(ua);
+ if(!ios&&!and)return;var st=[];
+ if(inapp)st.push('Open this page in <b>'+(ios?'Safari':'Chrome')+'</b> (menu → Open in browser)');
+ if(ios){st.push('Tap '+'<svg class="gl" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 15V3M7.5 7.5 12 3l4.5 4.5"/><path d="M6 11H5a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-8a1 1 0 0 0-1-1h-1"/></svg>' +' <b>Share</b>');st.push('Choose <b>Add to Home Screen</b>');}
+ else{st.push('Tap '+'<svg class="gl" width="15" height="15" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="12" cy="5" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="12" cy="19" r="1.8"/></svg>'+' <b>Menu</b>');st.push('Choose <b>Add to Home screen</b>');}
+ $('instSteps').innerHTML=st.map(function(x){return '<li><span>'+x+'</span></li>';}).join('');
+ var el=$('inst');el.hidden=false;requestAnimationFrame(function(){requestAnimationFrame(function(){el.classList.add('show');});});
+ $('instOk').onclick=function(){el.classList.remove('show');setTimeout(function(){el.hidden=true;},460);};}
 render();photos();
 </script>
 </body>
