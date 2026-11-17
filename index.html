@@ -316,7 +316,7 @@ body.splashing .app .logo{visibility:hidden}
 .instb{flex:none;width:100%;max-width:360px;appearance:none;border:0;background:var(--ink);color:#fff;font:inherit;font-size:15px;font-weight:700;height:50px;border-radius:25px;cursor:pointer}
 
 .lseg{position:relative;display:grid;grid-template-columns:1fr 1fr;width:180px;flex:none;background:#f0efec;border-radius:18px;padding:3px}
-.lseg button{position:relative;appearance:none;border:0;background:none;font:inherit;font-size:12px;color:var(--mute);height:30px;border-radius:15px;cursor:pointer}
+.lseg button{position:relative;appearance:none;border:0;background:none;font-family:'BIZ UDPGothic',system-ui,sans-serif;font-size:13px;color:var(--mute);height:30px;border-radius:15px;cursor:pointer}
 .lseg button[aria-selected="true"]{color:var(--ink);font-weight:700}
 .lsegi{position:absolute;top:3px;left:3px;width:calc(50% - 3px);height:30px;border-radius:15px;background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.08);transition:transform .3s cubic-bezier(.45,0,.25,1)}
 .lseg[data-l="ja"] .lsegi{transform:translateX(100%)}
@@ -1400,11 +1400,10 @@ if(window.ResizeObserver)new ResizeObserver(fitTitle).observe(document.querySele
   big.style.transform=frames[0].transform;big.style.visibility='visible';
   var roll=big.animate(frames,{duration:1150,easing:'cubic-bezier(.25,.6,.3,1)',fill:'forwards'});
   roll.onfinish=function(){
-   // land: a small squash, then shrink into the dot at the start of the word
+   // rest, then glide straight into the dot at the start of the word
    var tx0=restX,ty0=restY,dx=dr.left+sx,dy=dr.top,k=dr.width/S;
-   var land=big.animate([{transform:'translate('+tx0+'px,'+ty0+'px) scale(1,1)'},{transform:'translate('+(tx0-3)+'px,'+(ty0+6)+'px) scale(1.1,.9)'},{transform:'translate('+tx0+'px,'+ty0+'px) scale(1,1)'}],{duration:260,easing:'cubic-bezier(.45,0,.25,1)',fill:'forwards'});
-   land.onfinish=function(){var sh=big.animate([{transform:'translate('+tx0+'px,'+ty0+'px) scale(1)'},{transform:'translate('+dx+'px,'+dy+'px) scale('+k+')'}],{duration:480,easing:'cubic-bezier(.45,0,.25,1)',fill:'forwards'});
-    sh.onfinish=function(){sp.classList.add('s1');big.remove();requestAnimationFrame(function(){sp.classList.add('s2');setTimeout(fly,700+380);});};};};
+   var sh=big.animate([{transform:'translate('+tx0+'px,'+ty0+'px) scale(1)'},{transform:'translate('+dx+'px,'+dy+'px) scale('+k+')'}],{duration:620,delay:120,easing:'cubic-bezier(.65,0,.35,1)',fill:'forwards'});
+    sh.onfinish=function(){sp.classList.add('s1');big.remove();requestAnimationFrame(function(){sp.classList.add('s2');setTimeout(fly,700+380);});};};
   big.style.transform=frames[0].transform;}
  sp.addEventListener('click',fly);
  if(document.fonts&&document.fonts.ready){var t=setTimeout(run,600);document.fonts.ready.then(function(){clearTimeout(t);run();});}else run();
@@ -1415,10 +1414,10 @@ function installSheet(){if(isStandalone())return;var ua=navigator.userAgent||'',
  // which browser: steps differ by where each one keeps its Share / menu button
  var v=(ua.match(/Version\/(\d+)/)||[])[1]|0,crios=/CriOS/.test(ua),fxios=/FxiOS/.test(ua),edgios=/EdgiOS/.test(ua),safari=ios&&!crios&&!fxios&&!edgios&&!inapp,
   SH='<svg class="gl" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 15V3M7.5 7.5 12 3l4.5 4.5"/><path d="M6 11H5a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-8a1 1 0 0 0-1-1h-1"/></svg>',PM='<svg class="gl" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" aria-hidden="true"><path d="M5 7h14M5 12h14M5 17h9"/></svg>',MO='<svg class="gl" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="5" cy="12" r="1.9"/><circle cx="12" cy="12" r="1.9"/><circle cx="19" cy="12" r="1.9"/></svg>',DT='<svg class="gl" width="15" height="15" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="12" cy="5" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="12" cy="19" r="1.8"/></svg>',B=ios?'Safari':'Chrome',canInstall=!!window.__bip&&and;
- var T={en:{t:'Add to Home Screen',d:'Open it from your Home Screen<br>full screen, like an app.',ok:'Got it',st:[]},ja:{t:'ホーム画面に追加',d:'ホーム画面のアイコンから<br>アプリのように全画面で開けます。',ok:'OK',st:[]}};
+ var T={en:{t:'Add to Home Screen',d:'Install this app on your home screen<br>for quick and easy access.',ok:'Got it',st:[]},ja:{t:'ホーム画面に追加',d:'ホーム画面に追加すると<br>いつでもすぐに開けます。',ok:'OK',st:[]}};
  function add(en,ja){T.en.st.push(en);T.ja.st.push(ja);}
  if(inapp){add('Open this page in <b>'+B+'</b> (menu → Open in browser)','<b>'+B+'</b>で開き直す（メニュー →「ブラウザで開く」）');}
- if(canInstall){T.en.ok='Install';T.ja.ok='ホーム画面に追加';T.en.d='One tap — it installs like an app.';T.ja.d='ボタンひとつで、アプリのように追加できます。';}
+ if(canInstall){T.en.ok='Install';T.ja.ok='ホーム画面に追加';}
  else if(ios&&(safari||inapp)){
   if(v>=26){add('Tap '+PM+' or '+MO+' next to the address bar','アドレスバー横の '+PM+' か '+MO+' をタップ');add('Tap '+SH+' <b>Share</b>',SH+' <b>共有</b> をタップ');}
   else add('Tap '+SH+' <b>Share</b> at the bottom','下の '+SH+' <b>共有</b> をタップ');
@@ -1433,7 +1432,7 @@ function installSheet(){if(isStandalone())return;var ua=navigator.userAgent||'',
   cur=l;seg.dataset.l=l;seg.querySelectorAll('button').forEach(function(b){b.setAttribute('aria-selected',b.dataset.l===l?'true':'false');});$('inst').setAttribute('lang',l);
   if(anim){c.classList.add('sw');setTimeout(function(){put();c.classList.remove('sw');},200);}else put();}
  seg.querySelectorAll('button').forEach(function(b){b.onclick=function(){if(b.dataset.l!==cur)setL(b.dataset.l,true);};});
- setL(/^ja/i.test(navigator.language||'')?'ja':'en',false);
+ setL('en',false);
  var el=$('inst');el.hidden=false;requestAnimationFrame(function(){requestAnimationFrame(function(){el.classList.add('show');});});
  function closeI(){el.classList.remove('show');setTimeout(function(){el.hidden=true;},460);}
  $('instLater').onclick=closeI;
