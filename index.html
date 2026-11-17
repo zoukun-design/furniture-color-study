@@ -34,7 +34,33 @@ button{font:inherit;color:inherit}
 .app{height:100dvh;max-width:520px;margin:0 auto;display:flex;flex-direction:column;padding:calc(env(safe-area-inset-top) + 6px) 0 calc(env(safe-area-inset-bottom) + 20px)}
 header{padding:0 20px 10px;display:flex;flex-direction:column;gap:10px}
 .tb{border-bottom:1px solid #e6e4df}
-.tbl{padding:0 0 8px}
+.tbl{padding:0 0 8px;display:flex;align-items:center;justify-content:space-between;position:relative;z-index:31}
+.mbtn{appearance:none;border:0;background:none;width:40px;height:32px;margin:-6px -10px -6px 0;position:relative;cursor:pointer;padding:0}
+.mbtn i{position:absolute;left:10px;width:20px;height:1.6px;border-radius:1px;background:var(--ink);transition:transform .3s cubic-bezier(.45,0,.25,1)}
+.mbtn i:first-child{top:12px}.mbtn i:last-child{top:18.4px}
+.mbtn[aria-expanded="true"] i:first-child{transform:translateY(3.2px) rotate(45deg)}
+.mbtn[aria-expanded="true"] i:last-child{transform:translateY(-3.2px) rotate(-45deg)}
+.menu{position:fixed;inset:0;z-index:30;background:#fff;opacity:0;transition:opacity .3s cubic-bezier(.45,0,.25,1)}
+.menu[hidden]{display:none}
+.menu.show{opacity:1}
+.mnc{max-width:520px;height:100%;margin:0 auto;padding:0 20px calc(env(safe-area-inset-bottom) + 18px);display:flex;flex-direction:column;overflow-y:auto;transform:translateY(10px);transition:transform .3s cubic-bezier(.45,0,.25,1)}
+.menu.show .mnc{transform:none}
+.mhd{font-size:10px;letter-spacing:.06em;color:#8a877f;padding:16px 0 10px;border-top:1px solid #e6e4df;text-align:center}
+.mprev{display:block;height:min(40vh,330px);aspect-ratio:4/5;margin:0 auto;border-radius:10px;border:1px solid #e6e4df;background:#fff;object-fit:contain}
+.mbts{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:16px 0 0}
+.mbts button{appearance:none;height:46px;border-radius:23px;font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:7px;border:1px solid #141414}
+.mbts .pri{background:#141414;color:#fff}.mbts .sec{background:#fff;color:#141414}
+.mcap{font-size:11px;color:#8a877f;text-align:center;margin:10px 0 22px;line-height:1.5}
+.mrow{display:flex;align-items:center;justify-content:space-between;gap:12px;height:58px;border-top:1px solid #e6e4df;color:var(--ink);text-decoration:none;font-size:14px;background:none;border-left:0;border-right:0;border-bottom:0;width:100%;padding:0;cursor:pointer;text-align:left}
+.mlist{border-bottom:1px solid #e6e4df}
+.mrow b{display:block;font-size:14px}
+.mrow small{display:flex;align-items:center;gap:6px;font-size:12px;color:#8a877f;margin-top:3px}
+.mrow small i{width:10px;height:10px;border-radius:50%;box-shadow:inset 0 0 0 1px rgba(0,0,0,.15)}
+.mrow svg{flex:none;color:#8a877f}
+.mft{margin-top:auto;padding-top:24px;text-align:center;font-family:'Barlow',sans-serif;font-weight:700;font-size:15px;color:#141414}
+.mft .dot{display:inline-block;width:.242em;height:.242em;background:#e0301e;margin-left:.0605em}
+.toast{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom) + 28px);z-index:70;transform:translate(-50%,12px);background:#141414;color:#fff;font-size:12.5px;font-weight:700;padding:11px 16px;border-radius:22px;white-space:nowrap;opacity:0;pointer-events:none;transition:opacity .3s cubic-bezier(.45,0,.25,1),transform .3s cubic-bezier(.45,0,.25,1)}
+.toast.show{opacity:1;transform:translate(-50%,0)}
 .logo{font-family:'Barlow',sans-serif;font-weight:700;font-size:22px;letter-spacing:-.01em;line-height:1}
 .logo .dot{display:inline-block;width:.242em;height:.242em;border-radius:0;background:#e0301e;margin-left:.0605em;vertical-align:baseline;position:relative;top:.5px}
 dl{margin:0;display:grid;grid-template-columns:52px 1fr}
@@ -335,7 +361,7 @@ body.splashing .app .logo{visibility:hidden}
 <div class="app">
 <header>
 <div class="tb">
-<div class="tbl"><div class="logo" aria-label="234Lab.">234Lab<span class="dot" aria-hidden="true"></span></div></div>
+<div class="tbl"><div class="logo" aria-label="234Lab.">234Lab<span class="dot" aria-hidden="true"></span></div><button class="mbtn" id="mbtn" type="button" aria-label="Menu" aria-expanded="false" aria-controls="menu"><i></i><i></i></button></div>
 <dl>
 <dt>TITLE</dt><dd><h1>Furniture Color Study</h1></dd>
 <dt><label for="selArea">AREA</label></dt><dd><select id="selArea"></select></dd>
@@ -347,6 +373,8 @@ body.splashing .app .logo{visibility:hidden}
 <button role="tab" aria-selected="false" data-v="photo">Photos</button>
 </div>
 </header>
+<div class="menu" id="menu" hidden><div class="mnc" id="mnc"><div class="mhd">SHARE THIS COMBINATION</div><img class="mprev" id="mprev" alt="Share image preview"><div class="mbts"><button class="pri" type="button" id="mShareImg"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 15V3M7.5 7.5 12 3l4.5 4.5"/><path d="M6 11H5a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-8a1 1 0 0 0-1-1h-1"/></svg>Share image</button><button class="sec" type="button" id="mShareLink"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 14a4.5 4.5 0 0 0 6.4 0l3-3a4.5 4.5 0 0 0-6.4-6.4l-1 1"/><path d="M14 10a4.5 4.5 0 0 0-6.4 0l-3 3a4.5 4.5 0 0 0 6.4 6.4l1-1"/></svg>Share link</button></div><p class="mcap">The link opens the app with this exact combination.</p><div class="mhd" style="border:0;padding-top:0">PRODUCT PAGES</div><div class="mlist"><a class="mrow" id="mKana" target="_blank" rel="noopener"><span><b>KANADEMONO</b><small><i id="mKanaDot"></i><span id="mKanaC"></span></small></span><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 16 16 8M9.5 8H16v6.5"/></svg></a><a class="mrow" id="mPark" target="_blank" rel="noopener"><span><b>Park Side Market</b><small><i id="mParkDot"></i><span id="mParkC"></span></small></span><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 16 16 8M9.5 8H16v6.5"/></svg></a><button class="mrow" type="button" id="mInst" hidden><span><b>Add to Home Screen</b><small>Open it like an app</small></span><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg></button></div><div class="mft">234Lab<span class="dot"></span></div></div></div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
 
 <div class="vpager" id="vpager"><div class="vtrack" id="vtrack">
 <section class="view" id="v-sim">
@@ -1149,6 +1177,7 @@ var sel={area:0,user:0};
 try{var sv=JSON.parse(localStorage.getItem('ldeskSel')||'null');if(sv&&AREAS[sv.area]&&AREAS[sv.area].users[sv.user]!==undefined)sel=sv;}catch(e){}
 var st={a:0,b:0},fav={a:[],b:[]},pk='a',li=0;
 try{var fv=JSON.parse(localStorage.getItem('ldeskFav')||'null');if(fv&&fv.a&&fv.b)fav=fv;}catch(e){}
+var SHARED=false;try{var qs=new URLSearchParams(location.search),qa=+qs.get('a'),qb=+qs.get('b');if(qa>=1&&qa<=9&&qb>=1&&qb<=9){SHARED={a:qa-1,b:qb-1};history.replaceState(null,'',location.pathname);}}catch(e){}
 function togglePick(k,i){if(st[k]===i)return false;st[k]=i;render();return true;}
 var STARD="M12 2.8l2.75 5.86 6.4.78-4.72 4.4 1.22 6.33L12 17.06l-5.65 3.11 1.22-6.33-4.72-4.4 6.4-.78z";
 function fvDraw(fb,k,i){var on=isFav(k,i);if(fb.dataset.st===String(on))return;fb.dataset.st=String(on);fb.classList.toggle('on',on);fb.setAttribute('aria-pressed',on?'true':'false');fb.setAttribute('aria-label',(on?'Remove from favorites: ':'Add to favorites: ')+COL[k][i][0]);fb.innerHTML='<span><svg width="26" height="26" viewBox="0 0 26 26" aria-hidden="true"><circle cx="13" cy="13" r="12.6" fill="'+(on?'#fff':'rgba(255,255,255,.75)')+'" stroke="'+(on?'#fff':'rgba(20,20,20,.5)')+'" stroke-width=".8"/><path transform="translate(5 5) scale(.6667)" d="'+STARD+'" fill="'+(on?'#F5B301':'none')+'" stroke="'+(on?'#F5B301':'rgba(20,20,20,.5)')+'" stroke-width="1.4" stroke-linejoin="round"/></svg></span>';}
@@ -1161,6 +1190,7 @@ function isFav(k,i){return fav[k].indexOf(i)>=0;}
 function togFav(k,i){var a=fav[k],j=a.indexOf(i);if(j>=0)a.splice(j,1);else a.push(i);try{localStorage.setItem('ldeskFav',JSON.stringify(fav));}catch(e){}favMarks();}
 try{localStorage.removeItem('ldeskLock');}catch(e){}
 try{var s=JSON.parse(localStorage.getItem('ldesk')||'null');if(s&&s.a>=0&&s.a<9&&s.b>=0&&s.b<9){st.a=s.a;st.b=s.b;}}catch(e){}
+if(SHARED){st.a=SHARED.a;st.b=SHARED.b;}
 function $(id){return document.getElementById(id);}
 function mk(t,c){var e=document.createElement(t);if(c)e.className=c;return e;}
 function shade(h,f){var n=parseInt(h.slice(1),16);return 'rgb('+Math.round((n>>16&255)*f)+','+Math.round((n>>8&255)*f)+','+Math.round((n&255)*f)+')';}
@@ -1386,7 +1416,7 @@ if(window.ResizeObserver)new ResizeObserver(fitTitle).observe(document.querySele
 // ---- opening logo animation (every launch) -> then the add-to-home sheet (browser only)
 (function(){var sp=$('splash'),sl=$('slogo'),tx=$('stx'),dot=$('sdot');if(!sp)return;document.body.classList.add('splashing');
  var reduce=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches,done=false;
- function end(){if(done)return;done=true;document.body.classList.remove('splashing');sp.remove();setTimeout(installSheet,250);}
+ function end(){if(done)return;done=true;document.body.classList.remove('splashing');sp.remove();if(SHARED)toast('Showing a shared combination');setTimeout(installSheet,SHARED?2600:250);}
  function fly(){var h=document.querySelector('.app .logo'),a=sl.getBoundingClientRect(),b=h?h.getBoundingClientRect():null;
   sp.classList.add('go');if(b&&a.width){var k=b.height/a.height;sl.style.transform='translate('+(b.left-a.left)+'px,'+(b.top-a.top)+'px) scale('+k+')';}
   setTimeout(end,560);}
@@ -1440,6 +1470,53 @@ function installSheet(){if(isStandalone())return;var ua=navigator.userAgent||'',
  function closeI(){el.classList.remove('show');setTimeout(function(){el.hidden=true;},460);}
  $('instLater').onclick=closeI;
  $('instOk').onclick=function(){if(canInstall&&window.__bip){var e=window.__bip;window.__bip=null;e.prompt();(e.userChoice||Promise.resolve()).then(closeI,closeI);}else closeI();};}
+
+// ---- menu: share the current combination ----
+var toastT;function toast(m){var t=$('toast');t.textContent=m;t.classList.add('show');clearTimeout(toastT);toastT=setTimeout(function(){t.classList.remove('show');},2200);}
+function shareUrl(){return location.origin+location.pathname+'?a='+(st.a+1)+'&b='+(st.b+1);}
+function comboText(){return 'Main Desk: '+INFO.a.maker+' '+COL.a[st.a][0]+' / Sub Desk: '+INFO.b.maker+' '+COL.b[st.b][0];}
+var cardBlob=null,cardUrl=null,cardKey='';
+function makeCard(){var key=st.a+'-'+st.b+'-'+sel.area+'-'+sel.user;if(key===cardKey&&cardBlob)return Promise.resolve(cardBlob);
+ var W=1080,H=1350,cv=document.createElement('canvas');cv.width=W;cv.height=H;var c=cv.getContext('2d');
+ var svg=document.querySelector('#stage > svg').cloneNode(true),cs=getComputedStyle(document.documentElement);
+ ['aTop','aSideU','aSideV','bTop','bSideU','bSideV'].forEach(function(k){var v=cs.getPropertyValue('--'+k).trim();svg.querySelectorAll('.'+k).forEach(function(e){e.setAttribute('fill',v);e.removeAttribute('class');});});
+ svg.setAttribute('xmlns','http://www.w3.org/2000/svg');svg.setAttribute('width','924');svg.setAttribute('height','1043');
+ var src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(new XMLSerializer().serializeToString(svg));
+ var fl=document.fonts?Promise.all([document.fonts.load('700 48px Barlow','234Lab'),document.fonts.load('700 34px "BIZ UDPGothic"','Furniture Color Study'),document.fonts.load('400 24px "BIZ UDPGothic"','Area')]).catch(function(){}):Promise.resolve();
+ return fl.then(function(){return new Promise(function(res){var im=new Image();im.onload=function(){res(im);};im.onerror=function(){res(null);};im.src=src;});}).then(function(im){
+  var F="'BIZ UDPGothic',sans-serif";c.fillStyle='#fff';c.fillRect(0,0,W,H);c.textAlign='center';c.textBaseline='alphabetic';
+  // logo
+  c.font="700 46px Barlow,sans-serif";var lw=c.measureText('234Lab').width,ds=46*.242,gap=46*.0605,lx=(W-(lw+gap+ds))/2;
+  c.fillStyle='#141414';c.textAlign='left';c.fillText('234Lab',lx,116);c.fillStyle='#e0301e';c.fillRect(lx+lw+gap,116-ds,ds,ds);c.textAlign='center';
+  c.fillStyle='#141414';c.font='700 34px '+F;c.fillText('Furniture Color Study',W/2,178);
+  c.fillStyle='#8a877f';c.font='400 23px '+F;c.fillText(AREAS[sel.area].name+'  ·  '+AREAS[sel.area].users[sel.user],W/2,216);
+  if(im){var dh=790,dw=dh*924/1043;c.drawImage(im,(W-dw)/2,236,dw,dh);}
+  c.fillStyle='#e6e4df';c.fillRect(72,1042,W-144,2);c.fillRect(W/2-1,1072,2,196);
+  [['a',W/4+18,'MAIN DESK'],['b',W*3/4-18,'SUB DESK']].forEach(function(r){var k=r[0],x=r[1],col=COL[k][st[k]];
+   c.beginPath();c.arc(x,1104,24,0,Math.PI*2);c.fillStyle=col[1];c.fill();c.lineWidth=2;c.strokeStyle='rgba(0,0,0,.14)';c.stroke();
+   c.fillStyle='#8a877f';c.font='400 17px '+F;c.fillText(r[2],x,1164);
+   c.fillStyle='#141414';c.font='700 32px '+F;c.fillText(col[0],x,1206);
+   c.font='700 21px '+F;c.fillText(INFO[k].maker,x,1244);
+   c.fillStyle='#5c5c5c';c.font='400 17px '+F;var nm=INFO[k].name;while(c.measureText(nm).width>420)c.font=(parseFloat(c.font.split(' ')[1])-1)+'px '+F;c.font='400 '+c.font.split(' ')[1]+' '+F;c.fillText(nm,x,1272);});
+  c.fillStyle='#b0ada6';c.font='400 16px '+F;c.fillText(location.host+location.pathname.replace(/\/$/,''),W/2,1322);
+  return new Promise(function(res){cv.toBlob(function(b){cardBlob=b;cardKey=key;if(cardUrl)URL.revokeObjectURL(cardUrl);cardUrl=URL.createObjectURL(b);res(b);},'image/png');});});}
+function fillMenu(){$('mKana').href=kUrl();$('mKanaC').textContent=COL.a[st.a][0];$('mKanaDot').style.background=COL.a[st.a][1];
+ $('mPark').href=INFO.b.url;$('mParkC').textContent=COL.b[st.b][0];$('mParkDot').style.background=COL.b[st.b][1];
+ var ua=navigator.userAgent||'',mob=/iPhone|iPad|iPod|Android/.test(ua)||(/Macintosh/.test(ua)&&navigator.maxTouchPoints>1);$('mInst').hidden=isStandalone()||!mob;
+ makeCard().then(function(){$('mprev').src=cardUrl;});}
+var mOpen=false;function setMenu(on){var m=$('menu'),b=$('mbtn');if(on===mOpen)return;mOpen=on;b.setAttribute('aria-expanded',on?'true':'false');b.setAttribute('aria-label',on?'Close menu':'Menu');
+ if(on){fillMenu();var top=document.querySelector('.tbl').getBoundingClientRect().bottom;$('mnc').style.paddingTop=top+'px';m.hidden=false;requestAnimationFrame(function(){requestAnimationFrame(function(){m.classList.add('show');});});}
+ else{m.classList.remove('show');setTimeout(function(){if(!mOpen)m.hidden=true;},300);}}
+$('mbtn').onclick=function(){setMenu(!mOpen);};
+document.addEventListener('keydown',function(e){if(e.key==='Escape'&&mOpen)setMenu(false);});
+function dl(){var a=document.createElement('a');a.href=cardUrl;a.download='furniture-color-study.png';document.body.appendChild(a);a.click();a.remove();}
+$('mShareImg').onclick=function(){if(!cardBlob){makeCard().then(dl);return;}
+ var f=new File([cardBlob],'furniture-color-study.png',{type:'image/png'});
+ if(navigator.canShare&&navigator.canShare({files:[f]})){navigator.share({files:[f],title:'Furniture Color Study'}).catch(function(){});}else dl();};
+$('mShareLink').onclick=function(){var u=shareUrl();
+ if(navigator.share){navigator.share({title:'Furniture Color Study',text:comboText(),url:u}).catch(function(){});}
+ else if(navigator.clipboard){navigator.clipboard.writeText(u).then(function(){toast('Link copied');},function(){prompt('Copy this link',u);});}else prompt('Copy this link',u);};
+$('mInst').onclick=function(){setMenu(false);setTimeout(installSheet,320);};
 render();photos();
 </script>
 </body>
