@@ -60,6 +60,7 @@ body.mopen .tbl{z-index:31}
 .mrow svg{flex:none;color:#8a877f}
 .mft{margin-top:auto;padding-top:24px;text-align:center;font-family:'Barlow',sans-serif;font-weight:700;font-size:15px;color:#141414}
 .mft .dot{display:inline-block;width:.242em;height:.242em;background:#e0301e;margin-left:.0605em}
+.stage .stsh svg{width:29px;height:29px;flex:none}
 .stsh{position:absolute;top:3px;right:22px;z-index:2;appearance:none;border:0;background:none;width:40px;height:40px;display:flex;align-items:center;justify-content:center;color:var(--ink);cursor:pointer;padding:0}
 .shx{position:fixed;inset:0;z-index:12;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:calc(env(safe-area-inset-top) + 16px) 20px calc(env(safe-area-inset-bottom) + 16px);background:rgba(250,250,248,.35);-webkit-backdrop-filter:blur(16px) saturate(1.05);backdrop-filter:blur(16px) saturate(1.05);opacity:0;transition:opacity .3s cubic-bezier(.45,0,.25,1)}
 .shx[hidden]{display:none}.shx.show{opacity:1}
@@ -384,6 +385,11 @@ body.splashing .app .logo{visibility:hidden}
  ['gesturestart','gesturechange','gestureend'].forEach(function(t){document.addEventListener(t,no,{passive:false});});
  document.addEventListener('touchmove',function(e){if(e.touches&&e.touches.length>1)e.preventDefault();},{passive:false});
 })();
+</script>
+<script>
+(function(){try{var ua=navigator.userAgent||'',q=location.search;
+ if(/ Line\//i.test(ua)&&!/openExternalBrowser=1/.test(q)){location.replace(location.pathname+(q?q+'&':'?')+'openExternalBrowser=1'+location.hash);}
+ else if(/openExternalBrowser=1/.test(q)&&!/ Line\//i.test(ua)){var u=new URL(location.href);u.searchParams.delete('openExternalBrowser');history.replaceState(null,'',u.pathname+u.search+u.hash);}}catch(e){}})();
 </script>
 <style>html{touch-action:manipulation}</style>
 </head>
@@ -1518,7 +1524,6 @@ function installSheet(){if(isStandalone())return;var ua=navigator.userAgent||'',
   SH='<svg class="gl" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 15V3M7.5 7.5 12 3l4.5 4.5"/><path d="M6 11H5a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-8a1 1 0 0 0-1-1h-1"/></svg>',PM='<svg class="gl" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" aria-hidden="true"><path d="M5 7h14M5 12h14M5 17h9"/></svg>',MO='<svg class="gl" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="5" cy="12" r="1.9"/><circle cx="12" cy="12" r="1.9"/><circle cx="19" cy="12" r="1.9"/></svg>',DT='<svg class="gl" width="15" height="15" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="12" cy="5" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="12" cy="19" r="1.8"/></svg>',B=ios?'Safari':'Chrome',canInstall=!!window.__bip&&and;
  var T={en:{t:'Add to Home Screen',d:'Install this app on your home screen<br>for quick and easy access.',ok:'Close',st:[]},ja:{t:'ホーム画面に追加',d:'ホーム画面に追加すると<br>いつでもすぐに開けます。',ok:'閉じる',st:[]}};
  function add(en,ja){T.en.st.push(en);T.ja.st.push(ja);}
- if(inapp){add('Open this page in <b>'+B+'</b> (menu → Open in browser)','<b>'+B+'</b>で開き直す（メニュー →「ブラウザで開く」）');}
  if(canInstall){T.en.ok='Install';T.ja.ok='ホーム画面に追加';}
  else if(ios&&(safari||inapp)){
   if(v>=26){add('Tap '+PM+' or '+MO+' next to the address bar','アドレスバー横の '+PM+' か '+MO+' をタップ');add('Tap '+SH+' <b>Share</b>',SH+' <b>共有</b> をタップ');}
@@ -1528,7 +1533,12 @@ function installSheet(){if(isStandalone())return;var ua=navigator.userAgent||'',
  else if(crios){add('Tap '+SH+' <b>Share</b> in the address bar','アドレスバーの '+SH+' <b>共有</b> をタップ');add('Tap <b>Add to Home Screen</b>, then <b>Add</b>','<b>ホーム画面に追加</b> → <b>追加</b>');}
  else if(ios){add('Open the browser menu, tap '+SH+' <b>Share</b>','ブラウザのメニューから '+SH+' <b>共有</b> をタップ');add('Tap <b>Add to Home Screen</b>, then <b>Add</b>','<b>ホーム画面に追加</b> → <b>追加</b>');}
  else{add('Tap '+DT+' <b>Menu</b> at the top right','右上の '+DT+' <b>メニュー</b> をタップ');add('Tap <b>Add to Home screen</b> or <b>Install app</b>','<b>ホーム画面に追加</b> か <b>アプリをインストール</b>');add('Confirm with <b>Add</b> / <b>Install</b>','<b>追加</b>（<b>インストール</b>）で完了');}
- $('instLater').hidden=!canInstall;$('instOk').classList.toggle('sec',!canInstall);
+ if(inapp){var BN=and?'Chrome':'Safari';T.en.st=[];T.ja.st=[];T.en.t='Open in '+BN;T.ja.t=BN+'で開いてください';
+  T.en.d='Home screen apps can’t be added<br>from this app’s built-in browser.';T.ja.d='このアプリ内のブラウザからは<br>ホーム画面に追加できません。';
+  add('Tap '+MO+' at the top, then <b>Open in browser</b>','右上の '+MO+' から <b>ブラウザで開く</b>');
+  add('Or copy the link, paste into <b>'+BN+'</b>','リンクをコピーし <b>'+BN+'</b> に貼り付け');
+  T.en.ok=and?'Open in Chrome':'Copy link';T.ja.ok=and?'Chromeで開く':'リンクをコピー';}
+ $('instLater').hidden=!canInstall&&!inapp;$('instOk').classList.toggle('sec',!canInstall&&!inapp);
  var seg=document.querySelector('.lseg'),cur=null;
  function setL(l,anim){var c=document.querySelector('.instc');function put(){var x=T[l];$('instT').innerHTML=x.t;$('instD').innerHTML=x.d;$('instSteps').innerHTML=x.st.map(function(y){return '<li><span>'+y+'</span></li>';}).join('');$('instOk').textContent=x.ok;$('instLater').textContent=l==='ja'?'あとで':'Later';}
   cur=l;seg.dataset.l=l;seg.querySelectorAll('button').forEach(function(b){b.setAttribute('aria-selected',b.dataset.l===l?'true':'false');});$('inst').setAttribute('lang',l);
@@ -1540,11 +1550,15 @@ function installSheet(){if(isStandalone())return;var ua=navigator.userAgent||'',
  var el=$('inst');el.hidden=false;requestAnimationFrame(function(){requestAnimationFrame(function(){el.classList.add('show');});});
  function closeI(){el.classList.remove('show');setTimeout(function(){el.hidden=true;},460);}
  $('instLater').onclick=closeI;
- $('instOk').onclick=function(){if(canInstall&&window.__bip){var e=window.__bip;window.__bip=null;e.prompt();(e.userChoice||Promise.resolve()).then(closeI,closeI);}else closeI();};}
+ $('instOk').onclick=function(){if(inapp){var u=location.origin+location.pathname+location.search;
+  if(and){location.href='intent://'+u.replace(/^https?:\/\//,'')+'#Intent;scheme=https;package=com.android.chrome;end';return;}
+  var done=function(){var b=$('instOk');b.textContent=cur==='ja'?'コピーしました':'Copied';};
+  if(navigator.clipboard)navigator.clipboard.writeText(u).then(done,function(){prompt('',u);});else prompt('',u);return;}
+  if(canInstall&&window.__bip){var e=window.__bip;window.__bip=null;e.prompt();(e.userChoice||Promise.resolve()).then(closeI,closeI);}else closeI();};}
 
 // ---- menu: share the current combination ----
 var toastT;function toast(m){var t=$('toast');t.textContent=m;t.classList.add('show');clearTimeout(toastT);toastT=setTimeout(function(){t.classList.remove('show');},2200);}
-function shareUrl(){return location.origin+location.pathname+'?a='+(st.a+1)+'&b='+(st.b+1);}
+function shareUrl(){return location.origin+location.pathname+'?a='+(st.a+1)+'&b='+(st.b+1)+'&openExternalBrowser=1';}
 function comboText(){return 'Main Desk: '+INFO.a.maker+' '+COL.a[st.a][0]+' / Sub Desk: '+INFO.b.maker+' '+COL.b[st.b][0];}
 var cardBlob=null,cardUrl=null,cardKey='';
 function makeCard(){var key=st.a+'-'+st.b+'-'+sel.area+'-'+sel.user;if(key===cardKey&&cardBlob)return Promise.resolve(cardBlob);
