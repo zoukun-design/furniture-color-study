@@ -1214,8 +1214,8 @@ body.splashing .app .logo{visibility:hidden}
 <ellipse class="sh" cx="0.5" cy="0" rx="12.5" ry="5.2" fill="rgba(70,58,44,0.13)"/>
 <g class="sen-b"><g class="sen-f">
 <g class="pose pSit">
-<path d="M-10.3,-55.9 L5.95,-46.6 L29.2,-61.25 L17.3,-68.1 Z" fill="#c8b597"/>
-<path d="M5.95,-46.6 L29.2,-61.25 L29.6,-58.4 L6.2,-43.6 Z" fill="#b5a183"/>
+<path d="M-8.6,-56 C-3,-52.6 1.6,-49.8 5.8,-45.6 C12.4,-49 19.6,-53.4 26.4,-57.4 C29,-59 28.2,-63.4 25.4,-64.4 C22,-65.6 18,-66.6 15,-66.6 C9,-64 1,-60 -8.6,-56 Z" fill="#c8b597"/>
+<path d="M3,-52.4 C10,-56.4 17,-60.2 24,-62.2" fill="none" stroke="#b5a183" stroke-width="0.6" stroke-linecap="round"/>
 <path class="sUL" d="" stroke="#3d4148" stroke-width="2.7" stroke-linecap="round" fill="none"/>
 <path class="sFL" d="" stroke="#3d4148" stroke-width="2.2" stroke-linecap="round" fill="none"/>
 <path class="sFR" d="" stroke="#3d4148" stroke-width="2.2" stroke-linecap="round" fill="none"/>
@@ -1265,10 +1265,10 @@ body.splashing .app .logo{visibility:hidden}
 </g></g>
 </g></g></g>
 <g id="senLegs" pointer-events="none" opacity="0" transform="translate(236.9,793.7) scale(2.752)">
-<path d="M10.8,-63.1 L22.7,-57.5 L24.9,-26.25 L13,-33.1 Z" fill="#c8b597"/>
-<path d="M29.2,-61.25 L22.7,-57.5 L24.9,-26.25 L31.4,-30 Z" fill="#b5a183"/>
-<ellipse cx="31.6" cy="-29.4" rx="2.2" ry="1.1" fill="#2b2a2c"/>
-<ellipse cx="22.4" cy="-35" rx="2.2" ry="1.1" fill="#2b2a2c"/>
+<ellipse cx="22.6" cy="-33.4" rx="2.6" ry="1.2" transform="rotate(-28 22.6 -33.4)" fill="#2b2a2c"/>
+<ellipse cx="31" cy="-29.2" rx="2.6" ry="1.2" transform="rotate(-28 31 -29.2)" fill="#2b2a2c"/>
+<path d="M14.6,-63.4 C17.4,-62 22,-59.8 27.6,-57.6 C28.6,-50 29.6,-40 30.8,-31 C25,-32.4 19.4,-34.2 13.4,-36.6 C13.6,-45 14,-55 14.6,-63.4 Z" fill="#b5a183"/>
+<path d="M21.2,-60.4 C21.6,-52 22,-43 22.4,-34.4" fill="none" stroke="#a8977a" stroke-width="0.6" stroke-linecap="round"/>
 </g>
 </svg>
 <button class="shuffle" id="shuffle" type="button" aria-label="Randomize colors"><svg class="die" id="die" width="22" height="22" viewBox="-1.85 -1.85 3.7 3.7" aria-hidden="true"></svg><span>Randomize</span></button>
@@ -1741,12 +1741,12 @@ var decoded={};function predecode(k){if(decoded[k])return;decoded[k]=1;var save=
  function faceDir(dir){({'+u':function(){face(1,0);},'-u':function(){face(-1,0);},'+v':function(){face(0,1);},'-v':function(){face(0,-1);}})[dir]();}
  // ---- action queue
  var Q=[],A=null,T=0;
- var SPOTS=[[720,2330],[430,2120],[1150,2620],[1500,2250],[2050,2450],[2350,2720],[900,2060]],GATE=[1720,1960],SIDE=[1720,1240],STAND=[1215,1240];
+ var SPOTS=[[720,2330],[430,2120],[1150,2620],[1500,2250],[2050,2450],[2350,2720],[900,2060]],GATE=[1700,1780],SIDE=[1640,1240],STAND=[1215,1240];
  function walk(to){Q.push({k:'walk',to:to});}
  function plan(){var r=Math.random();
   if(r<0.3){walk(SPOTS[Math.random()*SPOTS.length|0]);Q.push({k:'idle',d:3+Math.random()*4});}
   else if(r<0.55){walk(SPOTS[Math.random()*SPOTS.length|0]);Q.push({k:'read',d:8+Math.random()*7});}
-  else if(r<0.85){walk(GATE);walk(SIDE);Q.push({k:'face',dir:'-u',d:0.5},{k:'roll',to:280,d:1.1},{k:'walk',to:STAND},{k:'face',dir:'-v',d:0.6},{k:'sit',d:1.2},{k:'roll',to:-100,d:1.2,ride:true},{k:'work',d:12+Math.random()*10},{k:'roll',to:280,d:1.2,ride:true},{k:'stand',d:1.1},{k:'walk',to:SIDE},{k:'face',dir:'-u',d:0.5},{k:'roll',to:0,d:1.1},{k:'walk',to:GATE});}
+  else if(r<0.85){walk(GATE);Q.push({k:'walk',to:SIDE,roll:280,rd:1.2,rs:0.5},{k:'walk',to:STAND},{k:'sitIn',d:1.35},{k:'work',d:12+Math.random()*10},{k:'standOut',d:1.25},{k:'walk',to:SIDE,roll:0,rd:0.9,rs:0},{k:'walk',to:GATE});}
   else{walk([720,2330]);Q.push({k:'face',dir:'-u',d:0.4},{k:'gaze',d:4+Math.random()*4});}}
  function next(now){A=Q.shift();if(!A){plan();A=Q.shift();}T=now;A.u0=me.u;A.v0=me.v;A.o0=me.off;}
  var last=0,running=false;
@@ -1754,15 +1754,19 @@ var decoded={};function predecode(k){if(decoded[k])return;decoded[k]=1;var save=
   if(!svg.getClientRects().length){last=0;setTimeout(function(){requestAnimationFrame(frame);},400);return;}
   var dt=Math.min(0.05,last?(now-last)/1000:0.016);last=now;if(!A)next(now);var el=(now-T)/1000,walking=0,typing=0;
   switch(A.k){
-   case 'walk':{if(me.pose!=='hang'&&!me.seated)setPose('hang');var du=A.to[0]-me.u,dv=A.to[1]-me.v,d=Math.hypot(du,dv);
+   case 'walk':{if(me.pose!=='hang'&&!me.seated)setPose('hang');if(A.roll!==undefined){var rk=ease((el-(A.rs||0))/A.rd);me.off=A.o0+(A.roll-A.o0)*rk;}var du=A.to[0]-me.u,dv=A.to[1]-me.v,d=Math.hypot(du,dv);
     if(d>4){var sp=400*Math.min(1,0.35+d/300)*Math.min(1,0.4+el*1.6),m=Math.min(d,sp*dt);me.u+=du/d*m;me.v+=dv/d*m;me.ph+=m/1050*2*Math.PI;face(du,dv);walking=Math.min(1,d/160);}
-    else{me.u=A.to[0];me.v=A.to[1];A=null;}break;}
+    else{me.u=A.to[0];me.v=A.to[1];if(A.roll===undefined||el>=(A.rs||0)+A.rd)A=null;}break;}
    case 'face':faceDir(A.dir);if(el>A.d)A=null;break;
    case 'idle':if(!A.lk&&el>A.d*0.5){A.lk=1;me.flip=-me.flip;}if(el>A.d)A=null;break;
    case 'gaze':if(el>A.d)A=null;break;
    case 'read':setPose('read');if(me.flip>0)face(1,0);else face(0,1);if(el>A.d){setPose('hang');A=null;}break;
    case 'roll':{var k=ease(el/A.d),o=A.o0+(A.to-A.o0)*k;if(A.ride){me.v=A.v0+(o-A.o0);}me.off=o;if(el>=A.d)A=null;break;}
    case 'sit':{var k2=ease(el/A.d);me.v=A.v0+240*k2;me.z=-280*k2;if(k2>0.45&&!me.seated){me.seated=true;setSlot('chair');g.classList.add('seated');setPose('sit');}if(el>=A.d){me.z=-280;A=null;}break;}
+   case 'sitIn':{face(0,-1);var k=ease(el/0.75),k2=ease((el-0.55)/0.8),o=A.o0+(-100-A.o0)*k2;me.off=o;me.v=A.v0+240*k+(o-A.o0);me.z=-280*k;
+    if(k>0.45&&!me.seated){me.seated=true;setSlot('chair');g.classList.add('seated');setPose('sit');}if(el>=A.d){A=null;}break;}
+   case 'standOut':{var k1=ease(el/0.7),k3=ease((el-0.45)/0.75),o2=A.o0+(280-A.o0)*k1;me.off=o2;me.v=A.v0+(o2-A.o0)-240*k3;me.z=-280*(1-k3);
+    if(k3>0.5&&me.seated){me.seated=false;g.classList.remove('seated');setPose('hang');autoSlot();}if(el>=A.d){me.z=0;A=null;}break;}
    case 'work':typing=1;svg.classList.add('sen-typing');if(el>A.d){svg.classList.remove('sen-typing');A=null;}break;
    case 'stand':{var k3=ease(el/A.d);me.v=A.v0-240*k3;me.z=-280*(1-k3);if(k3>0.5&&me.seated){me.seated=false;g.classList.remove('seated');setPose('hang');autoSlot();}if(el>=A.d){me.z=0;A=null;}break;}
   }
