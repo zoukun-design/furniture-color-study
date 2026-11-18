@@ -1643,6 +1643,7 @@ var cardBlob=null,cardUrl=null,cardKey='';
 function makeCard(){var key=st.a+'-'+st.b+'-'+sel.area+'-'+sel.user;if(key===cardKey&&cardBlob)return Promise.resolve(cardBlob);
  var W=1080,H=1350,cv=document.createElement('canvas');cv.width=W;cv.height=H;var c=cv.getContext('2d');
  var svg=document.querySelector('#stage > svg').cloneNode(true),cs=getComputedStyle(document.documentElement);
+ ['#sensei','#senLegs','#laptop'].forEach(function(id){var e=svg.querySelector(id);if(e)e.remove();});['#chair','#chairShadow'].forEach(function(id){var e=svg.querySelector(id);if(e)e.removeAttribute('transform');});
  ['aTop','aSideU','aSideV','bTop','bSideU','bSideV'].forEach(function(k){var v=cs.getPropertyValue('--'+k).trim();svg.querySelectorAll('.'+k).forEach(function(e){e.setAttribute('fill',v);e.removeAttribute('class');});});
  svg.setAttribute('xmlns','http://www.w3.org/2000/svg');svg.setAttribute('width','924');svg.setAttribute('height','1043');
  var src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(new XMLSerializer().serializeToString(svg));
