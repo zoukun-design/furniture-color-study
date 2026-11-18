@@ -1230,7 +1230,7 @@ body.splashing .app .logo{visibility:hidden}
 <path d="M1.6,-56 C2.2,-40 2.7,-22 2.9,-3.4" fill="none" stroke="#b5a183" stroke-width="0.7" stroke-linecap="round"/>
 <path d="M-3.6,-54 C-4.8,-40 -6,-22 -6.6,-4.2" fill="none" stroke="#b5a183" stroke-width="0.6" stroke-linecap="round"/>
 </g></g>
-<g class="pose pHang"><g class="armB"><path d="M-5.9,-80.2 C-7.6,-75 -8.2,-67 -8.1,-59.6 C-8.1,-58.2 -6.6,-58.1 -6.5,-59.5 C-6.3,-66 -5.8,-72 -4.8,-77 Z" fill="#3d4148"/><circle cx="-7.3" cy="-57.9" r="1.15" fill="#f1dfcf"/></g></g>
+<g class="pose pHang"><g class="armB"><path class="aB" d="M-5.4,-79.6 L-7.3,-57.9" stroke="#3d4148" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/><circle class="hB" cx="-7.3" cy="-57.9" r="1.15" fill="#f1dfcf"/></g></g>
 <g class="pose pRead"><path d="M-5.9,-80.2 C-7,-76 -7,-70 -6.4,-64.6 C-6.1,-63.2 -4.4,-63.4 -4.4,-64.8 C-4.6,-70 -4.6,-74 -4.2,-77.6 Z" fill="#3d4148"/></g>
 <path d="M-6.2,-81 C-3,-82.6 3.6,-82.6 6.8,-81 C7.6,-75 7.3,-67 6.8,-60 C2.4,-58.8 -2,-58.8 -6.1,-60 C-6.7,-67 -7,-75 -6.2,-81 Z" fill="#4b5058"/>
 <g class="pose pRead">
@@ -1247,7 +1247,7 @@ body.splashing .app .logo{visibility:hidden}
 <circle cx="3.5" cy="-68.4" r="1.05" fill="#f1dfcf"/>
 <circle cx="10.2" cy="-70.4" r="1.05" fill="#f1dfcf"/>
 </g>
-<g class="pose pHang"><g class="armF"><path d="M6.5,-80.2 C8.2,-75 8.9,-67 8.8,-59.6 C8.8,-58.2 7.3,-58.1 7.2,-59.5 C7,-66 6.4,-72 5.4,-77 Z" fill="#3d4148"/><circle cx="8" cy="-57.9" r="1.15" fill="#f1dfcf"/></g></g>
+<g class="pose pHang"><g class="armF"><path class="aF" d="M6,-79.6 L8,-57.9" stroke="#3d4148" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/><circle class="hF" cx="8" cy="-57.9" r="1.15" fill="#f1dfcf"/></g></g>
 </g>
 <g class="pose pSit"><path class="sUR" d="" stroke="#3d4148" stroke-width="2.7" stroke-linecap="round" fill="none"/></g>
 <g class="head">
@@ -1723,7 +1723,7 @@ var decoded={};function predecode(k){if(decoded[k])return;decoded[k]=1;var save=
 // placed in the drawing's depth order (front of the desk / in the chair / beside it / in the open), and the chair rolls.
 (function(){var g=document.getElementById('sensei');if(!g)return;
  var svg=g.ownerSVGElement,OX=+g.dataset.ox,OY=+g.dataset.oy,S=+g.dataset.s,K=+g.dataset.k,C=Math.cos(Math.PI/6);
- var q=function(c){return g.querySelector(c);},Bd=q('.sen-b'),Fl=q('.sen-f'),AB=q('.armB'),AF=q('.armF'),UL=q('.sUL'),UR=q('.sUR'),FLp=q('.sFL'),FRp=q('.sFR'),HL=q('.sHL'),HR=q('.sHR'),LEGS=document.getElementById('senLegs'),SKT=q('.skirt'),FB=q('.footB'),FF=q('.footF'),HD=q('.head'),EY=q('.eyes');
+ var q=function(c){return g.querySelector(c);},Bd=q('.sen-b'),Fl=q('.sen-f'),AB=q('.aB'),AF=q('.aF'),HBk=q('.hB'),HFr=q('.hF'),UL=q('.sUL'),UR=q('.sUR'),FLp=q('.sFL'),FRp=q('.sFR'),HL=q('.sHL'),HR=q('.sHR'),LEGS=document.getElementById('senLegs'),SKT=q('.skirt'),FB=q('.footB'),FF=q('.footF'),HD=q('.head'),EY=q('.eyes');
  var slots={top:g.parentNode,front:document.getElementById('slotFront'),chair:document.getElementById('slotChair'),b:document.getElementById('slotB')},chairG=document.getElementById('chair'),chairSh=document.getElementById('chairShadow');
  var CU=1210,CV=1260,CHAIR_U1=1490;
  function P(u,v,z){return [OX+(u-v)*C*S,OY+(u+v)*0.5*S-z*S];}
@@ -1753,7 +1753,7 @@ var decoded={};function predecode(k){if(decoded[k])return;decoded[k]=1;var save=
   if(!svg.getClientRects().length){last=0;setTimeout(function(){requestAnimationFrame(frame);},400);return;}
   var dt=Math.min(0.05,last?(now-last)/1000:0.016);last=now;if(!A)next(now);var el=(now-T)/1000,walking=0,typing=0;
   switch(A.k){
-   case 'walk':{var du=A.to[0]-me.u,dv=A.to[1]-me.v,d=Math.hypot(du,dv);
+   case 'walk':{if(me.pose!=='hang'&&!me.seated)setPose('hang');var du=A.to[0]-me.u,dv=A.to[1]-me.v,d=Math.hypot(du,dv);
     if(d>4){var sp=400*Math.min(1,0.35+d/300)*Math.min(1,0.4+el*1.6),m=Math.min(d,sp*dt);me.u+=du/d*m;me.v+=dv/d*m;me.ph+=m/1050*2*Math.PI;face(du,dv);walking=Math.min(1,d/160);}
     else{me.u=A.to[0];me.v=A.to[1];A=null;}break;}
    case 'face':faceDir(A.dir);if(el>A.d)A=null;break;
@@ -1775,7 +1775,13 @@ var decoded={};function predecode(k){if(decoded[k])return;decoded[k]=1;var save=
   var w=sm.walk,ph=me.ph,sn=Math.sin(ph),cs=Math.cos(ph),t=now/1000;
   var bob=w*0.75*Math.abs(Math.sin(ph))+(1-w)*0.2*Math.sin(t*1.4);
   if(sm.hop>=0){var hk=(now-sm.hop)/520;if(hk>=1)sm.hop=-1;else bob+=(me.seated?2.5:8)*Math.sin(Math.PI*hk);}
-  AF.setAttribute('transform','rotate('+(w*8*sn).toFixed(2)+' 6 -79.6)');AB.setAttribute('transform','rotate('+(-w*8*sn).toFixed(2)+' -5.4 -79.6)');
+  // arm swing in the body's own forward direction: forward = toward the way she faces (down the screen when facing us,
+  // up it when walking away), so the forward hand also drops a little and the back hand rises. Arms alternate with the legs.
+  var fy=me.back?-0.5:0.5,fx=0.866/1.24,amp=w*0.42+(1-w)*0.02*Math.sin(t*1.4);
+  function arm(path,hand,sx,sy,hx,hy,th){var L=Math.hypot(hx-sx,hy-sy),dx=hx-sx,dy=hy-sy,c=Math.cos(th),s2=Math.sin(th);
+   var ex=sx+dx*c+fx*L*s2,ey=sy+dy*c+fy*L*s2,mx=sx+(ex-sx)*0.5+fx*1.2*Math.abs(s2),my=sy+(ey-sy)*0.5;
+   path.setAttribute('d','M'+sx+','+sy+' Q'+mx.toFixed(2)+','+my.toFixed(2)+' '+ex.toFixed(2)+','+ey.toFixed(2));hand.setAttribute('cx',ex.toFixed(2));hand.setAttribute('cy',ey.toFixed(2));}
+  arm(AF,HFr,6,-79.6,8,-57.9,-amp*sn);arm(AB,HBk,-5.4,-79.6,-7.3,-57.9,amp*sn);
   // typing: small, uneven elbow work and a settled head, with pauses
   if(me.seated){
    // phases: type in bursts, pause to read the screen, now and then the right hand goes to the trackpad
