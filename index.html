@@ -1499,6 +1499,8 @@ function installSheet(){if(isStandalone())return;var ua=navigator.userAgent||'',
   if(anim){c.classList.add('sw');setTimeout(function(){put();c.classList.remove('sw');},200);}else put();}
  seg.querySelectorAll('button').forEach(function(b){b.onclick=function(){if(b.dataset.l!==cur)setL(b.dataset.l,true);};});
  setL('en',false);
+ // fetch the Japanese glyphs now, so the first switch doesn't wait on the font
+ try{var jt=(T.ja.t+T.ja.d+T.ja.st.join('')+T.ja.ok+'あとで日本語').replace(/<[^>]*>/g,'');['400','700'].forEach(function(w){document.fonts.load(w+' 14px "BIZ UDPGothic"',jt);});}catch(e){}
  var el=$('inst');el.hidden=false;requestAnimationFrame(function(){requestAnimationFrame(function(){el.classList.add('show');});});
  function closeI(){el.classList.remove('show');setTimeout(function(){el.hidden=true;},460);}
  $('instLater').onclick=closeI;
