@@ -1537,7 +1537,7 @@ function installSheet(){if(isStandalone())return;var ua=navigator.userAgent||'',
   T.en.d='Home screen apps can’t be added<br>from this app’s built-in browser.';T.ja.d='このアプリ内のブラウザからは<br>ホーム画面に追加できません。';
   add('Tap '+MO+', then <b>Open in browser</b>','右上の '+MO+' から <b>ブラウザで開く</b>');
   add('Or copy the link, paste into <b>'+BN+'</b>','リンクをコピーし <b>'+BN+'</b> に貼り付け');
-  T.en.ok=and?'Open in Chrome':'Copy link';T.ja.ok=and?'Chromeで開く':'リンクをコピー';}
+  T.en.ok='Open in '+BN;T.ja.ok=BN+'で開く';}
  $('instLater').hidden=!canInstall&&!inapp;$('instOk').classList.toggle('sec',!canInstall&&!inapp);
  var seg=document.querySelector('.lseg'),cur=null;
  function setL(l,anim){var c=document.querySelector('.instc');function put(){var x=T[l];$('instT').innerHTML=x.t;$('instD').innerHTML=x.d;$('instSteps').innerHTML=x.st.map(function(y){return '<li><span>'+y+'</span></li>';}).join('');$('instOk').textContent=x.ok;$('instLater').textContent=l==='ja'?'あとで':'Later';}
@@ -1552,8 +1552,10 @@ function installSheet(){if(isStandalone())return;var ua=navigator.userAgent||'',
  $('instLater').onclick=closeI;
  $('instOk').onclick=function(){if(inapp){var u=location.origin+location.pathname+location.search;
   if(and){location.href='intent://'+u.replace(/^https?:\/\//,'')+'#Intent;scheme=https;package=com.android.chrome;end';return;}
-  var done=function(){var b=$('instOk');b.textContent=cur==='ja'?'コピーしました':'Copied';};
-  if(navigator.clipboard)navigator.clipboard.writeText(u).then(done,function(){prompt('',u);});else prompt('',u);return;}
+  // iOS: ask the system to hand the page to Safari; copy the link too, in case this app blocks it
+  try{if(navigator.clipboard)navigator.clipboard.writeText(u);}catch(e){}
+  location.href='x-safari-'+u;
+  setTimeout(function(){if(document.visibilityState==='visible'){var b=$('instOk');b.textContent=cur==='ja'?'リンクをコピーしました':'Link copied';b.classList.add('sec');}},1500);return;}
   if(canInstall&&window.__bip){var e=window.__bip;window.__bip=null;e.prompt();(e.userChoice||Promise.resolve()).then(closeI,closeI);}else closeI();};}
 
 // ---- menu: share the current combination ----
