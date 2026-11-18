@@ -1535,7 +1535,7 @@ function installSheet(){if(isStandalone())return;var ua=navigator.userAgent||'',
  else{add('Tap '+DT+' <b>Menu</b> at the top right','右上の '+DT+' <b>メニュー</b> をタップ');add('Tap <b>Add to Home screen</b> or <b>Install app</b>','<b>ホーム画面に追加</b> か <b>アプリをインストール</b>');add('Confirm with <b>Add</b> / <b>Install</b>','<b>追加</b>（<b>インストール</b>）で完了');}
  if(inapp){var BN=and?'Chrome':'Safari';T.en.st=[];T.ja.st=[];T.en.t='Open in '+BN;T.ja.t=BN+'で開いてください';
   T.en.d='Home screen apps can’t be added<br>from this app’s built-in browser.';T.ja.d='このアプリ内のブラウザからは<br>ホーム画面に追加できません。';
-  add('Tap '+MO+' at the top, then <b>Open in browser</b>','右上の '+MO+' から <b>ブラウザで開く</b>');
+  add('Tap '+MO+', then <b>Open in browser</b>','右上の '+MO+' から <b>ブラウザで開く</b>');
   add('Or copy the link, paste into <b>'+BN+'</b>','リンクをコピーし <b>'+BN+'</b> に貼り付け');
   T.en.ok=and?'Open in Chrome':'Copy link';T.ja.ok=and?'Chromeで開く':'リンクをコピー';}
  $('instLater').hidden=!canInstall&&!inapp;$('instOk').classList.toggle('sec',!canInstall&&!inapp);
