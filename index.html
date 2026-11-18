@@ -1555,9 +1555,7 @@ function installSheet(){if(isStandalone())return;var ua=navigator.userAgent||'',
   // iOS: ask the system to hand the page to Safari; copy the link too, in case this app blocks it
   try{if(navigator.clipboard)navigator.clipboard.writeText(u);}catch(e){}
   location.href='x-safari-'+u;
-  // if this app swallows that, go via Shortcuts: a shortcut that doesn't exist fails and hands the URL to Safari
-  setTimeout(function(){if(document.visibilityState==='visible'){var id=(window.crypto&&crypto.randomUUID)?crypto.randomUUID():String(Date.now());location.href='shortcuts://x-callback-url/run-shortcut?name='+id+'&x-error='+encodeURIComponent(u);}},500);
-  setTimeout(function(){if(document.visibilityState==='visible'){var b=$('instOk');b.textContent=cur==='ja'?'リンクをコピーしました':'Link copied';b.classList.add('sec');}},2500);return;}
+  setTimeout(function(){if(document.visibilityState==='visible'){var b=$('instOk');b.textContent=cur==='ja'?'リンクをコピーしました':'Link copied';b.classList.add('sec');}},1200);return;}
   if(canInstall&&window.__bip){var e=window.__bip;window.__bip=null;e.prompt();(e.userChoice||Promise.resolve()).then(closeI,closeI);}else closeI();};}
 
 // ---- menu: share the current combination ----
