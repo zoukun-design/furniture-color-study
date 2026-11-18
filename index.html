@@ -368,9 +368,6 @@ body.splashing .app .logo{visibility:hidden}
 .insts b{font-weight:700}
 .instl{flex:none;appearance:none;border:0;background:none;font:inherit;font-size:13px;color:var(--mute);height:36px;margin-top:4px;cursor:pointer}
 .instl[hidden]{display:none}
-.inpt{position:absolute;top:calc(env(safe-area-inset-top) + 2px);right:22px;animation:inpt 1.6s cubic-bezier(.45,0,.25,1) infinite alternate}
-.inpt[hidden]{display:none}
-@keyframes inpt{from{transform:translate(0,0)}to{transform:translate(3px,-6px)}}
 .instb.sec{background:#f0efec;color:var(--ink)}
 .instb{flex:none;width:100%;max-width:360px;appearance:none;border:0;background:var(--ink);color:#fff;font:inherit;font-size:15px;font-weight:700;height:50px;border-radius:25px;cursor:pointer}
 
@@ -398,7 +395,7 @@ body.splashing .app .logo{visibility:hidden}
 </head>
 <body>
 <div class="splash" id="splash" aria-hidden="true"><span class="sbig" id="sbig"></span><div class="slogo" id="slogo"><span class="stx" id="stx">234Lab</span><span class="sdot" id="sdot"></span></div></div>
-<div class="inst" id="inst" role="dialog" aria-label="Add to Home Screen" hidden><svg class="inpt" id="inPoint" hidden width="34" height="48" viewBox="0 0 34 48" fill="none" stroke="#141414" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 46C10 30 16 14 28 4"/><path d="M19 5.5 28 4l-1 9"/></svg><div class="lseg" role="tablist"><span class="lsegi" id="lsegi"></span><button type="button" role="tab" data-l="en">English</button><button type="button" role="tab" data-l="ja">日本語</button></div><div class="instc">
+<div class="inst" id="inst" role="dialog" aria-label="Add to Home Screen" hidden><div class="lseg" role="tablist"><span class="lsegi" id="lsegi"></span><button type="button" role="tab" data-l="en">English</button><button type="button" role="tab" data-l="ja">日本語</button></div><div class="instc">
 <img src="icon-192.png" alt="" class="insti">
 <b class="instt" id="instT"></b>
 <p class="instd" id="instD"></p>
@@ -1541,8 +1538,7 @@ function installSheet(){if(isStandalone())return;var ua=navigator.userAgent||'',
   if(and){add('Tap <b>Open in Chrome</b> below','下の <b>Chromeで開く</b> をタップ');add('Then add it from <b>Chrome</b>','開いた <b>Chrome</b> でホーム画面に追加');T.en.ok='Open in Chrome';T.ja.ok='Chromeで開く';}
   else{add('Tap '+MO+' at the top right','右上の '+MO+' をタップ');add('Tap <b>Open in external browser</b>','<b>外部ブラウザで開く</b> をタップ');add('Then add it from <b>Safari</b>','開いた <b>Safari</b> でホーム画面に追加');}}
  var andIn=inapp&&and;$('instLater').hidden=!canInstall&&!andIn;$('instOk').classList.toggle('sec',!canInstall&&!andIn);
- // iOS in-app: point at the app's own menu button above the page
- if(inapp&&!and)$('inPoint').removeAttribute('hidden');else $('inPoint').setAttribute('hidden','');
+
  var seg=document.querySelector('.lseg'),cur=null;
  function setL(l,anim){var c=document.querySelector('.instc');function put(){var x=T[l];$('instT').innerHTML=x.t;$('instD').innerHTML=x.d;$('instSteps').innerHTML=x.st.map(function(y){return '<li><span>'+y+'</span></li>';}).join('');$('instOk').textContent=x.ok;$('instLater').textContent=l==='ja'?'あとで':'Later';}
   cur=l;seg.dataset.l=l;seg.querySelectorAll('button').forEach(function(b){b.setAttribute('aria-selected',b.dataset.l===l?'true':'false');});$('inst').setAttribute('lang',l);
