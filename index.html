@@ -389,7 +389,7 @@ body.splashing .app .logo{visibility:hidden}
 <script>
 (function(){try{var ua=navigator.userAgent||'',q=location.search;
  if(/ Line\//i.test(ua)&&!/openExternalBrowser=1/.test(q)){location.replace(location.pathname+(q?q+'&':'?')+'openExternalBrowser=1'+location.hash);}
- else if(/openExternalBrowser=1/.test(q)&&!/ Line\//i.test(ua)){var u=new URL(location.href);u.searchParams.delete('openExternalBrowser');history.replaceState(null,'',u.pathname+u.search+u.hash);}}catch(e){}})();
+ else if(q){var u=new URL(location.href),k=[];u.searchParams.forEach(function(_,n){if(n!=='a'&&n!=='b')k.push(n);});if(k.length){k.forEach(function(n){u.searchParams.delete(n);});history.replaceState(null,'',u.pathname+u.search+u.hash);}}}catch(e){}})();
 </script>
 <style>html{touch-action:manipulation}</style>
 </head>
@@ -1555,7 +1555,9 @@ function installSheet(){if(isStandalone())return;var ua=navigator.userAgent||'',
   // iOS: ask the system to hand the page to Safari; copy the link too, in case this app blocks it
   try{if(navigator.clipboard)navigator.clipboard.writeText(u);}catch(e){}
   location.href='x-safari-'+u;
-  setTimeout(function(){if(document.visibilityState==='visible'){var b=$('instOk');b.textContent=cur==='ja'?'リンクをコピーしました':'Link copied';b.classList.add('sec');}},1500);return;}
+  // if this app swallows that, go via Shortcuts: a shortcut that doesn't exist fails and hands the URL to Safari
+  setTimeout(function(){if(document.visibilityState==='visible'){var id=(window.crypto&&crypto.randomUUID)?crypto.randomUUID():String(Date.now());location.href='shortcuts://x-callback-url/run-shortcut?name='+id+'&x-error='+encodeURIComponent(u);}},500);
+  setTimeout(function(){if(document.visibilityState==='visible'){var b=$('instOk');b.textContent=cur==='ja'?'リンクをコピーしました':'Link copied';b.classList.add('sec');}},2500);return;}
   if(canInstall&&window.__bip){var e=window.__bip;window.__bip=null;e.prompt();(e.userChoice||Promise.resolve()).then(closeI,closeI);}else closeI();};}
 
 // ---- menu: share the current combination ----
