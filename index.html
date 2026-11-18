@@ -367,6 +367,7 @@ body.splashing .app .logo{visibility:hidden}
 .insts b{font-weight:700}
 .instl{flex:none;appearance:none;border:0;background:none;font:inherit;font-size:13px;color:var(--mute);height:36px;margin-top:4px;cursor:pointer}
 .instl[hidden]{display:none}
+.instb.sec{background:#f0efec;color:var(--ink)}
 .instb{flex:none;width:100%;max-width:360px;appearance:none;border:0;background:var(--ink);color:#fff;font:inherit;font-size:15px;font-weight:700;height:50px;border-radius:25px;cursor:pointer}
 
 .lseg{position:relative;display:grid;grid-template-columns:1fr 1fr;width:180px;flex:none;background:#f0efec;border-radius:18px;padding:3px}
@@ -1515,7 +1516,7 @@ function installSheet(){if(isStandalone())return;var ua=navigator.userAgent||'',
  // which browser: steps differ by where each one keeps its Share / menu button
  var v=(ua.match(/Version\/(\d+)/)||[])[1]|0,crios=/CriOS/.test(ua),fxios=/FxiOS/.test(ua),edgios=/EdgiOS/.test(ua),safari=ios&&!crios&&!fxios&&!edgios&&!inapp,
   SH='<svg class="gl" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 15V3M7.5 7.5 12 3l4.5 4.5"/><path d="M6 11H5a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-8a1 1 0 0 0-1-1h-1"/></svg>',PM='<svg class="gl" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" aria-hidden="true"><path d="M5 7h14M5 12h14M5 17h9"/></svg>',MO='<svg class="gl" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="5" cy="12" r="1.9"/><circle cx="12" cy="12" r="1.9"/><circle cx="19" cy="12" r="1.9"/></svg>',DT='<svg class="gl" width="15" height="15" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="12" cy="5" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="12" cy="19" r="1.8"/></svg>',B=ios?'Safari':'Chrome',canInstall=!!window.__bip&&and;
- var T={en:{t:'Add to Home Screen',d:'Install this app on your home screen<br>for quick and easy access.',ok:'Got it',st:[]},ja:{t:'ホーム画面に追加',d:'ホーム画面に追加すると<br>いつでもすぐに開けます。',ok:'OK',st:[]}};
+ var T={en:{t:'Add to Home Screen',d:'Install this app on your home screen<br>for quick and easy access.',ok:'Close',st:[]},ja:{t:'ホーム画面に追加',d:'ホーム画面に追加すると<br>いつでもすぐに開けます。',ok:'閉じる',st:[]}};
  function add(en,ja){T.en.st.push(en);T.ja.st.push(ja);}
  if(inapp){add('Open this page in <b>'+B+'</b> (menu → Open in browser)','<b>'+B+'</b>で開き直す（メニュー →「ブラウザで開く」）');}
  if(canInstall){T.en.ok='Install';T.ja.ok='ホーム画面に追加';}
@@ -1527,15 +1528,15 @@ function installSheet(){if(isStandalone())return;var ua=navigator.userAgent||'',
  else if(crios){add('Tap '+SH+' <b>Share</b> in the address bar','アドレスバーの '+SH+' <b>共有</b> をタップ');add('Tap <b>Add to Home Screen</b>, then <b>Add</b>','<b>ホーム画面に追加</b> → <b>追加</b>');}
  else if(ios){add('Open the browser menu, tap '+SH+' <b>Share</b>','ブラウザのメニューから '+SH+' <b>共有</b> をタップ');add('Tap <b>Add to Home Screen</b>, then <b>Add</b>','<b>ホーム画面に追加</b> → <b>追加</b>');}
  else{add('Tap '+DT+' <b>Menu</b> at the top right','右上の '+DT+' <b>メニュー</b> をタップ');add('Tap <b>Add to Home screen</b> or <b>Install app</b>','<b>ホーム画面に追加</b> か <b>アプリをインストール</b>');add('Confirm with <b>Add</b> / <b>Install</b>','<b>追加</b>（<b>インストール</b>）で完了');}
- $('instLater').hidden=!canInstall;
+ $('instLater').hidden=!canInstall;$('instOk').classList.toggle('sec',!canInstall);
  var seg=document.querySelector('.lseg'),cur=null;
  function setL(l,anim){var c=document.querySelector('.instc');function put(){var x=T[l];$('instT').innerHTML=x.t;$('instD').innerHTML=x.d;$('instSteps').innerHTML=x.st.map(function(y){return '<li><span>'+y+'</span></li>';}).join('');$('instOk').textContent=x.ok;$('instLater').textContent=l==='ja'?'あとで':'Later';}
   cur=l;seg.dataset.l=l;seg.querySelectorAll('button').forEach(function(b){b.setAttribute('aria-selected',b.dataset.l===l?'true':'false');});$('inst').setAttribute('lang',l);
   if(anim){c.classList.add('sw');setTimeout(function(){put();c.classList.remove('sw');},200);}else put();}
  seg.querySelectorAll('button').forEach(function(b){b.onclick=function(){if(b.dataset.l!==cur)setL(b.dataset.l,true);};});
- setL('en',false);
+ setL('ja',false);
  // fetch the Japanese glyphs now, so the first switch doesn't wait on the font
- try{var jt=(T.ja.t+T.ja.d+T.ja.st.join('')+T.ja.ok+'あとで日本語').replace(/<[^>]*>/g,'');['400','700'].forEach(function(w){document.fonts.load(w+' 14px "BIZ UDPGothic"',jt);});}catch(e){}
+ try{var jt=(T.ja.t+T.ja.d+T.ja.st.join('')+T.ja.ok+'あとで日本語ホーム画面に追加').replace(/<[^>]*>/g,'');['400','700'].forEach(function(w){document.fonts.load(w+' 14px "BIZ UDPGothic"',jt);});}catch(e){}
  var el=$('inst');el.hidden=false;requestAnimationFrame(function(){requestAnimationFrame(function(){el.classList.add('show');});});
  function closeI(){el.classList.remove('show');setTimeout(function(){el.hidden=true;},460);}
  $('instLater').onclick=closeI;
