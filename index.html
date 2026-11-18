@@ -1285,7 +1285,7 @@ function swipeHint(){if(hintShown)return;hintShown=true;
 function showLb(one){single=!!one;lb.classList.toggle('single',single);lb.classList.remove('chrome-off');lb.hidden=false;lb.style.transform='';lb.style.backgroundColor='';predecode('a');predecode('b');place();updTabs();if(!single)swipeHint();}
 window.addEventListener('resize',function(){if(!lb.hidden){lay();setX(0,0);frame();sinfos();}});
 function fadeClose(){lb.style.transition='opacity .18s ease';lb.style.opacity='0';setTimeout(function(){closeLb();lb.style.transition='';lb.style.opacity='';},180);}
-function closeLb(){lb.hidden=true;$('swHint').classList.remove('show');var h=$('hud');if(h)h.classList.remove('show');}
+function closeLb(){if(!single&&((pk==='b')!==(gPos>0.5))){var k=pk;pk=k==='b'?'a':'b';gGo(k==='b'?1:0,false);}lb.hidden=true;$('swHint').classList.remove('show');var h=$('hud');if(h)h.classList.remove('show');}
 function go(d){slideTo(d,0);}
 var P=null,raf=0,single=false;
 track.addEventListener('dragstart',function(e){e.preventDefault();});
@@ -1562,7 +1562,7 @@ function hEnd(d,v){var w=hW();if(hOk(d)&&(Math.abs(d)>w*0.2||(Math.abs(v)>0.4&&h
 function switchDesk(k,d,v){if(busy||k===pk||single)return;busy=true;if(!T2||T2.hidden||T2k!==k)t2Build();lb.classList.add('moving');$('lbo').style.visibility='hidden';
  var w=hW(),target=k==='b'?-w:w,rem=Math.abs(target-(d||0)),sp=Math.abs(v||0),dur=Math.round(Math.min(460,Math.max(320,sp>0.3?rem/sp*1.6:260+rem*0.4)));
  if(d===undefined)hPos(0,0);void track.offsetWidth;hPos(target,dur);tabSel(k);
- setTimeout(function(){gGo(k==='b'?1:0,false);li=st[k]>=0?st[k]:0;place();track.style.transition='none';track.style.transform='translate3d(0,0,0)';
+ setTimeout(function(){pk=k;li=st[k]>=0?st[k]:0;place();track.style.transition='none';track.style.transform='translate3d(0,0,0)';
   var ims=SL.map(function(x){return x.firstChild;});Promise.all(ims.map(function(im){return im.decode?im.decode().catch(function(){}):0;})).then(function(){requestAnimationFrame(function(){requestAnimationFrame(function(){T2.hidden=true;T2.style.transition='none';busy=false;setX(0,0);updTabs();});});});},dur+20);}
 $('lbtabs').querySelectorAll('button').forEach(function(b){b.onclick=function(){switchDesk(b.dataset.k);};});
 
