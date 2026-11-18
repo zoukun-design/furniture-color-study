@@ -1833,9 +1833,10 @@ function openBookDesk(p,c,b,turn){var ex=rotz([1,0,0],b.yaw),ey=rotz([0,1,0],b.y
  if(turn!=null&&turn>=0){var th=Math.PI*ease(turn),pts=[];[0,0.35,0.7,1].forEach(function(x){var lift=12*Math.sin(Math.PI*turn)*x;pts.push([w*x*Math.cos(th),w*x*Math.sin(th)+tb+6+lift]);});
   var q=[];pts.forEach(function(pt){q.push(at(pt[0],-h/2,pt[1]));});for(var i3=pts.length-1;i3>=0;i3--)q.push(at(pts[i3][0],h/2,pts[i3][1]));pa(p,polyW(q),shade(COL.page,0.96+0.05*Math.cos(th)));}}
 // a book opening on the desk: the back half lies still, the front cover and its pages swing over on the spine
-function openingBook(p,c,b,op){var ex=rotz([1,0,0],b.yaw),ey=rotz([0,1,0],b.yaw),w=b.w,h=b.h,t=b.t,z0=TOPZ,th=Math.PI*(1-ease(op));
- bookFaces(p,A(A([c[0],c[1],z0],M(ex,-w/2)),[0,0,t/4]),M(ex,-w/2),M(ey,h/2),[0,0,-t/4],b.col,true);
- var dir=A(M(ex,Math.cos(th)),[0,0,Math.sin(th)]),nrm=Sb([0,0,Math.cos(th)],M(ex,Math.sin(th))),hg=[c[0],c[1],z0+t/2];
+function openingBook(p,c,b,op){var ex=rotz([1,0,0],b.yaw),ey=rotz([0,1,0],b.yaw),w=b.w,h=b.h,t=b.t,z0=TOPZ,th=Math.PI*op;
+ // the back half stays put on the +x side, spine along the gutter; the front half turns on the spine over to -x
+ bookFaces(p,A(A([c[0],c[1],z0],M(ex,w/2)),[0,0,t/4]),M(ex,w/2),M(ey,h/2),[0,0,-t/4],b.col,true);
+ var dir=A(M(ex,Math.cos(th)),[0,0,Math.sin(th)]),nrm=Sb(M(ex,Math.sin(th)),[0,0,Math.cos(th)]),hg=[c[0],c[1],z0+t/2];
  bookFaces(p,Sb(A(hg,M(dir,w/2)),M(nrm,t/4)),M(dir,w/2),M(ey,h/2),M(nrm,-t/4),b.col,true);}
 function drawDeskA(){pb(PDA);var items=[];
  if(prop.lap==='desk')items.push({d:dep([prop.lapU,675,730]),f:function(){drawLaptopOn(PDA,prop.lapU,prop.phi,prop.on);}});
@@ -2081,10 +2082,10 @@ function draw(){var t=vt/1000;drawChair();drawDeskA();drawDeskB();
  // torso and a sturdy neck
  q=P.torso;pb(q.p);pa(q.p,hullW(ring(bp(0,0,150),f,r,142,110).concat(ring(bp(0,0,330),f,r,162,124),ring(bp(0,0,462+br),f,r,170,104),ring(bp(0,0,515+br),f,r,124,78))),COL.top);pe(q.p);
  // the throat grows down out of the hair as she comes round to face us, so the neck never appears all at once
- // the throat shows in front of her collar only while she faces us with her head up; it grows out of the hair as she
- // comes round, and draws back under the chin as she bows (then the neck goes in under the collar, out of sight)
- var pH=me.tilt+me.lean*0.7,nk=505+60*Math.max(1-sm(ph(D(f,V3),0.15,0.6)),sm(ph(pH,0.2,0.48)));
- q=P.neck;pb(q.p);pa(q.p,seg(W(bp(8+6*(nk-505)/60,0,nk+br)),W(bp(14,0,585+br))),null,COL.neck,96*S);pe(q.p);
+ // the neck is a short column standing in the neckline of her top: the neckline dips at the front and rides higher at
+ // the back, with a knit collar round it; drawn over the top always, so turning shows throat, side, nape in turn with no switch
+ function nring(cx,cz,rx,ry,dip){var p=[];for(var i=0;i<20;i++){var a=i/20*2*Math.PI,sa=Math.sin(a);p.push(bp(cx+ry*sa,rx*Math.cos(a),cz-dip*sa+br));}return p;}
+ q=P.neck;pb(q.p);pa(q.p,hullW(nring(4,518,64,56,13)),shade(COL.top,0.86));pa(q.p,hullW(nring(5,521,51,44,13).concat(nring(12+8*cl(me.tilt+me.lean*0.7,0,1),588-36*cl(me.tilt+me.lean*0.7,0,1),46,42,0))),COL.neck);pe(q.p);
  P.torso.d=dep(bp(0,0,300));P.skirtHi.d=P.torso.d-30;
  drawHead(bp(14,0,HZ+br));
  // arms: two bones to wherever the hand is wanted; free arms hang and swing against the legs; hands come out of the sleeves
@@ -2138,13 +2139,13 @@ function drawHead(hc3){var q=P.head;pb(q.p);var hc=W(hc3),R=112*S,yawH=me.yaw+me
   var FH=58*deg,FU=46*deg,FD=64*deg,bd=[],i;for(i=0;i<40;i++){var a=i/40*2*Math.PI,s=Math.sin(a);bd.push(sdir(FH*Math.cos(a),(s>0?FU:FD)*s));}
   // the face is cut a little inside the outline, so it comes round and goes away by widening and narrowing within the hair,
   // never as a sliver on the edge; bowing, the bob falls forward and the cut moves in further, so from above we see hair
-  var fv=D(hf,VN),mF=0.3,fo=1,bow=sm(ph(pitch,0.22,0.8))*(1-sm(ph(fv,0.1,0.45))),down=sm(ph(pitch,0.22,0.6));
+  var fv=D(hf,VN),mF=0,fo=sm(ph(fv,-0.62,-0.2)),bow=sm(ph(pitch,0.22,0.8))*(1-sm(ph(fv,0.3,0.48))),down=sm(ph(pitch,0.22,0.6));
   var face=region(bd,function(d){var l=local(d),e=l[1]/(l[1]>0?FU:FD);return (l[0]/FH)*(l[0]/FH)+e*e<1;},mF);
-  var fa=face?Math.abs(area(face)):0;if(face&&fa>0.8){pa(q.p,pd(face),COL.skin,null,null,cl((fa-0.8)/5,0,1));
+  var fa=face?Math.abs(area(face)):0;if(face&&fa>5&&fo>0.01){pa(q.p,pd(face),COL.skin,null,null,cl((fa-5)/14,0,1)*fo);
    var bl=vt<me.blinkTo?0.12:1,sq=1-me.squint*0.45;
-   [-1,1].forEach(function(s){var d=sdir(s*36*deg,-24*deg),v=D(d,VN),o=sm(ph(v,mF,mF+0.2))*fo;if(o<=0.01)return;var c=cl((v-0.06)/0.5,0,1);pa(q.p,ell(hp(d),R*0.11*(0.35+0.65*c),R*0.1),'rgba(236,128,116,0.24)',null,null,o);});
-   [-1,1].forEach(function(s){var d=sdir(s*25*deg,-4*deg),v=D(d,VN),o=sm(ph(v,mF+0.05,mF+0.22))*fo;if(o<=0.01)return;var c=cl((v-0.06)/0.45,0,1);pa(q.p,ell(hp(d),R*0.072*(0.3+0.7*c)*(1+0.25*down),R*0.105*bl*sq*(1-0.72*down)),COL.eye,null,null,o);});
-   var m0=sdir(-9*deg,-35*deg),m1=sdir(0,-39*deg),m2=sdir(9*deg,-35*deg),mo=sm(ph(D(m1,VN),mF+0.06,mF+0.26))*fo;if(mo>0.01){var a0=hp(m0),a1=hp(m1),a2=hp(m2);
+   [-1,1].forEach(function(s){var d=sdir(s*36*deg,-24*deg),v=D(d,VN),o=sm(ph(v,0.12,0.34))*fo;if(o<=0.01)return;var c=cl((v-0.06)/0.5,0,1);pa(q.p,ell(hp(d),R*0.11*(0.35+0.65*c),R*0.1),'rgba(236,128,116,0.24)',null,null,o);});
+   [-1,1].forEach(function(s){var d=sdir(s*25*deg,-4*deg),v=D(d,VN),o=sm(ph(v,0.16,0.36))*fo;if(o<=0.01)return;var c=cl((v-0.06)/0.45,0,1);pa(q.p,ell(hp(d),R*0.072*(0.3+0.7*c)*(1+0.25*down),R*0.105*bl*sq*(1-0.72*down)),COL.eye,null,null,o);});
+   var m0=sdir(-9*deg,-35*deg),m1=sdir(0,-39*deg),m2=sdir(9*deg,-35*deg),mo=sm(ph(D(m1,VN),0.2,0.42))*fo;if(mo>0.01){var a0=hp(m0),a1=hp(m1),a2=hp(m2);
     pa(q.p,'M'+a0[0].toFixed(2)+','+a0[1].toFixed(2)+'Q'+a1[0].toFixed(2)+','+(a1[1]+R*0.035).toFixed(2)+' '+a2[0].toFixed(2)+','+a2[1].toFixed(2),null,'#7a4f45',R*0.045,mo);}}
   // blunt bangs from just above the brows up past the hairline, and side locks that frame the cheeks down to the jaw
   // bowing, the bangs hang straight down over her eyes and the side locks swing in, so the face goes under the hair
@@ -2177,7 +2178,7 @@ function placeChair(withHer){if(withHer){if(G.parentNode!==CHU)CHU.appendChild(G
 function paintAll(b){var fv3=D(b.f,V3),pH=me.tilt+me.lean*0.7;if(fv3>0.15&&pH<0.42)neckFront=true;else if(fv3<-0.15||pH>0.5)neckFront=false;
  var free=['upL','foL','upR','foR','lap','mug','bookC','bookO','stack','held','roll'].filter(function(n){return P[n].on!==false;});
  ['lap','mug','bookC','bookO','stack','held','roll'].forEach(function(n){P[n].g.style.display=P[n].on!==false?'':'none';});
- var colm=['skirtHi'].concat(neckFront?['torso','neck']:['neck','torso'],['head']);
+ var colm=['skirtHi','torso','neck','head'];
  if(seated){placeChair(true);P.COL.d=P.torso.d;
   var ord=sortKeep(G,free.concat(['COL','shoeL','shoeR','skirtLo'],CHP));
   // the seat is under everything of hers; each arm lies over the pad on its own side (left arm on the +b pad);
@@ -2190,7 +2191,7 @@ function paintAll(b){var fv3=D(b.f,V3),pH=me.tilt+me.lean*0.7;if(fv3>0.15&&pH<0.
  placeChair(false);place(CHU,sortKeep(CHU,CHP));
  place(LOW,['shadow'].concat(sortKeep(LOW,['shoeL','shoeR']),['skirtLo']));
  if(me.atB){// at the sub desk her upper body is drawn above the desk, the skirt below it
-  P.COLU.d=P.torso.d;place(G,['skirtHi']);place(OVB,expand(sortKeep(OVB,free.concat(['COLU'])),neckFront?['torso','neck','head']:['neck','torso','head'],'COLU'));return;}
+  P.COLU.d=P.torso.d;place(G,['skirtHi']);place(OVB,expand(sortKeep(OVB,free.concat(['COLU'])),['torso','neck','head'],'COLU'));return;}
  P.COL.d=P.torso.d;place(G,expand(sortKeep(G,free.concat(['COL'])),colm));place(OVB,[]);}
 function expand(ord,colm,key){var o=[];key=key||'COL';ord.forEach(function(n){if(n===key)o=o.concat(colm);else o.push(n);});return o;}
 // a must come before b: pull a down to just under b, or (push) lift b to just over a
@@ -2417,14 +2418,14 @@ SCENE.takeStack=function(c,el,b){var k=el/1.7,hs=stackHeight(prop.stack),from=[S
  if(prop.stackPos!=='carry'){var sd=stackSides(prop.stackPos==='desk'?from:prop.stackMove,b,hs);hands.L=H(sd[0],{fast:el>0.55,hd:[0,-1,0]});hands.R=H(sd[1],{fast:el>0.55,hd:[0,-1,0]});}
  if(k>=1&&prop.stackPos==='carry')cur=null;return {lean:0.36*Math.sin(Math.PI*cl(k/0.9,0,1)),tilt:0.32};};
 // at the desk: take the top book from the pile with the left hand and lay it open in front of her
-function closedAt(bk){var ex=rotz([1,0,0],bk.yaw);return [OPEN0[0]-ex[0]*bk.w/2,OPEN0[1]-ex[1]*bk.w/2,TOPZ];}   // a closed book lies on the near half of where it will open
+function closedAt(bk){var ex=rotz([1,0,0],bk.yaw);return [OPEN0[0]+ex[0]*bk.w/2,OPEN0[1]+ex[1]*bk.w/2,TOPZ];}   // a closed book lies on the near half of where it will open
 SCENE.takeBook=function(c,el,b){if(c.bk===undefined){c.bk=prop.stack.pop();c.from=[STACK0[0],STACK0[1],TOPZ+stackHeight(prop.stack)];prop.held={c:c.from.slice(),books:[c.bk]};}
  var e=ease(ph(el,0.45,1.35)),to=closedAt(c.bk);
  if(prop.held){var p=mix(c.from,to,e);p[2]+=70*Math.sin(Math.PI*e);prop.held.c=p;var grip=A(p,[c.bk.w*0.42,c.bk.h*0.3,c.bk.t]);
   hands.L=H(el<0.45?mix(rest(1),A(c.from,[c.bk.w*0.42,c.bk.h*0.3,c.bk.t]),ease(el/0.45)):grip,{fast:el>0.45,hd:[0,-1,-0.4]});if(e>=1){prop.held=null;prop.open={b:c.bk,op:0};c.t1=el;}}
  if(prop.open&&c.t1!==undefined){var e2=ease((el-c.t1)/0.5),bw=c.bk.w;hands.R=H([OPEN0[0]-bw*0.7,OPEN0[1]+60,TOPZ+26],{hd:[0,-1,-0.4]});
   // her hand lifts the front cover and lays it over to the far side
-  var oe=ease(cl((el-c.t1)/0.75,0,1)),th=Math.PI*(1-oe),ex=rotz([1,0,0],c.bk.yaw),edge=A([OPEN0[0],OPEN0[1],TOPZ+c.bk.t/2],A(M(ex,bw*0.85*Math.cos(th)),[0,0,bw*0.85*Math.sin(th)]));
+  var oe=ease(cl((el-c.t1)/0.75,0,1)),th=Math.PI*oe,ex=rotz([1,0,0],c.bk.yaw),edge=A([OPEN0[0],OPEN0[1],TOPZ+c.bk.t/2],A(M(ex,bw*0.85*Math.cos(th)),[0,0,bw*0.85*Math.sin(th)]));
   prop.open.op=oe;prop.page=-1;hands.L=H(A(edge,[0,40,14]),{fast:true,hd:[0,-1,-0.4]});if(el-c.t1>0.95)cur=null;}
  return {lean:0.18,tilt:0.32};};
 SCENE.study=function(c,el,b){if(!c.np){c.np=rnd(3.5,6);c.pt=-1;c.chin=rnd(3.5,Math.max(4,c.len-4));}var t=vt/1000,o={lean:0.2,tilt:0.42+0.02*Math.sin(t*1.3),hy:0.05*((el%3)/3)-0.025};me.squint=1;
@@ -2439,7 +2440,7 @@ SCENE.study=function(c,el,b){if(!c.np){c.np=rnd(3.5,6);c.pt=-1;c.chin=rnd(3.5,Ma
  if(el>c.len&&c.pt<0){prop.page=-1;cur=null;}return o;};
 // close it and put it on the pile on her right
 SCENE.doneBook=function(c,el,b){var bk=prop.open?prop.open.b:c.bk0;if(!c.bk0)c.bk0=bk;
- var e0=ease(ph(el,0,0.7));if(prop.open&&prop.open.op>0){var th=Math.PI*e0,ex=rotz([1,0,0],bk.yaw),edge=A([OPEN0[0],OPEN0[1],TOPZ+bk.t/2],A(M(ex,bk.w*0.85*Math.cos(th)),[0,0,bk.w*0.85*Math.sin(th)]));
+ var e0=ease(ph(el,0,0.7));if(prop.open&&prop.open.op>0){var th=Math.PI*(1-e0),ex=rotz([1,0,0],bk.yaw),edge=A([OPEN0[0],OPEN0[1],TOPZ+bk.t/2],A(M(ex,bk.w*0.85*Math.cos(th)),[0,0,bk.w*0.85*Math.sin(th)]));
   prop.open.op=1-e0;prop.page=-1;hands.L=H(A(edge,[0,40,14]),{fast:true,hd:[0,-1,-0.3]});hands.R=H([OPEN0[0]-bk.w*0.8,OPEN0[1]+50,TOPZ+24],{});}
  if(prop.open&&prop.open.op<=0&&el>0.75&&!prop.held){var ca=closedAt(bk);prop.held={c:ca,books:[bk]};prop.open=null;c.from=ca;c.to=[DONE0[0],DONE0[1],TOPZ+stackHeight(prop.done)];c.t1=el;}
  if(prop.held){var e=ease((el-c.t1)/0.85),p=mix(c.from,c.to,e);p[2]+=60*Math.sin(Math.PI*e);prop.held.c=p;hands.R=H(A(p,[-bk.w*0.42,bk.h*0.3,bk.t]),{fast:true,hd:[0,-1,-0.4]});
