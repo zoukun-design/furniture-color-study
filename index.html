@@ -1537,7 +1537,7 @@ function fillMenu(){$('mKana').href=kUrl();$('mKanaC').textContent=COL.a[st.a][0
  $('mPark').href=INFO.b.url;$('mParkC').textContent=COL.b[st.b][0];$('mParkDot').style.background=COL.b[st.b][1];
  var ua=navigator.userAgent||'',mob=/iPhone|iPad|iPod|Android/.test(ua)||(/Macintosh/.test(ua)&&navigator.maxTouchPoints>1);$('mApp').hidden=isStandalone()||!mob;
  makeCard().then(function(){$('mprev').src=cardUrl;fitMenu();});fitMenu();setTimeout(fitMenu,350);}
-function fitMenu(){var pv=$('mprev'),c=$('mnc');pv.style.height='';var n=0;(function step(){requestAnimationFrame(function(){var over=c.scrollHeight-c.clientHeight;if(over>0){pv.style.height=Math.max(120,pv.offsetHeight-over-2)+'px';if(++n<4)step();}});})();}
+function fitMenu(){var pv=$('mprev'),c=$('mnc');pv.style.height=Math.round((c.clientWidth-40)*1.25)+'px';var n=0;(function step(){requestAnimationFrame(function(){var over=c.scrollHeight-c.clientHeight;if(over>0){pv.style.height=Math.max(120,pv.offsetHeight-over-2)+'px';if(++n<4)step();}});})();}
 window.addEventListener('resize',function(){if(mOpen)fitMenu();});
 var mOpen=false;function setMenu(on){var m=$('menu'),b=$('mbtn');if(on===mOpen)return;mOpen=on;b.setAttribute('aria-expanded',on?'true':'false');b.setAttribute('aria-label',on?'Close menu':'Menu');
  document.body.classList.toggle('mopen',on||true);if(on){fillMenu();var top=document.querySelector('.tbl').getBoundingClientRect().bottom;$('mnc').style.paddingTop=top+'px';m.hidden=false;requestAnimationFrame(function(){requestAnimationFrame(function(){m.classList.add('show');});});}
