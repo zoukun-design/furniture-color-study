@@ -1598,9 +1598,9 @@ document.addEventListener('keydown',function(e){if(e.key==='Escape'&&mOpen)setMe
 function dl(){var a=document.createElement('a');a.href=cardUrl;a.download='furniture-color-study.png';document.body.appendChild(a);a.click();a.remove();}
 function shareImg(){if(!cardBlob){makeCard().then(dl);return;}
  var f=new File([cardBlob],'furniture-color-study.png',{type:'image/png'});
- if(navigator.canShare&&navigator.canShare({files:[f]})){navigator.share({files:[f],title:'Furniture Color Study'}).catch(function(){});}else dl();};
+ if(navigator.canShare&&navigator.canShare({files:[f]})){navigator.share({files:[f],text:shareUrl()}).catch(function(){});}else dl();};
 function shareLink(){var u=shareUrl();
- if(navigator.share){navigator.share({title:'Furniture Color Study',text:comboText(),url:u}).catch(function(){});}
+ if(navigator.share){navigator.share({url:u}).catch(function(){});}
  else if(navigator.clipboard){navigator.clipboard.writeText(u).then(function(){toast('Link copied');},function(){prompt('Copy this link',u);});}else prompt('Copy this link',u);};
 $('mShareImg').onclick=shareImg;$('mShareLink').onclick=shareLink;$('shImgBtn').onclick=shareImg;$('shLinkBtn').onclick=shareLink;
 var shx=$('shx');function openSh(){makeCard().then(function(){$('shImg').src=cardUrl;});shx.hidden=false;requestAnimationFrame(function(){requestAnimationFrame(function(){shx.classList.add('show');});});}
