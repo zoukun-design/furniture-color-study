@@ -1491,7 +1491,7 @@ if(window.ResizeObserver)new ResizeObserver(fitTitle).observe(document.querySele
 // ---- opening logo animation (every launch) -> then the add-to-home sheet (browser only)
 (function(){var sp=$('splash'),sl=$('slogo'),tx=$('stx'),dot=$('sdot');if(!sp)return;document.body.classList.add('splashing');
  var reduce=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches,done=false;
- function end(){if(done)return;done=true;document.body.classList.remove('splashing');sp.remove();if(SHARED)toast('Showing a shared combination');setTimeout(installSheet,SHARED?2600:250);}
+ function end(){if(done)return;done=true;document.body.classList.remove('splashing');sp.remove();setTimeout(installSheet,250);}
  function fly(){var h=document.querySelector('.app .logo'),a=sl.getBoundingClientRect(),b=h?h.getBoundingClientRect():null;
   sp.classList.add('go');if(b&&a.width){var k=b.height/a.height;sl.style.transform='translate('+(b.left-a.left)+'px,'+(b.top-a.top)+'px) scale('+k+')';}
   setTimeout(end,400);}
