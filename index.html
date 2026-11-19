@@ -2299,10 +2299,10 @@ function deskOut(tp){for(var i=0;i<2;i++){var d=DESKS[i];if(tp[0]>d[0]-25&&tp[0]
   tp=tp.slice();tp[o[1]]=o[2];}}return tp;}
 function H(p,o){o=o||{};o.p=p;return o;}
 // ---------- drawing one frame ----------
-// ---------- a day going by outside: the app opens in the morning; one day takes 24 minutes ----------
+// ---------- a day going by outside: the app opens in the morning; one day takes 12 minutes ----------
 // the sky behind the glass moves through dawn, a soft day blue, sunset and night; the sun comes in low and warm in the
 // morning (the windows face east), its patches on the floor shortening and sliding as it climbs and leaving by early afternoon
-var DAYSEC=1440,DAY0=7.0,SUNG=$i('sunG'),SKY=svg.querySelectorAll('#skyG stop'),PANES=JSON.parse(SUNG.getAttribute('data-panes')),ROOM=JSON.parse(SUNG.getAttribute('data-room'));
+var DAYSEC=720,DAY0=7.0,SUNG=$i('sunG'),SKY=svg.querySelectorAll('#skyG stop'),PANES=JSON.parse(SUNG.getAttribute('data-panes')),ROOM=JSON.parse(SUNG.getAttribute('data-room'));
 var SKYK=[[0,['#1e2737','#29354b','#3d4a60']],[4.8,['#1e2737','#29354b','#3d4a60']],[5.8,['#5c6884','#a99aa3','#e3bfa6']],[6.8,['#93a9c2','#c4cbd2','#efe2cf']],
  [8.5,['#a2b8cc','#c9d8e2','#eef1ee']],[12,['#a4bccf','#cadae4','#ebf0f2']],[16,['#a6bccd','#cdd8de','#efebe3']],[17.6,['#9a9fb8','#d0b4a8','#efcfae']],
  [18.6,['#5f6684','#9a8a98','#c99d8d']],[19.6,['#2a3349','#3a455d','#566178']],[24,['#1e2737','#29354b','#3d4a60']]];
@@ -2693,9 +2693,9 @@ function plan(){var kind=pick();lastKind=kind;danceCool--;if(kind==='dance')danc
  if(me.away)step({k:'enter',from:ex,carry:kind});
  else if(items){step({k:'go',pt:ex});step({k:'leave',len:rnd(0.1,0.3)});step({k:'enter',from:ex,carry:kind});}
  if(kind==='work'){step({k:'go',pt:DESKSIDE,arrive:{yaw:-Math.PI/2,dist:650}});step({k:'place'});sitDown();step({k:'slide',to:LAPU});step({k:'open'});
-  step({k:'work',len:rnd(26,49)});step({k:'close'});step({k:'slide',to:LAPU0});standUp();step({k:'go',pt:DESKSIDE,arrive:{yaw:-Math.PI/2,dist:650}});step({k:'pickup'});}
+  step({k:'work',len:rnd(16,26)});step({k:'close'});step({k:'slide',to:LAPU0});standUp();step({k:'go',pt:DESKSIDE,arrive:{yaw:-Math.PI/2,dist:650}});step({k:'pickup'});}
  else if(kind==='research'){step({k:'go',pt:DESKSIDE,arrive:{yaw:-Math.PI/2,dist:650}});step({k:'putStack'});sitDown();
-  var n=2+(Math.random()<0.4?1:0);for(var i=0;i<n;i++){step({k:'takeBook'});step({k:'study',len:rnd(4.5,7.5)});step({k:'doneBook'});}
+  var n=2+(Math.random()<0.4?1:0),chinAt=Math.floor(Math.random()*n);for(var i=0;i<n;i++){step({k:'takeBook'});step({k:'study',len:rnd(4.5,7.5),hasChin:i===chinAt});step({k:'doneBook'});}
   step({k:'gather'});standUp();step({k:'go',pt:DESKSIDE,arrive:{yaw:-Math.PI/2,dist:650}});step({k:'takeStack'});}
  else if(kind==='drawings'){step({k:'go',pt:[1770,RV1-175],arrive:{yaw:0,dist:700},during:rollIn});step({k:'placeRoll'});step({k:'unroll'});step({k:'examine',len:rnd(15,25)});step({k:'rollUp'});step({k:'takeRoll'});}
  else if(kind==='read'){// she comes in already reading, wanders a little with her nose in the book, stops to read, moves on
@@ -2864,14 +2864,14 @@ function workUpdate(c,el,t,b){if(!c.s){c.s={k:'look',t0:0,len:rnd(1.6,2.6)};c.si
  var s=c.s,sk=(el-s.t0)/s.len;
  if(sk>=1){var left=c.len-el;if(left<=0){c.done=true;}else{var cand=[];
    if(s.k==='type'){cand.push(['look',2.2],['type',0.7]);if(el>8)cand.push(['pad',1]);
-    if(el>7&&el-c.lastSip>13&&c.sips<4&&left>6)cand.push(['sip',el-c.lastSip>20?4:1.6]);
-    if(!c.stretched&&el>40&&left>12)cand.push(['stretch',1.2]);}
+    if(el>6&&el-c.lastSip>13&&c.sips<4&&left>6)cand.push(['sip',el-c.lastSip>20?4:1.6]);
+    if(!c.stretched&&el>12&&left>6)cand.push(['stretch',0.8]);}
    else if(s.k==='look')cand.push(['type',4],['pad',el>8?0.7:0]);
    else if(s.k==='pad')cand.push(['type',2],['look',1]);
    else cand.push(['look',1.6],['type',1]);
    var tot=0;cand.forEach(function(x){tot+=x[1];});var rr=Math.random()*tot,kind=cand[0][0];for(var i=0;i<cand.length;i++){rr-=cand[i][1];if(rr<=0){kind=cand[i][0];break;}}
    var lens={type:rnd(3,7.5),look:rnd(1.5,3.6),pad:rnd(1.4,2.6),sip:5.6,stretch:3.0};
-   s=c.s={k:kind,t0:el,len:lens[kind],glance:kind==='look'&&Math.random()<0.25};sk=0;if(kind==='sip'){c.sips++;c.lastSip=el;}if(kind==='stretch')c.stretched=true;}}
+   s=c.s={k:kind,t0:el,len:kind==='type'||kind==='look'||kind==='pad'?Math.min(lens[kind],Math.max(1.4,left)):lens[kind],glance:kind==='look'&&Math.random()<0.25};sk=0;if(kind==='sip'){c.sips++;c.lastSip=el;}if(kind==='stretch')c.stretched=true;}}
  c.lean=0.16;c.tilt=0.26;c.hy=0;if(prop.mug==='lift')prop.mug='desk';
  // at the keyboard the elbows hang by her sides, a little back, not out on the arm pads
  function kp(sg){return N(A(A(M(b.f,-0.5),M(b.r,0.2*sg)),[0,0,-0.85]));}
@@ -2962,7 +2962,7 @@ SCENE.takeBook=function(c,el,b){if(c.bk===undefined){c.bk=prop.stack.pop();c.fro
   var oe=ease(cl((el-c.t1)/0.75,0,1)),th=Math.PI*oe,ex=rotz([1,0,0],c.bk.yaw),edge=A([OPEN0[0],OPEN0[1],TOPZ+c.bk.t/2],A(M(ex,bw*0.85*Math.cos(th)),[0,0,bw*0.85*Math.sin(th)]));
   prop.open.op=oe;prop.page=-1;hands.L=H(A(edge,[0,40,14]),{fast:true,hd:[0,-1,-0.4]});if(el-c.t1>0.95)cur=null;}
  return {lean:0.18,tilt:0.32};};
-SCENE.study=function(c,el,b){if(!c.np){c.np=rnd(3.5,6);c.pt=-1;c.chin=rnd(3.5,Math.max(4,c.len-4));}var t=vt/1000,o={lean:0.2,tilt:0.42+0.02*Math.sin(t*1.3),hy:0.05*((el%3)/3)-0.025};me.squint=1;
+SCENE.study=function(c,el,b){if(!c.np){c.np=rnd(3.5,6);c.pt=-1;c.chin=c.hasChin?rnd(3.5,Math.max(4,c.len-4)):1e9;}var t=vt/1000,o={lean:0.2,tilt:0.42+0.02*Math.sin(t*1.3),hy:0.05*((el%3)/3)-0.025};me.squint=1;
  if(c.pt<0&&el>c.np&&el<c.len-1)c.pt=el;
  if(c.pt>=0){var pp=(el-c.pt)/0.9;if(pp>=1){prop.page=-1;c.pt=-1;c.np=el+rnd(3.5,6);}else prop.page=pp;}
  var bw=prop.open.b.w,chin=el>c.chin&&el<c.chin+2.6;
