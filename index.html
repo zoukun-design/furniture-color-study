@@ -2513,12 +2513,19 @@ function drawCarried(b){var f=b.f,r=b.r,q;
  q=P.bookC;q.on=prop.book==='hand'||prop.book==='move';pb(q.p);if(q.on){var rp=bookRead(b),qq=prop.book==='move'?prop.bookK:0;
   var cc=mix(A(HAND.L,[0,0,-122]),rp.c,qq),hu=N(mix(UP,rp.hu,qq)),wd=N(mix(f,rp.wd,qq)),th=N(X(hu,wd));closedBook(q.p,cc,M(wd,70),M(hu,105),M(th,14),prop.bookCol);gp('bookC',{t:'box',c:A(cc,M(wd,1.5)),ax:[M(wd,71.5),M(hu,108),M(th,14)]});q.d=dep(cc);}pe(q.p);
  q=P.bookO;q.on=prop.book==='read';pb(q.p);if(q.on){var r2=bookRead(b),sp=r2.sp,bu=r2.bu,al=prop.spread*0.95,sb=Sb(sp,M(bu,105)),qp=q.p;
-  var wings=[-1,1].map(function(sg){var wv=wing(b,sg,al),nin=N(X(bu,wv));if(D(nin,M(r,-sg))<0)nin=M(nin,-1);return {wv:wv,nin:nin,c:A(A(sp,M(wv,0.5)),M(nin,6))};});
+  var wings=[-1,1].map(function(sg){var wv=wing(b,sg,al),nin=N(X(bu,wv));if(D(nin,M(r,-sg))<0)nin=M(nin,-1);return {sg:sg,wv:wv,nin:nin,c:A(A(sp,M(wv,0.5)),M(nin,6))};});
   wings.sort(function(x,y){return dep(x.c)-dep(y.c);});
-  var drawPage=function(){if(prop.page<0)return;var wv2=wing(b,1,al*(1-2*ease(prop.page)));pa(qp,polyW([sb,A(sp,M(bu,105)),A(A(sp,M(bu,105)),wv2),A(sb,wv2)]),COL.page);};
-  var outside=D(wings[0].nin,V3)<=0;if(outside)drawPage();
-  wings.forEach(function(w0){openWing(qp,sp,w0.wv,bu,w0.nin,prop.bookCol,true);if(GEO){var wl=L(w0.wv)+3,ex=N(w0.wv);gp('bookO',{t:'box',c:A(A(sp,M(ex,wl/2)),M(w0.nin,5.8)),ax:[M(ex,wl/2),M(bu,108),M(w0.nin,5.8)]});}});
-  if(!outside)drawPage();q.d=dep(sp)-20;}pe(q.p);
+  // the turning page: the top sheet of the right half, swung over to the left. It keeps the gutter curve and its printed lines,
+  // and its surface goes from the right half's page level to the left half's, so it starts and lands exactly on them.
+  var drawPage=function(){if(prop.page<0)return;var e=ease(prop.page),wv2=wing(b,1,al*(1-2*e)),nR=wings[0].sg>0?wings[0].nin:wings[1].nin,nL=wings[0].sg>0?wings[1].nin:wings[0].nin;
+   var ex=N(wv2),ez=mix(nR,nL,e),T=9,H=105,W0=L(wv2),pr=[[0.5,0.42],[7,0.7],[16,0.9],[28,1],[W0,1]];
+   var P3=function(x,y,z){return A(A(A(sp,M(ex,x)),M(bu,y)),M(ez,z));},zt=pr.map(function(q2){return BOARD+T*q2[1];});
+   for(var i=0;i+1<pr.length;i++){var a0=pr[i],b0=pr[i+1],n=N(X(Sb(P3(b0[0],0,zt[i+1]),P3(a0[0],0,zt[i])),bu));if(D(n,ez)<0)n=M(n,-1);if(D(n,V3)<0)n=M(n,-1);
+    pa(qp,polyW([P3(a0[0],-H,zt[i]),P3(b0[0],-H,zt[i+1]),P3(b0[0],H,zt[i+1]),P3(a0[0],H,zt[i])]),faceCol(COL.page,n,0.86,0.93));}
+   var zf=BOARD+T;for(var row=0;row<8;row++){var y=-76+row*20;pa(qp,seg(W(P3(W0*0.18,y,zf)),W(P3(W0*0.86,y,zf))),null,COL.ink,0.45,0.6);}};
+  // the page being turned is inside the book: in front of a half whose pages we see, behind a half whose cover we see
+  var drawWing=function(w0){openWing(qp,sp,w0.wv,bu,w0.nin,prop.bookCol,true);if(GEO){var wl=L(w0.wv)+3,ex=N(w0.wv);gp('bookO',{t:'box',c:A(A(sp,M(ex,wl/2)),M(w0.nin,5.8)),ax:[M(ex,wl/2),M(bu,108),M(w0.nin,5.8)]});}};
+  wings.filter(function(w0){return D(w0.nin,V3)>0;}).forEach(drawWing);drawPage();wings.filter(function(w0){return D(w0.nin,V3)<=0;}).forEach(drawWing);q.d=dep(sp)-20;}pe(q.p);
  q=P.stack;q.on=prop.stackPos==='carry'||prop.stackPos==='move';pb(q.p);if(q.on){var base=prop.stackPos==='carry'?stackCarry(b):prop.stackMove,bz=base[2],yawS=Math.atan2(f[1],f[0])+Math.PI/2;
   prop.stack.forEach(function(bk){bookFaces(q.p,[base[0],base[1],bz+bk.t/2],rotz([bk.w/2,0,0],yawS+bk.yaw),rotz([0,bk.h/2,0],yawS+bk.yaw),[0,0,bk.t/2],bk.col);gp('stack',{t:'box',c:[base[0],base[1],bz+bk.t/2],ax:[rotz([bk.w/2,0,0],yawS+bk.yaw),rotz([0,bk.h/2,0],yawS+bk.yaw),[0,0,bk.t/2]]});bz+=bk.t;});q.d=dep(A(base,[0,0,60]));}pe(q.p);
  q=P.held;q.on=!!prop.held;pb(q.p);if(q.on){var hb=prop.held,z=hb.c[2];hb.books.forEach(function(bk){stackBook(q.p,hb.c,bk,z);gp('held',{t:'box',c:[hb.c[0],hb.c[1],z+bk.t/2],ax:[rotz([bk.w/2,0,0],bk.yaw),rotz([0,bk.h/2,0],bk.yaw),[0,0,bk.t/2]]});z+=bk.t;});q.d=dep(A(hb.c,[0,0,30]));}pe(q.p);
