@@ -2551,22 +2551,22 @@ function standUp(){step({k:'scoot',to:0});step({k:'swivelSeat',to:PSI_SIT});step
 function plan(){var kind=pick();lastKind=kind;danceCool--;if(kind==='dance')danceCool=8;
  var items=KINDS[kind].items,ex=EXITS[kind==='read'?1:Math.random()<0.5?0:1],ex2=EXITS[Math.random()<0.5?0:1];
  if(me.away)step({k:'enter',from:ex,carry:kind});
- else if(items){step({k:'go',pt:ex});step({k:'leave',len:rnd(0.3,0.8)});step({k:'enter',from:ex,carry:kind});}
+ else if(items){step({k:'go',pt:ex});step({k:'leave',len:rnd(0.1,0.3)});step({k:'enter',from:ex,carry:kind});}
  if(kind==='work'){step({k:'go',pt:DESKSIDE});step({k:'face',yaw:-Math.PI/2});step({k:'place'});sitDown();step({k:'slide',to:LAPU});step({k:'open'});
-  step({k:'work',len:rnd(40,75)});step({k:'close'});step({k:'slide',to:LAPU0});standUp();step({k:'go',pt:DESKSIDE});step({k:'face',yaw:-Math.PI/2});step({k:'pickup'});}
+  step({k:'work',len:rnd(26,49)});step({k:'close'});step({k:'slide',to:LAPU0});standUp();step({k:'go',pt:DESKSIDE});step({k:'face',yaw:-Math.PI/2});step({k:'pickup'});}
  else if(kind==='research'){step({k:'go',pt:DESKSIDE});step({k:'face',yaw:-Math.PI/2});step({k:'putStack'});sitDown();
-  var n=2+(Math.random()<0.4?1:0);for(var i=0;i<n;i++){step({k:'takeBook'});step({k:'study',len:rnd(10,16)});step({k:'doneBook'});}
+  var n=2+(Math.random()<0.4?1:0);for(var i=0;i<n;i++){step({k:'takeBook'});step({k:'study',len:rnd(4.5,7.5)});step({k:'doneBook'});}
   step({k:'gather'});standUp();step({k:'go',pt:DESKSIDE});step({k:'face',yaw:-Math.PI/2});step({k:'takeStack'});}
- else if(kind==='drawings'){step({k:'go',pt:BSPOT});step({k:'face',yaw:0});step({k:'placeRoll'});step({k:'unroll'});step({k:'examine',len:rnd(22,36)});step({k:'rollUp'});step({k:'takeRoll'});step({k:'stepBack'});}
+ else if(kind==='drawings'){step({k:'go',pt:BSPOT});step({k:'face',yaw:0});step({k:'placeRoll'});step({k:'unroll'});step({k:'examine',len:rnd(15,25)});step({k:'rollUp'});step({k:'takeRoll'});step({k:'stepBack'});}
  else if(kind==='read'){// she comes in already reading, wanders a little with her nose in the book, stops to read, moves on
   var spots=[[1250,2450],[800,2440],[950,2180],[1350,2150]].sort(function(){return Math.random()-0.5;});
-  step({k:'go',pt:spots[0]});step({k:'read',len:rnd(6,10)});step({k:'go',pt:spots[1]});step({k:'read',len:rnd(8,14)});
-  if(Math.random()<0.6){step({k:'go',pt:spots[2]});step({k:'read',len:rnd(5,9)});}
-  step({k:'closeBook'});step({k:'face',yaw:Math.PI});step({k:'gaze',len:rnd(2.5,4)});}
+  step({k:'go',pt:spots[0]});step({k:'read',len:rnd(3.6,6)});step({k:'go',pt:spots[1]});step({k:'read',len:rnd(4.8,8.4)});
+  if(Math.random()<0.6){step({k:'go',pt:spots[2]});step({k:'read',len:rnd(3,5.4)});}
+  step({k:'closeBook'});step({k:'face',yaw:Math.PI});step({k:'gaze',len:rnd(1.8,2.8)});}
  else if(kind==='think'){step({k:'go',pt:[1760,1350]});step({k:'face',yaw:0});step({k:'think',len:rnd(6,9)});}
- else if(kind==='gaze'){step({k:'go',pt:[420,1880]});step({k:'face',yaw:Math.PI});step({k:'gaze',len:rnd(6,10),back:true});}
+ else if(kind==='gaze'){step({k:'go',pt:[420,1880]});step({k:'face',yaw:Math.PI});step({k:'gaze',len:rnd(4.2,7),back:true});}
  else if(kind==='dance'){step({k:'go',pt:[1050,2250]});step({k:'face',yaw:Math.PI/4});step({k:'dance',len:6.4});}
- if(items){step({k:'go',pt:ex2});step({k:'leave',len:rnd(1.5,3.5)});}}
+ if(items){step({k:'go',pt:ex2});step({k:'leave',len:rnd(0.1,0.3)});}}
 var RD={np:0,pt:-1};
 function readHands(b,turns){var t=vt/1000,bh2=N(A(UP,M(b.f,0.3)));if(RD.pt<0&&turns&&t>RD.np)RD.pt=t;
  if(RD.pt>=0){var pp=(t-RD.pt)/0.95;if(pp>=1){prop.page=-1;RD.pt=-1;RD.np=t+rnd(5.5,8.5);}else prop.page=pp;}
@@ -2575,7 +2575,10 @@ function readHands(b,turns){var t=vt/1000,bh2=N(A(UP,M(b.f,0.3)));if(RD.pt<0&&tu
  else hands.R=H(bookHold(b,1),{rel:true,pole:elbowsIn(b,1),hd:bh2});}
 function next(){cur=Q.shift();if(!cur){plan();cur=Q.shift();}T0=vt;}
 function val(x){return typeof x==='function'?x():x;}
-function update(){var el=(vt-T0)/1000,c=cur,k,b=body(),f=b.f,r=b.r,t=vt/1000;
+// activities run 30% shorter than they were: the long stays by their lengths, the dance and the in-between handling
+// (sitting, opening, placing...) a little quicker; walking keeps its own pace
+var QUICK={go:1,walkDirect:1,leave:1,enter:1,face:1,work:1,study:1,examine:1,read:1,gaze:1};
+function update(){var el=(vt-T0)/1000*(cur&&!QUICK[cur.k]?(cur.k==='dance'?1/0.7:1/0.82):1),c=cur,k,b=body(),f=b.f,r=b.r,t=vt/1000;
  hands.L=hands.R=null;me.wT=0;var wantLean=0,wantTilt=0.05,wantHY=0;me.atB=false;me.sway=0;me.bounce=0;me.squint=0;
  switch(c.k){
  case 'enter':prop.lap=prop.mug=prop.book=prop.roll='away';prop.mugHand='L';prop.stackPos='away';prop.stack=[];prop.held=null;prop.open=null;prop.done=[];prop.sheet=0;
