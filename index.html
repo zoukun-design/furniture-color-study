@@ -2440,7 +2440,7 @@ function drawCarried(b){var f=b.f,r=b.r,q;
   wings.forEach(function(w0){bookFaces(qp,w0.c,M(w0.wv,0.5),M(bu,105),M(w0.nin,-6),prop.bookCol,true);
    if(D(w0.nin,V3)>0){var fc=A(w0.c,M(w0.nin,6));for(var row=0;row<8;row++){var y=-76+row*20;pa(qp,seg(W(A(A(fc,M(bu,y)),M(w0.wv,-0.32))),W(A(A(fc,M(bu,y)),M(w0.wv,0.36)))),null,COL.ink,0.45,0.6);}}});
   if(!outside)drawPage();q.d=dep(sp)-20;}pe(q.p);
- q=P.stack;q.on=prop.stackPos==='carry'||prop.stackPos==='move';pb(q.p);if(q.on){var base=prop.stackPos==='carry'?stackCarry(b):prop.stackMove,bz=base[2],yawS=Math.atan2(f[1],f[0])-Math.PI/2;
+ q=P.stack;q.on=prop.stackPos==='carry'||prop.stackPos==='move';pb(q.p);if(q.on){var base=prop.stackPos==='carry'?stackCarry(b):prop.stackMove,bz=base[2],yawS=Math.atan2(f[1],f[0])+Math.PI/2;
   prop.stack.forEach(function(bk){bookFaces(q.p,[base[0],base[1],bz+bk.t/2],rotz([bk.w/2,0,0],yawS+bk.yaw),rotz([0,bk.h/2,0],yawS+bk.yaw),[0,0,bk.t/2],bk.col);bz+=bk.t;});q.d=dep(A(base,[0,0,60]));}pe(q.p);
  q=P.held;q.on=!!prop.held;pb(q.p);if(q.on){var hb=prop.held,z=hb.c[2];hb.books.forEach(function(bk){stackBook(q.p,hb.c,bk,z);z+=bk.t;});q.d=dep(A(hb.c,[0,0,30]));}pe(q.p);
  // carried under the arm the roll is drawn as its front and back halves, so each can sit before or behind her on its own
@@ -2745,11 +2745,11 @@ var SCENE={};
 function stackSides(base,b,hs){var yv=rotz([1,0,0],Math.atan2(b.f[1],b.f[0])-Math.PI/2);return [A(A(base,M(yv,-104)),[0,0,hs*0.35]),A(A(base,M(yv,104)),[0,0,hs*0.35])];}
 // a pile of books hugged in, set down on the desk; and picked up again
 SCENE.putStack=function(c,el,b){var k=el/1.5,e=ease(ph(el,0.1,0.95)),to=[STACK0[0],STACK0[1],TOPZ+1],hs=stackHeight(prop.stack);
- if(prop.stackPos==='carry'||prop.stackPos==='move'){if(e>=1)prop.stackPos='desk';else{prop.stackPos='move';prop.stackMove=A(mix(stackCarry(b),to,e),[0,0,40*Math.sin(Math.PI*e)]);}}
+ if(prop.stackPos==='carry'||prop.stackPos==='move'){if(e>=1){var yo=Math.atan2(b.f[1],b.f[0])+Math.PI/2;prop.stack.forEach(function(bk){bk.yaw+=yo;});prop.stackPos='desk';}else{prop.stackPos='move';prop.stackMove=A(mix(stackCarry(b),to,e),[0,0,40*Math.sin(Math.PI*e)]);}}
  var sd=stackSides(prop.stackPos==='desk'?to:prop.stackMove,b,hs);if(el<1.25){hands.L=H(sd[0],{fast:true,hd:[0,-1,0]});hands.R=H(sd[1],{fast:true,hd:[0,-1,0]});}
  if(k>=1)cur=null;return {lean:0.36*Math.sin(Math.PI*cl(k/0.9,0,1)),tilt:0.32};};
 SCENE.takeStack=function(c,el,b){var k=el/1.7,hs=stackHeight(prop.stack),from=[STACK0[0],STACK0[1],TOPZ+1],e=ease(ph(el,0.55,1.4));
- if(prop.stackPos==='desk'&&el>0.55)prop.stackPos='move';if(prop.stackPos==='move'){if(e>=1)prop.stackPos='carry';else prop.stackMove=A(mix(from,stackCarry(b),e),[0,0,40*Math.sin(Math.PI*e)]);}
+ if(prop.stackPos==='desk'&&el>0.55){var yo=Math.atan2(b.f[1],b.f[0])+Math.PI/2;prop.stack.forEach(function(bk){bk.yaw-=yo;});prop.stackPos='move';}if(prop.stackPos==='move'){if(e>=1)prop.stackPos='carry';else prop.stackMove=A(mix(from,stackCarry(b),e),[0,0,40*Math.sin(Math.PI*e)]);}
  if(prop.stackPos!=='carry'){var sd=stackSides(prop.stackPos==='desk'?from:prop.stackMove,b,hs);hands.L=H(sd[0],{fast:el>0.55,hd:[0,-1,0]});hands.R=H(sd[1],{fast:el>0.55,hd:[0,-1,0]});}
  if(k>=1&&prop.stackPos==='carry')cur=null;return {lean:0.36*Math.sin(Math.PI*cl(k/0.9,0,1)),tilt:0.32};};
 // at the desk: take the top book from the pile with the left hand and lay it open in front of her
