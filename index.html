@@ -2341,7 +2341,7 @@ function turnStep(c,y){if(c.ty0===undefined){var d=Math.abs(angTo(me.yaw,y));c.t
 var Q=[],cur=null,T0=0,lastKind='',danceCool=6;
 function step(o){Q.push(o);}
 var EXITS=[[2830,2380],[1100,3030]];
-var KINDS={work:{w:26,items:1},research:{w:16,items:1},drawings:{w:18,items:1},read:{w:14,items:1},think:{w:11},gaze:{w:12},dance:{w:3.5}};
+var KINDS={work:{w:26,items:1},research:{w:16,items:1},drawings:{w:18,items:1},read:{w:14,items:1},gaze:{w:12},dance:{w:3.5}};
 function pick(){var c=Object.keys(KINDS).filter(function(k){return k!==lastKind&&(k!=='dance'||danceCool<=0);}),sum=0,i;c.forEach(function(k){sum+=KINDS[k].w;});
  var r=Math.random()*sum;for(i=0;i<c.length;i++){r-=KINDS[c[i]].w;if(r<=0)return c[i];}return c[0];}
 function towardChair(){return Math.atan2(CV+chair.off-me.F[1],CU-me.F[0]);}
