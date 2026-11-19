@@ -389,7 +389,7 @@ body.splashing .app .logo{visibility:hidden}
 <script>
 (function(){try{var ua=navigator.userAgent||'',q=location.search;
  if(/ Line\//i.test(ua)&&!/openExternalBrowser=1/.test(q)){location.replace(location.pathname+(q?q+'&':'?')+'openExternalBrowser=1'+location.hash);}
- else if(q){var u=new URL(location.href),k=[];u.searchParams.forEach(function(_,n){if(n!=='a'&&n!=='b')k.push(n);});if(k.length){k.forEach(function(n){u.searchParams.delete(n);});history.replaceState(null,'',u.pathname+u.search+u.hash);}}}catch(e){}})();
+ else if(q){var u=new URL(location.href),k=[];window.__SCENE=u.searchParams.get('scene');u.searchParams.forEach(function(_,n){if(n!=='a'&&n!=='b')k.push(n);});if(k.length){k.forEach(function(n){u.searchParams.delete(n);});history.replaceState(null,'',u.pathname+u.search+u.hash);}}}catch(e){}})();
 </script>
 <style>html{touch-action:manipulation}</style>
 </head>
@@ -2342,7 +2342,9 @@ var Q=[],cur=null,T0=0,lastKind='',danceCool=6;
 function step(o){Q.push(o);}
 var EXITS=[[2830,2380],[1100,3030]];
 var KINDS={work:{w:26,items:1},research:{w:16,items:1},drawings:{w:18,items:1},read:{w:14,items:1},gaze:{w:12},dance:{w:3.5}};
-function pick(){var c=Object.keys(KINDS).filter(function(k){return k!==lastKind&&(k!=='dance'||danceCool<=0);}),sum=0,i;c.forEach(function(k){sum+=KINDS[k].w;});
+// ?scene=work|research|drawings|read|gaze|dance plays only that activity, over and over, for checking a motion
+var FORCE=window.__SCENE||(function(){try{return new URLSearchParams(location.search).get('scene');}catch(e){return null;}})();
+function pick(){if(FORCE&&KINDS[FORCE])return FORCE;var c=Object.keys(KINDS).filter(function(k){return k!==lastKind&&(k!=='dance'||danceCool<=0);}),sum=0,i;c.forEach(function(k){sum+=KINDS[k].w;});
  var r=Math.random()*sum;for(i=0;i<c.length;i++){r-=KINDS[c[i]].w;if(r<=0)return c[i];}return c[0];}
 function towardChair(){return Math.atan2(CV+chair.off-me.F[1],CU-me.F[0]);}
 // she turns the seat to face her, sits, swings round with it to the desk, scoots in; and the reverse
