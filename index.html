@@ -2085,7 +2085,8 @@ function bookHold(b,sg){var rp=bookRead(b),sb=Sb(rp.sp,M(rp.bu,105));return A(sb
 function elbowsIn(b,sg){return N(A(A(M(b.f,-0.45),M(b.r,0.22*sg)),[0,0,-1]));}
 function stackCarry(b){return b.bp(215,0,215);}           // a pile hugged against her front
 // tucked up in the armpit, pointing forward and a little down; the upper arm hangs close over it and the hand holds the front end
-function rollTuck(b){return {c:b.bp(40,182,345),ax:N(A(b.f,[0,0,-0.16])),len:594,r:32};}
+// carried in the right hand at her side: the fist round the middle of the roll, the roll lying fore and aft, front a touch up
+function rollTuck(b){var h=A(hang(b,1),M(b.r,22));return {c:A(h,A(M(b.r,8),[0,0,4])),ax:N(A(b.f,[0,0,0.1])),len:594,r:32};}
 function rollDesk(v,r){return {c:[SHEET.u0+SHEET.w/2,v,TOPZ+r],ax:[1,0,0],len:594,r:r};}
 function keys(sd,tap){return [LAPU+sd*70+6*Math.sin(vt/700+sd),640,748-tap];}
 function rest(sd){return [LAPU+sd*92,755,746];}
@@ -2521,7 +2522,7 @@ function update(){var el=(vt-T0)/1000,c=cur,k,b=body(),f=b.f,r=b.r,t=vt/1000;
  me.w+=(me.wT-me.w)*(1-Math.exp(-9*dt));me.cyc+=(me.cycT-me.cyc)*(1-Math.exp(-6*dt));
  // things in her hands keep those hands busy
  var bb=body();
- if(prop.roll==='carry'&&!hands.R)hands.R=H(bb.bp(285,214,258),{rel:true,pole:N(A(M(bb.r,0.42),A(M(bb.f,-0.5),[0,0,-0.75]))),hd:N(A(bb.f,[0,0,0.1]))});   // armpit shut on the roll, elbow in at her side
+ if(prop.roll==='carry'&&!hands.R)hands.R=H(A(hang(bb,1),M(bb.r,22)),{rel:true,hd:N(A(M(bb.f,0.15),A(M(bb.r,-0.3),[0,0,-1])))});   // armpit shut on the roll, elbow in at her side
  if(prop.lap==='carry'&&!hands.R)hands.R=H(bb.bp(150,222,130),{rel:true,pole:N(A(M(bb.r,0.8),A(M(bb.f,-0.4),[0,0,-0.6])))});
  if(prop.mug==='hand'&&!hands.L)hands.L=H(mugCarry(bb),{rel:true,hd:N(A(bb.f,[0,0,-0.1]))});
  if(prop.stackPos==='carry'){var sc=stackCarry(bb),hs=stackHeight(prop.stack);if(!hands.L)hands.L=H(A(A(sc,M(bb.r,-104)),[0,0,hs*0.35]),{rel:true,hd:N(A(bb.f,[0,0,0.2]))});if(!hands.R)hands.R=H(A(A(sc,M(bb.r,104)),[0,0,hs*0.35]),{rel:true,hd:N(A(bb.f,[0,0,0.2]))});}
