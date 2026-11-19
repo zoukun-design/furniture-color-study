@@ -1756,7 +1756,7 @@ function pe(p){for(var i=p.n;i<p.list.length;i++)if(p.list[i].style.display!=='n
 var P={COL:{d:0},COLU:{d:0}};
 function part(n,par){var g=mk('g',{'data-n':n},par);P[n]={g:g,p:pool(g),d:0,on:true};return P[n];}
 ['shadow','shoeL','shoeR','skirtLo'].forEach(function(n){part(n,LOW);});
-['skirtHi','torso','neck','head','upL','foL','upR','foR','lap','mug','bookC','bookO','stack','held','roll'].forEach(function(n){part(n,G);});
+['skirtHi','torso','neck','head','upL','foL','upR','foR','lap','mug','bookC','bookO','stack','held','roll','rollB'].forEach(function(n){part(n,G);});
 var CHP=['cSeat','cArmP','cArmN','cRailP','cRailN','cBack'];CHP.forEach(function(n){part(n,CHU);});
 var PDA=pool(mk('g',{},DA)),PDB;
 // ---------- the room (mm) ----------
@@ -1770,7 +1770,7 @@ var prop={lap:'away',lapPose:null,lapU:LAPU0,phi:0,on:0,mug:'away',mugPos:MUG0.s
  stack:[],stackPos:'away',stackMove:null,held:null,open:null,done:[],roll:'away',rollPose:null,sheet:0,bookCol:'#7a2f2c'};
 var chair={off:0,psi:0};
 var seated=false,slotKey='',hands={L:null,R:null},HC={L:null,R:null},HV={L:[0,0,0],R:[0,0,0]},PC={L:null,R:null},SH0={L:null,R:null},HAND={L:[0,0,0],R:[0,0,0]},HD={L:[0,0,-1],R:[0,0,-1]};
-var vt=0,dt=1/60,LU=285,LF=315,neckFront=false,drapeFront=false,rollNear=true,handFront={L:false,R:false};
+var vt=0,dt=1/60,LU=285,LF=315,neckFront=false,drapeFront=false,rollNear=true,rollFront=0,RF=null,handFront={L:false,R:false};
 var BOOKCOLS=['#3f5a4f','#7a2f2c','#2f3b55','#b08a3e','#5d5f62','#c4ae86','#6b4f3a','#8a3f4b','#40566b'];
 function makeBooks(n){var o=[];for(var i=0;i<n;i++)o.push({w:rnd(150,182),h:rnd(212,250),t:rnd(18,36),col:BOOKCOLS[Math.floor(Math.random()*BOOKCOLS.length)],yaw:rnd(-0.07,0.07)});return o;}
 // ---------- the chair: geometry in its own frame (a: back, b: towards +u at rest), rolled by off and swivelled by psi ----------
@@ -1838,7 +1838,10 @@ function drawMug(p,base,hd){var r=41,h=96,top=A(base,[0,0,h]),fv=[0,1,0],rv=[1,0
  var tp=ring(top,fv,rv,r,r,20).map(W);pa(p,pd(tp),'#f8f6f1');var inr=ring(top,fv,rv,r-6,r-6,20).map(W);pa(p,pd(inr),'#d4cfc5');
  var cof=clipPoly(ring(A(top,[0,0,-15]),fv,rv,r-7,r-7,20).map(W),inr);if(cof.length>2)pa(p,pd(cof),'#4a3025');
  var hl=clipPoly(ring(A(top,[-12,-12,-15]),fv,rv,10,6,10).map(W),cof.length>2?cof:inr);if(hl.length>2)pa(p,pd(hl),'#6c4a38');
- if(!far)handle();}
+ if(!far)handle();steam(p,top);}
+// steam off hot coffee: two thin wisps rising from the cup, swaying and thinning as they go
+function steam(p,top){var t=vt/1000;for(var w=0;w<2;w++){var lo=[],hi=[];for(var k=0;k<=12;k++){var z=12+k*11,s=Math.sin(t*1.6+k*0.55+w*2.3)*(3+k*1.6),c2=Math.cos(t*1.1+k*0.4+w)*(2+k*0.8),pt=W(A(top,[s+(w?8:-8),c2,z]));(k<=6?lo:hi).push(pt);if(k===6)hi.push(pt);}
+  pa(p,pl(lo),null,'rgba(255,255,255,0.42)',5.5*S);pa(p,pl(hi),null,'rgba(255,255,255,0.2)',4*S);}}
 // books: covers in the book's colour, a darker spine, cream page edges with a fine line
 function bookFaces(p,c,aw,ah,at,col,open){var ax=[aw,ah,at];
  for(var i=0;i<3;i++)for(var sg=-1;sg<=1;sg+=2){var n=N(M(ax[i],sg));if(D(n,V3)<=0.0001)continue;var o1=ax[(i+1)%3],o2=ax[(i+2)%3],fc=A(c,M(ax[i],sg));
@@ -2046,9 +2049,9 @@ function drawDeskB(){var ext=prop.sheet;SHG.style.display=ext>1?'':'none';
  if(ext>1){SHCR.setAttribute('x',SHEET.u0-2);SHCR.setAttribute('y',SHEET.v0-2);SHCR.setAttribute('width',SHEET.w+4);SHCR.setAttribute('height',(ext+2).toFixed(1));}
  pb(PDB);if(prop.roll==='desk'&&prop.rollPose)drawRoll(PDB,prop.rollPose);pe(PDB);}
 // a roll of drawings: paper side, the near end with its spiral
-function drawRoll(p,rp){var ax=N(rp.ax),hl=rp.len/2,r=rp.r,e0=Sb(rp.c,M(ax,hl)),e1=A(rp.c,M(ax,hl));
+function drawRoll(p,rp,half){var ax=N(rp.ax),hl=rp.len/2,r=rp.r,e0=Sb(rp.c,M(ax,hl)),e1=A(rp.c,M(ax,hl));if(half>0)e0=Sb(rp.c,M(ax,6));else if(half<0)e1=A(rp.c,M(ax,6));
  var pz=X(ax,UP);pz=L(pz)<0.1?[1,0,0]:N(pz);var py=N(X(ax,pz)),r0=ring(e0,py,pz,r,r,16),r1=ring(e1,py,pz,r,r,16);
- pa(p,hullW(r0.concat(r1)),'#e6e9ee');var near=D(ax,V3)>0,endc=near?e1:e0;pa(p,pd((near?r1:r0).map(W)),'#d6dbe4');
+ pa(p,hullW(r0.concat(r1)),'#e6e9ee');var near=D(ax,V3)>0,endc=near?e1:e0;if((half>0&&!near)||(half<0&&near)){return;}pa(p,pd((near?r1:r0).map(W)),'#d6dbe4');
  var sp=[];for(var i=0;i<=30;i++){var t=i/30,rr=r*(0.15+0.8*t),an=t*Math.PI*5;sp.push(W(A(endc,A(M(py,rr*Math.cos(an)),M(pz,rr*Math.sin(an))))));}pa(p,pl(sp),null,'#c3bfb3',0.45);}
 // ---------- body ----------
 function body(){var f=[Math.cos(me.yaw),Math.sin(me.yaw),0],r=[f[1],-f[0],0],k=me.sitK,w=me.w*(1-k),q=me.qa%1,t=vt/1000;
@@ -2074,7 +2077,7 @@ function bookHold(b,sg){var rp=bookRead(b),sb=Sb(rp.sp,M(rp.bu,105));return A(sb
 function elbowsIn(b,sg){return N(A(A(M(b.f,-0.45),M(b.r,0.22*sg)),[0,0,-1]));}
 function stackCarry(b){return b.bp(215,0,215);}           // a pile hugged against her front
 // tucked up in the armpit, pointing forward and a little down; the upper arm hangs close over it and the hand holds the front end
-function rollTuck(b){return {c:b.bp(70,172,372),ax:N(A(b.f,[0,0,-0.06])),len:594,r:32};}
+function rollTuck(b){return {c:b.bp(175,174,335),ax:N(A(b.f,[0,0,-0.08])),len:594,r:32};}
 function rollDesk(v,r){return {c:[SHEET.u0+SHEET.w/2,v,TOPZ+r],ax:[1,0,0],len:594,r:r};}
 function keys(sd,tap){return [LAPU+sd*70+6*Math.sin(vt/700+sd),640,748-tap];}
 function rest(sd){return [LAPU+sd*92,755,746];}
@@ -2256,7 +2259,7 @@ function drawHead(hc3){var q=P.head;pb(q.p);var hc=W(hc3),R=112*S,yawH=me.yaw+me
 // ---------- things in her hands ----------
 function drawCarried(b){var f=b.f,r=b.r,q;
  q=P.lap;q.on=prop.lap==='carry'||prop.lap==='move';pb(q.p);if(q.on){var lp=prop.lap==='carry'?tuckPose(b):prop.lapPose;boxFaces(q.p,lp.c,lp.a[0],lp.a[1],lp.a[2],function(n){return faceCol('#2a2b2e',n,0.78,0.88);});q.d=prop.lap==='carry'?(P.torso.d+P.upR.d)/2:dep(lp.c);}pe(q.p);
- q=P.mug;q.on=prop.mug==='hand'||prop.mug==='lift';pb(q.p);if(q.on){var mb=prop.mug==='lift'?prop.mugPos:A(HAND.L,A(M(f,60),[0,0,-55])),hd=prop.mug==='lift'?(prop.mugHd||[0,1,0]):M(f,-1);drawMug(q.p,mb,hd);q.d=dep(A(mb,[0,0,48]));
+ q=P.mug;q.on=prop.mug==='hand'||prop.mug==='lift';pb(q.p);if(q.on){var mb=prop.mug==='lift'?prop.mugPos:Sb(HAND.L,A(M(f,62),[0,0,52])),hd=prop.mug==='lift'?(prop.mugHd||[0,1,0]):f;drawMug(q.p,mb,hd);q.d=dep(A(mb,[0,0,48]));
   // at her lips the cup is in front of her face: behind her head when she faces away from us, before it when she faces us
   if(prop.mug==='lift'&&(prop.mugFace||0)>0.3){var fv=D(f,V3);q.d=P.torso.d+(fv>0?60:-60);}}pe(q.p);
  q=P.bookC;q.on=prop.book==='hand'||prop.book==='move';pb(q.p);if(q.on){var rp=bookRead(b),qq=prop.book==='move'?prop.bookK:0;
@@ -2272,14 +2275,25 @@ function drawCarried(b){var f=b.f,r=b.r,q;
  q=P.stack;q.on=prop.stackPos==='carry'||prop.stackPos==='move';pb(q.p);if(q.on){var base=prop.stackPos==='carry'?stackCarry(b):prop.stackMove,bz=base[2],yawS=Math.atan2(f[1],f[0])-Math.PI/2;
   prop.stack.forEach(function(bk){bookFaces(q.p,[base[0],base[1],bz+bk.t/2],rotz([bk.w/2,0,0],yawS+bk.yaw),rotz([0,bk.h/2,0],yawS+bk.yaw),[0,0,bk.t/2],bk.col);bz+=bk.t;});q.d=dep(A(base,[0,0,60]));}pe(q.p);
  q=P.held;q.on=!!prop.held;pb(q.p);if(q.on){var hb=prop.held,z=hb.c[2];hb.books.forEach(function(bk){stackBook(q.p,hb.c,bk,z);z+=bk.t;});q.d=dep(A(hb.c,[0,0,30]));}pe(q.p);
- q=P.roll;q.on=prop.roll==='carry'||prop.roll==='move';pb(q.p);if(q.on){var rpz=prop.roll==='carry'?rollTuck(b):prop.rollPose;drawRoll(q.p,rpz);q.d=prop.roll==='carry'?(P.torso.d+P.upR.d)/2:dep(rpz.c);}pe(q.p);}
+ // carried under the arm the roll is drawn as its front and back halves, so each can sit before or behind her on its own
+ q=P.roll;q.on=prop.roll==='carry'||prop.roll==='move';pb(q.p);var qB=P.rollB;qB.on=prop.roll==='carry';pb(qB.p);
+ if(q.on){var rpz=prop.roll==='carry'?rollTuck(b):prop.rollPose;if(prop.roll==='carry'){drawRoll(q.p,rpz,1);drawRoll(qB.p,rpz,-1);q.d=qB.d=(P.torso.d+P.upR.d)/2;}else{drawRoll(q.p,rpz);q.d=dep(rpz.c);}}pe(q.p);pe(qB.p);}
 // ---------- painting: her body column is one block; arms and things sort around it; seated, the chair's parts join in ----------
 function placeChair(withHer){if(withHer){if(G.parentNode!==CHU)CHU.appendChild(G);}else CHP.forEach(function(n){if(P[n].g.parentNode!==CHU)CHU.appendChild(P[n].g);});}
+function bookClamp(ord,body,b){if(prop.book!=='read'||ord.indexOf('bookO')<0)return;var fb=D(b.f,V3);if(fb>0.12)bookFront=true;else if(fb<-0.12)bookFront=false;
+ if(bookFront)cons(ord,[[body,'bookO'],['bookO','foL'],['bookO','foR']],true);else{cons(ord,[['bookO',body]]);cons(ord,[['bookO','foL'],['bookO','foR']],true);}}
+var bookFront=true;
 function rollClamp(ord,body,b){if(prop.roll!=='carry'||ord.indexOf('roll')<0)return;var sbR=D(b.r,V3);if(sbR>0.12)rollNear=true;else if(sbR<-0.12)rollNear=false;
- if(rollNear)cons(ord,[[body,'roll'],['roll','upR'],['roll','foR']],true);else{cons(ord,[['roll',body]]);cons(ord,[['upR','roll'],['foR','roll']]);}}
+ // each half by where it really is: the part beside or behind her back is under her, the part out in front of her
+ // chest (or behind her back, toward us) over her; the forearm and hand run along the outside of the roll
+ var rp=rollTuck(b),ax=N(rp.ax),tc=b.bp(0,0,300);RF=RF||{};
+ ['roll','rollB'].forEach(function(h,i){if(ord.indexOf(h)<0)return;var mid=A(rp.c,M(ax,(i?-1:1)*rp.len/4)),dd=D(Sb(mid,tc),V3);
+  if(dd>30)RF[h]=true;else if(dd<-30)RF[h]=false;else if(RF[h]===undefined)RF[h]=dd>0;
+  if(RF[h])cons(ord,[[body,h]],true);else cons(ord,[[h,body]]);
+  if(rollNear)cons(ord,[[h,'upR'],[h,'foR']],true);else cons(ord,[['upR',h],['foR',h]]);});}
 function paintAll(b){var fv3=D(b.f,V3),pH=me.tilt+me.lean*0.7;if(fv3>0.15&&pH<0.42)neckFront=true;else if(fv3<-0.15||pH>0.5)neckFront=false;
- var free=['upL','foL','upR','foR','lap','mug','bookC','bookO','stack','held','roll'].filter(function(n){return P[n].on!==false;});
- ['lap','mug','bookC','bookO','stack','held','roll'].forEach(function(n){P[n].g.style.display=P[n].on!==false?'':'none';});
+ var free=['upL','foL','upR','foR','lap','mug','bookC','bookO','stack','held','roll','rollB'].filter(function(n){return P[n].on!==false;});
+ ['lap','mug','bookC','bookO','stack','held','roll','rollB'].forEach(function(n){P[n].g.style.display=P[n].on!==false?'':'none';});
  var colm=['skirtHi','torso','neck','head'];
  // drinking, the cup, the hand round its handle and the forearm come up in front of her face: they go behind her head
  // and body when she faces away from us, in front of them when she faces us (the upper arm stays at her side)
@@ -2297,11 +2311,11 @@ function paintAll(b){var fv3=D(b.f,V3),pH=me.tilt+me.lean*0.7;if(fv3>0.15&&pH<0.
  placeChair(false);place(CHU,sortKeep(CHU,CHP));
  place(LOW,['shadow'].concat(sortKeep(LOW,['shoeL','shoeR']),['skirtLo']));
  if(me.atB){// at the sub desk her upper body is drawn above the desk, the skirt below it
-  P.COLU.d=P.torso.d;var ordB=sortKeep(OVB,free.concat(['COLU']));rollClamp(ordB,'COLU',b);place(G,['skirtHi']);place(OVB,expand(ordB,['torso','neck','head'],'COLU'));return;}
+  P.COLU.d=P.torso.d;var ordB=sortKeep(OVB,free.concat(['COLU']));rollClamp(ordB,'COLU',b);bookClamp(ordB,'COLU',b);place(G,['skirtHi']);place(OVB,expand(ordB,['torso','neck','head'],'COLU'));return;}
  P.COL.d=P.torso.d;if(sip){P.foL.d=P.COL.d+40*sipZ;P.mug.d=P.COL.d+70*sipZ;}var ordS=sortKeep(G,free.concat(['COL']));
  // the roll is clamped between her side and her right arm: on our side of her it lies over her and under the arm,
  // on the far side under the arm-and-hand and under her, whichever way she turns
- rollClamp(ordS,'COL',b);
+ rollClamp(ordS,'COL',b);bookClamp(ordS,'COL',b);
  place(G,expand(ordS,colm));place(OVB,[]);}
 function expand(ord,colm,key){var o=[];key=key||'COL';ord.forEach(function(n){if(n===key)o=o.concat(colm);else o.push(n);});return o;}
 // a must come before b: pull a down to just under b, or (push) lift b to just over a
@@ -2341,7 +2355,7 @@ function turnStep(c,y){if(c.ty0===undefined){var d=Math.abs(angTo(me.yaw,y));c.t
 var Q=[],cur=null,T0=0,lastKind='',danceCool=6;
 function step(o){Q.push(o);}
 var EXITS=[[2830,2380],[1100,3030]];
-var KINDS={work:{w:26,items:1},research:{w:16,items:1},drawings:{w:18,items:1},read:{w:14,items:1},gaze:{w:12},dance:{w:3.5}};
+var KINDS={work:{w:26,items:1},research:{w:16,items:1},drawings:{w:18,items:1},read:{w:14,items:1},gaze:{w:12,items:1},dance:{w:3.5,items:1}};
 // ?scene=work|research|drawings|read|gaze|dance plays only that activity, over and over, for checking a motion
 var FORCE=window.__SCENE||(function(){try{return new URLSearchParams(location.search).get('scene');}catch(e){return null;}})();
 function pick(){if(FORCE&&KINDS[FORCE])return FORCE;var c=Object.keys(KINDS).filter(function(k){return k!==lastKind&&(k!=='dance'||danceCool<=0);}),sum=0,i;c.forEach(function(k){sum+=KINDS[k].w;});
@@ -2353,7 +2367,7 @@ function sitDown(){step({k:'go',pt:CHAIRSIDE});step({k:'face',yaw:towardChair});
 function standUp(){step({k:'scoot',to:0});step({k:'swivelSeat',to:PSI_SIT});step({k:'stand'});step({k:'walkDirect',pts:function(){return [CHAIRSIDE];}});
  step({k:'face',yaw:towardChair});step({k:'swivelHand',to:0});}
 function plan(){var kind=pick();lastKind=kind;danceCool--;if(kind==='dance')danceCool=8;
- var items=KINDS[kind].items,ex=EXITS[Math.random()<0.5?0:1],ex2=EXITS[Math.random()<0.5?0:1];
+ var items=KINDS[kind].items,ex=EXITS[kind==='read'?1:Math.random()<0.5?0:1],ex2=EXITS[Math.random()<0.5?0:1];
  if(me.away)step({k:'enter',from:ex,carry:kind});
  else if(items){step({k:'go',pt:ex});step({k:'leave',len:rnd(1.2,2.6)});step({k:'enter',from:ex,carry:kind});}
  if(kind==='work'){step({k:'go',pt:DESKSIDE});step({k:'face',yaw:-Math.PI/2});step({k:'place'});sitDown();step({k:'slide',to:LAPU});step({k:'open'});
@@ -2385,7 +2399,7 @@ function update(){var el=(vt-T0)/1000,c=cur,k,b=body(),f=b.f,r=b.r,t=vt/1000;
  case 'enter':prop.lap=prop.mug=prop.book=prop.roll='away';prop.stackPos='away';prop.stack=[];prop.held=null;prop.open=null;prop.done=[];prop.sheet=0;
   me.F=c.from.slice();me.away=false;me.w=0;me.qa=Math.floor(me.qa)+0.3;HC.L=HC.R=null;PC.L=PC.R=null;SV={};me.sitK=0;seated=false;
   if(c.carry==='work'){prop.lap='carry';prop.mug='hand';prop.lapU=LAPU0;}else if(c.carry==='read'){prop.book='read';prop.spread=1;prop.page=-1;RD.np=vt/1000+rnd(3,5);RD.pt=-1;prop.bookCol=BOOKCOLS[Math.floor(Math.random()*BOOKCOLS.length)];}
-  else if(c.carry==='research'){prop.stack=makeBooks(8);prop.stackPos='carry';}else if(c.carry==='drawings'){prop.roll='carry';}
+  else if(c.carry==='research'){prop.stack=makeBooks(8);prop.stackPos='carry';}else if(c.carry==='drawings'){prop.roll='carry';}else if(c.carry==='gaze'){prop.mug='hand';}
   me.yaw=Math.atan2(2000-c.from[1],1700-c.from[0]);cur=null;break;
  case 'go':case 'walkDirect':{if(!c.path){c.path=c.k==='go'?route(me.F,val(c.pt)):c.pts();c.i=0;c.spd=0;c.mode='start';}
   var tg=c.path[c.i],du=tg[0]-me.F[0],dv=tg[1]-me.F[1],d=Math.hypot(du,dv),last=c.i===c.path.length-1;
@@ -2463,7 +2477,15 @@ function update(){var el=(vt-T0)/1000,c=cur,k,b=body(),f=b.f,r=b.r,t=vt/1000;
   var bk=prop.book==='move'?prop.bookK:prop.book==='read'?1:0;hands.L=H(mix(hang(b,-1),bookHold(b,-1),bk),{rel:true,fast:true,pole:elbowsIn(b,-1)});var eR2=1-ease(ph(k,0.3,0.7));if(eR2>0)hands.R=H(mix(hang(b,1),bookHold(b,1),eR2),{rel:true,fast:true,pole:elbowsIn(b,1)});
   wantTilt=0.38*(1-ease(ph(k,0.3,0.9)));if(k>=1)cur=null;break;}
  case 'gaze':{wantTilt=-0.04;wantHY=0.22*Math.sin(el*0.45)*Math.min(1,el/2);
-  if(c.back){hands.L=H(b.bp(-168,-32,48),{rel:true,pole:N(A(M(r,-0.35),A(M(f,-0.8),[0,0,-0.5])))});hands.R=H(b.bp(-168,32,48),{rel:true,pole:N(A(M(r,0.35),A(M(f,-0.8),[0,0,-0.5])))});}
+  if(prop.mug==='hand'||prop.mug==='lift'){// cup in the left hand at her chest, the right hand under it; every few seconds a sip
+   if(!c.ns)c.ns=rnd(3,5);var sk=(el-c.ns)/2.4,sideL=M(r,-1),inn=b.bp(120,-60,330);
+   if(sk>=1){c.ns=el+rnd(5,8);sk=-1;}
+   var tw=sk>=0?ease(ph(sk,0,0.3))*(1-ease(ph(sk,0.72,1))):0,hdir=N(mix(M(f,1),sideL,tw)),Hv=A(M(hdir,62),[0,0,52]);
+   var hc=b.bp(14,0,HZ),fh=[Math.cos(me.yaw+me.hYaw),Math.sin(me.yaw+me.hYaw),0],cupAt=A(hc,A(M(fh,128),[0,0,-118])),rest2=A(b.bp(150,-40,250),[0,0,0]);
+   hands.L=H(A(mix(rest2,cupAt,tw),Hv),{rel:true,fast:tw>0,hd:N(A(M(hdir,-1),[0,0,-0.15])),pole:N(A(A(M(r,-0.38),M(f,0.12)),[0,0,-0.92]))});
+   if(tw<0.2)hands.R=H(b.bp(160,40,200),{rel:true,pole:N(A(M(r,0.4),[0,0,-0.9]))});
+   if(tw>0.02){prop.mug='lift';prop.mugPos=Sb(HAND.L,Hv);prop.mugHd=hdir;prop.mugFace=tw;wantTilt=-0.16*ease(ph(tw,0.5,1));}else{prop.mug='hand';prop.mugFace=0;}}
+  else if(c.back){hands.L=H(b.bp(-168,-32,48),{rel:true,pole:N(A(M(r,-0.35),A(M(f,-0.8),[0,0,-0.5])))});hands.R=H(b.bp(-168,32,48),{rel:true,pole:N(A(M(r,0.35),A(M(f,-0.8),[0,0,-0.5])))});}
   if(el>c.len)cur=null;break;}
  case 'think':{wantTilt=0.3+0.04*Math.sin(el*1.1);var hc=b.bp(14,0,HZ);
   hands.R=H(A(hc,A(M(f,95),[0,0,-112])),{rel:true,pole:N(A(M(r,0.35),[0,0,-1])),hd:N(A(UP,M(f,0.2)))});hands.L=H(b.bp(175,30,285),{rel:true,pole:N(A(M(r,-0.6),[0,0,-0.8]))});
@@ -2481,7 +2503,7 @@ function update(){var el=(vt-T0)/1000,c=cur,k,b=body(),f=b.f,r=b.r,t=vt/1000;
  me.w+=(me.wT-me.w)*(1-Math.exp(-9*dt));me.cyc+=(me.cycT-me.cyc)*(1-Math.exp(-6*dt));
  // things in her hands keep those hands busy
  var bb=body();
- if(prop.roll==='carry'&&!hands.R)hands.R=H(bb.bp(255,200,300),{rel:true,pole:N(A(M(bb.r,0.05),A(M(bb.f,-0.55),[0,0,-0.85]))),hd:N(A(bb.f,[0,0,-0.15]))});   // armpit shut on the roll, elbow in at her side
+ if(prop.roll==='carry'&&!hands.R)hands.R=H(bb.bp(330,202,300),{rel:true,pole:N(A(M(bb.r,0.05),A(M(bb.f,-0.55),[0,0,-0.85]))),hd:N(A(bb.f,[0,0,-0.15]))});   // armpit shut on the roll, elbow in at her side
  if(prop.lap==='carry'&&!hands.R)hands.R=H(bb.bp(150,222,130),{rel:true,pole:N(A(M(bb.r,0.8),A(M(bb.f,-0.4),[0,0,-0.6])))});
  if(prop.mug==='hand'&&!hands.L)hands.L=H(mugCarry(bb),{rel:true,hd:N(A(bb.f,[0,0,-0.1]))});
  if(prop.stackPos==='carry'){var sc=stackCarry(bb),hs=stackHeight(prop.stack);if(!hands.L)hands.L=H(A(A(sc,M(bb.r,-104)),[0,0,hs*0.35]),{rel:true,hd:N(A(bb.f,[0,0,0.2]))});if(!hands.R)hands.R=H(A(A(sc,M(bb.r,104)),[0,0,hs*0.35]),{rel:true,hd:N(A(bb.f,[0,0,0.2]))});}
@@ -2626,8 +2648,8 @@ function danceUpdate(c,el,b){var t=el,beat=2*Math.PI*2.1*t,f=b.f,r=b.r,sh=functi
   ['L','R'].forEach(function(s,i){var sg=s==='R'?1:-1,up=Math.sin(beat/2+i*Math.PI)>0?1:0;hands[s]=H(A(sh(sg),A(M(f,230),A(M(r,sg*90),[0,0,-170+260*up]))),{rel:true,fast:true,pole:N(A(M(r,sg*0.8),[0,0,-0.6])),hd:up?[0,0,1]:f});});}
  else if(t<5.2){// hands up, waving side to side
   var w=Math.sin(beat/2);['L','R'].forEach(function(s){var sg=s==='R'?1:-1;hands[s]=H(A(sh(sg),A(M(r,sg*120+90*w),[0,0,420])),{rel:true,fast:true,pole:N(A(M(r,sg*0.9),[0,0,-0.2])),hd:[0,0,1]});});}
- else{// a little spin to finish, hands on hips
-  if(c.yaw0===undefined)c.yaw0=me.yaw;me.yaw=angTo(0,c.yaw0+2*Math.PI*ease(ph(t,5.2,6.2)));
+ else{// to finish: hands on hips, a last sway
+  me.sway=26*Math.sin(beat/2)*(1-ph(t,5.2,6.4));
   ['L','R'].forEach(function(s){var sg=s==='R'?1:-1;hands[s]=H(b.bp(30,sg*170,150),{rel:true,pole:N(A(M(r,sg),[0,0,-0.2]))});});}}
 // ---------- running ----------
 function tick(ms){dt=Math.min(0.05,ms/1000);vt+=dt*1000;if(!cur)next();update();draw();}
