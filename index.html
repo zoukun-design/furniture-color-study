@@ -2713,7 +2713,7 @@ function workUpdate(c,el,t,b){if(!c.s){c.s={k:'look',t0:0,len:rnd(1.6,2.6)};c.si
  var s=c.s,sk=(el-s.t0)/s.len;
  if(sk>=1){var left=c.len-el;if(left<=0){c.done=true;}else{var cand=[];
    if(s.k==='type'){cand.push(['look',2.2],['type',0.7]);if(el>8)cand.push(['pad',1]);
-    if(el>15&&el-c.lastSip>24&&c.sips<2&&left>6)cand.push(['sip',1.4]);
+    if(el>7&&el-c.lastSip>13&&c.sips<4&&left>6)cand.push(['sip',el-c.lastSip>20?4:1.6]);
     if(!c.stretched&&el>40&&left>12)cand.push(['stretch',1.2]);}
    else if(s.k==='look')cand.push(['type',4],['pad',el>8?0.7:0]);
    else if(s.k==='pad')cand.push(['type',2],['look',1]);
