@@ -2273,20 +2273,24 @@ function paintAll(b){var fv3=D(b.f,V3),pH=me.tilt+me.lean*0.7;if(fv3>0.15&&pH<0.
  var free=['upL','foL','upR','foR','lap','mug','bookC','bookO','stack','held','roll'].filter(function(n){return P[n].on!==false;});
  ['lap','mug','bookC','bookO','stack','held','roll'].forEach(function(n){P[n].g.style.display=P[n].on!==false?'':'none';});
  var colm=['skirtHi','torso','neck','head'];
- if(seated){placeChair(true);P.COL.d=P.torso.d;
+ // drinking, the cup, the hand round its handle and the forearm come up in front of her face: they go behind her head
+ // and body when she faces away from us, in front of them when she faces us (the upper arm stays at her side)
+ var sip=prop.mug==='lift'&&(prop.mugFace||0)>0.3,sipZ=D(b.f,V3)>0?1:-1;
+ if(seated){placeChair(true);P.COL.d=P.torso.d;if(sip){P.foL.d=P.COL.d+40*sipZ;P.mug.d=P.COL.d+70*sipZ;}
   var ord=sortKeep(G,free.concat(['COL','shoeL','shoeR','skirtLo'],CHP));
   // the seat is under everything of hers; each arm lies over the pad on its own side (left arm on the +b pad);
   // the drape from her knees hangs behind the seat when the chair faces away from us, in front of it when it faces us
   var cf=D(chairFront(),V3);if(cf>0.12)drapeFront=true;else if(cf<-0.12)drapeFront=false;
   var lowC=drapeFront?[['cSeat','skirtLo'],['skirtLo','shoeL'],['skirtLo','shoeR'],['cSeat','shoeL'],['cSeat','shoeR']]:[['shoeL','skirtLo'],['shoeR','skirtLo'],['skirtLo','cSeat'],['shoeL','cSeat'],['shoeR','cSeat']];
   cons(ord,[['cSeat','cArmP'],['cSeat','cArmN'],['cSeat','COL'],['cSeat','foL'],['cSeat','foR'],['cSeat','upL'],['cSeat','upR']].concat(lowC));
-  cons(ord,[['cArmP','upL'],['cArmP','foL'],['cArmN','upR'],['cArmN','foR']],true);
+  cons(ord,[['cArmP','upL'],['cArmN','upR'],['cArmN','foR']].concat(sip?[]:[['cArmP','foL']]),true);
+  if(sip){[sipZ<0?['foL','COL']:['COL','foL'],sipZ<0?['mug','foL']:['foL','mug']].forEach(function(c){cons(ord,[c]);});}
   place(G,expand(ord,colm));place(LOW,['shadow']);place(OVB,[]);return;}
  placeChair(false);place(CHU,sortKeep(CHU,CHP));
  place(LOW,['shadow'].concat(sortKeep(LOW,['shoeL','shoeR']),['skirtLo']));
  if(me.atB){// at the sub desk her upper body is drawn above the desk, the skirt below it
   P.COLU.d=P.torso.d;place(G,['skirtHi']);place(OVB,expand(sortKeep(OVB,free.concat(['COLU'])),['torso','neck','head'],'COLU'));return;}
- P.COL.d=P.torso.d;place(G,expand(sortKeep(G,free.concat(['COL'])),colm));place(OVB,[]);}
+ P.COL.d=P.torso.d;if(sip){P.foL.d=P.COL.d+40*sipZ;P.mug.d=P.COL.d+70*sipZ;}place(G,expand(sortKeep(G,free.concat(['COL'])),colm));place(OVB,[]);}
 function expand(ord,colm,key){var o=[];key=key||'COL';ord.forEach(function(n){if(n===key)o=o.concat(colm);else o.push(n);});return o;}
 // a must come before b: pull a down to just under b, or (push) lift b to just over a
 function cons(ord,pairs,push){for(var it=0;it<4;it++){var ch=false;pairs.forEach(function(c){var a=ord.indexOf(c[0]),b=ord.indexOf(c[1]);if(a>=0&&b>=0&&a>b){
