@@ -2266,7 +2266,7 @@ function stackCarry(b){return b.bp(215,0,215);}           // a pile hugged again
 // tucked up in the armpit, pointing forward and a little down; the upper arm hangs close over it and the hand holds the front end
 // carried in the right hand at her side: the fist round the middle of the roll, the roll lying fore and aft, front a touch up
 function rollSg(){return prop.rollSide==='L'?-1:1;}
-function rollTuck(b,lift){lift=lift===undefined?(me.rollLift||0):lift;var sg=rollSg(),h=A(hang(b,sg),A(M(b.r,54*sg),[0,0,8+lift])),ax=N(A(b.f,[0,0,0.75*(1-cl(lift/95,0,1))+0.04]));return {c:A(h,M(ax,-120)),ax:ax,len:594,r:32};}
+function rollTuck(b,lift){lift=lift===undefined?(me.rollLift||0):lift;var sg=rollSg(),h=A(hang(b,sg),A(M(b.r,60*sg),[0,0,16+lift])),ax=N(A(b.f,[0,0,0.75*(1-cl(lift/95,0,1))+0.04]));return {c:A(h,M(ax,-120)),ax:ax,len:594,r:32};}
 function rollPath(t,d,e){var z0=t.c[2],zu=Math.max(z0,TOPZ+d.r+40),a=sm(ph(e,0,0.3)),hz=sm(ph(e,0.04,0.8)),hv=sm(ph(e,0.3,0.85)),dn=sm(ph(e,0.5,1));
  var z=z0+(zu-z0)*a;z=z+(d.c[2]-z)*dn;var p=[t.c[0]+(d.c[0]-t.c[0])*hz,t.c[1]+(d.c[1]-t.c[1])*hv,z];   // out over the desk first, then in toward her once it is clear of her skirt
  var lv=N([t.ax[0],t.ax[1],0.04]),ax=N(mix(N(mix(t.ax,lv,sm(ph(e,0,0.4)))),d.ax,sm(ph(e,0.22,0.8))));
@@ -2284,7 +2284,7 @@ function sipPose(b,restTop,restHd,tw,sg){var hc=b.bp(14,0,HZ),fh=[Math.cos(me.ya
  hd=N(Sb(hd,M(up,D(hd,up))));return {base:base,up:up,hd:hd,grip:A(base,A(M(hd,62),M(up,52))),fing:N(A(M(hd,-1),M(up,-0.2)))};}
 function mouthMug(b){var hc=b.bp(14,0,HZ),fh=[Math.cos(me.yaw+me.hYaw),Math.sin(me.yaw+me.hYaw),0];return A(A(hc,A(M(fh,140),[0,0,-150])),HANDLE);}
 function thigh(b,sg){return A(b.pel,A(M(b.f,170+120*b.k),A(M(b.r,sg*98),[0,0,60+60*(1-b.k)])));}
-function hang(b,sg){var shp=b.bp(0,sg*SHW,SHZ);return A(A(shp,[0,0,-(LU+LF-22)]),M(b.r,sg*46));}
+function hang(b,sg){var shp=b.bp(0,sg*SHW,SHZ);return A(A(shp,[0,0,-(LU+LF-14)]),M(b.r,sg*40));}
 // hands never go into a desk: a hand meant for the top rests on it (not in it), and a hand coming from below the top
 // rises beside the desk before it moves in over it; leaving, it moves out at that height before it drops
 var DESKS=[[450,1850,0,800,698,720],[1950,2650,400,1850,695,720]];
@@ -2387,7 +2387,7 @@ function draw(){var t=vt/1000;GEO={};drawDay();plantOrder();drawChair();drawDesk
  // one skirt from standing to seated with nothing switching on the way: the cloth hangs from waist and hips over the two
  // knees (round as one bell while she stands, closing to the shape of each knee as she sits), then falls from the knees to
  // the hem; the top of the lap catches the light as it levels out
- var waist=ring(bp(0,0,150),f,r,146,112),hipR=ring(bp(0,0,10),f,r,180,142),kz=[0,0,32*k],kx=80+6*(1-k),ky=72+94*(1-k);
+ var hipW=160+20*k,waist=ring(bp(0,0,150),f,r,142,110),hipR=ring(bp(0,0,10),f,r,hipW,142),kz=[0,0,32*k],kx=80-12*(1-k),ky=72+94*(1-k);
  var kL=ring(A(knees.L,kz),f,r,kx,ky,10),kR=ring(A(knees.R,kz),f,r,kx,ky,10),lapR=ring(A(b.pel,[0,0,48]),f,r,172,120).concat(ring(A(knees.L,kz),f,r,80,72,10),ring(A(knees.R,kz),f,r,80,72,10));
  var hemC=A([fc[0],fc[1],0],M(f,18+12*k));hemC[2]=55+35*k;var hem=ring(hemC,f,r,240-60*k,225-118*k,18),lr=78*(1-k)+1;
  var legs=ring(A([feet.L[0],feet.L[1],hemC[2]],M(f,15)),f,r,lr,lr,10).concat(ring(A([feet.R[0],feet.R[1],hemC[2]],M(f,15)),f,r,lr,lr,10));
@@ -2406,18 +2406,18 @@ function draw(){var t=vt/1000;GEO={};drawDay();plantOrder();drawChair();drawDesk
  P.torso.d=dep(bp(0,0,300));P.skirtHi.d=P.torso.d-30;
  if(GEO){var kd2=Math.abs(D(Sb(knees.L,knees.R),r))/2,kcc=A(kc,kz);gp('torso',{t:'sweep',f:f,r:r,rings:[[bp(0,0,150),142,110],[bp(0,0,330),162,124],[bp(0,0,462+br),170,104],[bp(0,0,515+br),124,78]]});
   // standing the skirt is one bell down to the knees; seated it lies over each thigh
-  if(k<0.5)gp('skirtHi',{t:'sweep',f:f,r:r,rings:[[bp(0,0,150),146,112],[bp(0,0,10),180,142],[kcc,kd2+kx,ky]]});
-  else{gp('skirtHi',{t:'sweep',f:f,r:r,rings:[[bp(0,0,150),146,112],[bp(0,0,10),180,142],[A(knees.L,kz),kx+20,ky+20]]});gp('skirtHi',{t:'sweep',f:f,r:r,rings:[[bp(0,0,10),180,142],[A(knees.R,kz),kx+20,ky+20]]});}
+  if(k<0.5)gp('skirtHi',{t:'sweep',f:f,r:r,rings:[[bp(0,0,150),142,110],[bp(0,0,10),hipW,142],[kcc,kd2+kx,ky]]});
+  else{gp('skirtHi',{t:'sweep',f:f,r:r,rings:[[bp(0,0,150),142,110],[bp(0,0,10),hipW,142],[A(knees.L,kz),kx+20,ky+20]]});gp('skirtHi',{t:'sweep',f:f,r:r,rings:[[bp(0,0,10),hipW,142],[A(knees.R,kz),kx+20,ky+20]]});}
   gp('skirtLo',{t:'sweep',f:f,r:r,rings:[[kcc,kd2+kx,ky],[hemC,240-60*k,225-118*k]]});
   gp('neck',{t:'sweep',f:f,r:r,rings:[[bp(4,0,505+br),64,56],[bp(12,0,580+br),46,42]]});}
  drawHead(bp(14,0,HZ+br));if(GEO){var hc0=bp(14,0,HZ+br);gp('head',{t:'sph',c:hc0,r:112});gp('head',{t:'cap',a:Sb(hc0,M(f,22)),b:A(Sb(hc0,M(f,22)),[0,0,-80]),r:100});}
  // arms: two bones to wherever the hand is wanted; free arms hang and swing against the legs; hands come out of the sleeves
  var shp={L:bp(0,-SHW,SHZ+br),R:bp(0,SHW,SHZ+br)},amp=0.3*me.w*(1-k);
- ['L','R'].forEach(function(s){var sg=s==='R'?1:-1,side=M(r,sg),tg=hands[s],pole=N(A(A(M(f,-0.35),M(side,0.55)),[0,0,-0.75])),rel=true;
+ ['L','R'].forEach(function(s){var sg=s==='R'?1:-1,side=M(r,sg),tg=hands[s],pole=N(A(A(M(f,-0.5),M(side,0.22)),[0,0,-0.8])),rel=true;
   if(!tg){if(k>0.5)tg={p:thigh(b,sg),pole:N(A(A(M(f,-0.5),M(side,0.6)),[0,0,-0.6])),hd:N(A(f,[0,0,-0.3]))};
    else{var a=-sg*amp*Math.cos(2*Math.PI*me.qa)*(s==='L'&&prop.book==='hand'?0.35:1)+0.025*Math.sin(t*1.2+sg*1.7);
     // a loose arm: nearly straight, hanging just clear of the skirt, the elbow pointing back (not out to the side)
-    tg={p:A(A(shp[s],M(N(A(M(f,Math.sin(a)+0.05),[0,0,-Math.cos(a)])),LU+LF-12)),M(side,34)),pole:N(A(A(M(f,-0.6),M(side,0.1)),[0,0,-0.8]))};}}
+    tg={p:A(A(shp[s],M(N(A(M(f,Math.sin(a)+0.05),[0,0,-Math.cos(a)])),LU+LF-12)),M(side,38)),pole:N(A(A(M(f,-0.6),M(side,0.1)),[0,0,-0.8]))};}}
   else rel=!!tg.rel;
   var tgp=hands[s]?deskSafe(tg.p,HC[s]||tg.p):deskOut(tg.p);
   if(tg.pole)pole=tg.pole;if(!PC[s])PC[s]=pole;PC[s]=N(A(PC[s],M(Sb(pole,PC[s]),1-Math.exp(-9*dt))));pole=PC[s];
@@ -2454,7 +2454,16 @@ function drawHead(hc3){var q=P.head;pb(q.p);var hc=W(hc3),R=112*S,yawH=me.yaw+me
  function limb(d){var v=D(d,VN);return v>=0?d:N(Sb(d,M(VN,v)));}
  function sdir(th,el){return N(A(A(M(hf,Math.cos(el)*Math.cos(th)),M(hr,Math.cos(el)*Math.sin(th))),M(hu,Math.sin(el))));}
  function ell(p,rx,ry){return 'M'+(p[0]-rx).toFixed(2)+','+p[1].toFixed(2)+'a'+rx.toFixed(2)+','+ry.toFixed(2)+' 0 1 0 '+(2*rx).toFixed(2)+',0a'+rx.toFixed(2)+','+ry.toFixed(2)+' 0 1 0 '+(-2*rx).toFixed(2)+',0Z';}
- pa(q.p,'M'+(hc[0]-R)+','+hc[1]+'A'+R+','+R+' 0 0 1 '+(hc[0]+R)+','+hc[1]+'L'+(hc[0]+R*0.98)+','+(hc[1]+R*0.84)+'Q'+(hc[0]+R*0.96)+','+(hc[1]+R*1.02)+' '+(hc[0]+R*0.7)+','+(hc[1]+R*1.02)+'L'+(hc[0]-R*0.7)+','+(hc[1]+R*1.02)+'Q'+(hc[0]-R*0.96)+','+(hc[1]+R*1.02)+' '+(hc[0]-R*0.98)+','+(hc[1]+R*0.84)+'Z',COL.hair);
+ // the bob: the head, and below it the hair hanging to a level hem round the back and sides. The hem is a horizontal
+ // curve on her head, so in this projection it is an ellipse arc that turns and tilts with her head, not a level line
+ var hpts=[],hj;for(hj=0;hj<36;hj++){var ha=hj/36*2*Math.PI;hpts.push([hc[0]+R*Math.cos(ha),hc[1]+R*Math.sin(ha)]);}
+ // a blunt cut: straight across the nape, rounding the back corners, straight along the sides to the jaw
+ var hem=[];[[-0.66,-0.74],[0.66,-0.74]].forEach(function(e,i){var sx=i?1:-1;for(var c=0;c<=4;c++){var an=(i?-90+90*c/4:180+90*c/4)*deg;}});
+ for(hj=0;hj<=6;hj++)hem.push([-0.62+1.24*hj/6,-0.76]);
+ for(hj=0;hj<=5;hj++){var ca=-Math.PI/2+Math.PI/2*hj/5;hem.push([0.62+0.24*Math.cos(ca),-0.52+0.24*Math.sin(ca)]);hem.push([-0.62-0.24*Math.cos(ca),-0.52+0.24*Math.sin(ca)]);}
+ for(hj=0;hj<=4;hj++){hem.push([0.86,-0.52+0.7*hj/4]);hem.push([-0.86,-0.52+0.7*hj/4]);}
+ hem.forEach(function(e){var HV=A(A(M(hr,e[0]),M(hf,e[1])),M(hu,-0.7));hpts.push([hc[0]+R*D(HV,EX),hc[1]-R*D(HV,EY)]);});
+ pa(q.p,pd(hull(hpts)),COL.hair);
  // a region of the head given in (azimuth, elevation) about her face direction, cut at the visible edge of the sphere:
  // the part that has turned away is replaced by the arc of the outline, so the region slides off the edge as she turns
  var B2=N(X(VN,EX));function lang(d){return Math.atan2(D(d,B2),D(d,EX));}
@@ -2799,7 +2808,9 @@ function update(){var el=(vt-T0)/1000*(cur&&!QUICK[cur.k]?(cur.k==='dance'?1/0.7
    hands.R=H(sp.grip,{rel:true,fast:true,hd:sp.fing,pole:N(mix(N(A(A(M(r,0.62),M(f,-0.4)),[0,0,-0.68])),N(A(A(M(r,0.18),M(f,0.55)),[0,0,-0.82])),tw))});
    hands.L=H(hang(b,-1),{rel:true});
    prop.mug='lift';prop.mugHand='R';prop.mugPos=Sb(HAND.R,Sb(sp.grip,sp.base));prop.mugHd=sp.hd;prop.mugUp=sp.up;prop.mugFace=tw;c.tw=tw;if(tw>0.6)wantTilt=-0.06*sm(ph(tw,0.6,1));}
-  else if(c.back){hands.L=H(b.bp(-168,-32,48),{rel:true,pole:N(A(M(r,-0.35),A(M(f,-0.8),[0,0,-0.5])))});hands.R=H(b.bp(-168,32,48),{rel:true,pole:N(A(M(r,0.35),A(M(f,-0.8),[0,0,-0.5])))});}
+  // without a cup: her hands loosely together in front of her, one resting on the other, elbows easy at her sides
+  else if(c.back){hands.L=H(b.bp(212,-12,84),{rel:true,hd:N(A(M(r,0.85),[0,0,-0.5])),pole:N(A(A(M(r,-0.28),M(f,-0.25)),[0,0,-0.9]))});
+   hands.R=H(b.bp(204,20,70),{rel:true,hd:N(A(M(r,-0.85),[0,0,-0.55])),pole:N(A(A(M(r,0.28),M(f,-0.25)),[0,0,-0.9]))});}
   // never walk off mid-sip: a sip under way is finished first
   if(el>c.len&&!(c.tw>0.02)){if(prop.mug==='lift'){prop.mug='hand';prop.mugFace=0;prop.mugUp=null;}cur=null;}break;}
  case 'think':{wantTilt=0.3+0.04*Math.sin(el*1.1);var hc=b.bp(14,0,HZ);
@@ -2823,7 +2834,7 @@ function update(){var el=(vt-T0)/1000*(cur&&!QUICK[cur.k]?(cur.k==='dance'?1/0.7
  if(prop.roll==='carry'){var rp0=rollTuck(bb,0),need=0;DESKS.forEach(function(d){for(var s=-1;s<=1.001;s+=0.1){var x=A(rp0.c,M(rp0.ax,s*rp0.len/2));
    if(x[0]>d[0]-170&&x[0]<d[1]+170&&x[1]>d[2]-170&&x[1]<d[3]+170&&x[2]-rp0.r<d[5]+10&&x[2]+rp0.r>d[4]-260)need=Math.max(need,d[5]+12-(x[2]-rp0.r));}});
   spring('rollLift',need>0||me.rollHi?100:0,need>0?12:6);}else if(prop.roll!=='move')me.rollLift=0;
- var rsg=rollSg(),rsd=rsg<0?'L':'R';if(prop.roll==='carry'&&!hands[rsd])hands[rsd]=H(A(hang(bb,rsg),A(M(bb.r,54*rsg),[0,0,8+(me.rollLift||0)])),{rel:true,hd:N(A(M(bb.f,0.1),[0,0,-1])),pole:N(A(A(M(bb.r,0.25*rsg),M(bb.f,-0.55)),[0,0,-0.8]))});
+ var rsg=rollSg(),rsd=rsg<0?'L':'R';if(prop.roll==='carry'&&!hands[rsd])hands[rsd]=H(A(hang(bb,rsg),A(M(bb.r,60*rsg),[0,0,16+(me.rollLift||0)])),{rel:true,hd:N(A(M(bb.f,0.1),[0,0,-1])),pole:N(A(A(M(bb.r,0.25*rsg),M(bb.f,-0.55)),[0,0,-0.8]))});
  if(prop.lap==='carry'&&!hands.R)hands.R=H(bb.bp(150,222,130),{rel:true,pole:N(A(M(bb.r,0.8),A(M(bb.f,-0.4),[0,0,-0.6])))});
  if(prop.mug==='hand'){var mh=prop.mugHand||'L',msg=mh==='R'?1:-1;if(!hands[mh]){prop.mugHd=mugHoldDir(bb,msg);
   hands[mh]=H(mugCarry(bb,msg),{rel:true,hd:N(A(M(prop.mugHd,-1),[0,0,-0.15])),pole:N(A(A(M(bb.r,0.22*msg),M(bb.f,-0.7)),[0,0,-0.65]))});}}
