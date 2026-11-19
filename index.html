@@ -2457,11 +2457,11 @@ function drawHead(hc3){var q=P.head;pb(q.p);var hc=W(hc3),R=112*S,yawH=me.yaw+me
  // the bob: the head, and below it the hair hanging to a level hem round the back and sides. The hem is a horizontal
  // curve on her head, so in this projection it is an ellipse arc that turns and tilts with her head, not a level line
  var hpts=[],hj;for(hj=0;hj<36;hj++){var ha=hj/36*2*Math.PI;hpts.push([hc[0]+R*Math.cos(ha),hc[1]+R*Math.sin(ha)]);}
- // a blunt cut: straight across the nape, rounding the back corners, straight along the sides to the jaw
- var hem=[];[[-0.66,-0.74],[0.66,-0.74]].forEach(function(e,i){var sx=i?1:-1;for(var c=0;c<=4;c++){var an=(i?-90+90*c/4:180+90*c/4)*deg;}});
- for(hj=0;hj<=6;hj++)hem.push([-0.62+1.24*hj/6,-0.76]);
- for(hj=0;hj<=5;hj++){var ca=-Math.PI/2+Math.PI/2*hj/5;hem.push([0.62+0.24*Math.cos(ca),-0.52+0.24*Math.sin(ca)]);hem.push([-0.62-0.24*Math.cos(ca),-0.52+0.24*Math.sin(ca)]);}
- for(hj=0;hj<=4;hj++){hem.push([0.86,-0.52+0.7*hj/4]);hem.push([-0.86,-0.52+0.7*hj/4]);}
+ // a blunt cut with a soft line: gently rounded across the nape, well-rounded corners, straight along the sides to the jaw
+ var hem=[],cr=0.34,hx=0.86-cr,hb=-0.74+cr;
+ for(hj=0;hj<=8;hj++){var xx=-hx+2*hx*hj/8;hem.push([xx,-0.74-0.07*(1-(xx/hx)*(xx/hx))]);}
+ for(hj=0;hj<=7;hj++){var ca=-Math.PI/2+Math.PI/2*hj/7;hem.push([hx+cr*Math.cos(ca),hb+cr*Math.sin(ca)]);hem.push([-hx-cr*Math.cos(ca),hb+cr*Math.sin(ca)]);}
+ for(hj=0;hj<=4;hj++){hem.push([0.86,hb+(0.18-hb)*hj/4]);hem.push([-0.86,hb+(0.18-hb)*hj/4]);}
  hem.forEach(function(e){var HV=A(A(M(hr,e[0]),M(hf,e[1])),M(hu,-0.7));hpts.push([hc[0]+R*D(HV,EX),hc[1]-R*D(HV,EY)]);});
  pa(q.p,pd(hull(hpts)),COL.hair);
  // a region of the head given in (azimuth, elevation) about her face direction, cut at the visible edge of the sphere:
