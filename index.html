@@ -2569,11 +2569,11 @@ var ENVUI=(function(){var st=$i('stage');if(!st)return null;
  var css=document.createElement('style');css.textContent=
   '.envb{position:absolute;top:8px;left:22px;z-index:3;display:flex;align-items:center;gap:8px;height:34px;padding:0 12px;border:0;border-radius:17px;background:#f3f2ef;color:var(--ink);font-family:Barlow,sans-serif;cursor:pointer;-webkit-tap-highlight-color:transparent;white-space:nowrap}'+
   '.envb svg{display:block;flex:none}.envb .tx{font-size:14px;font-weight:500;font-variant-numeric:tabular-nums;letter-spacing:.01em}.envb .tp{font-size:14px;color:#6f6c64;font-variant-numeric:tabular-nums}'+
-  '.envb .lv{display:flex;align-items:center;gap:5px;font-size:10px;font-weight:700;letter-spacing:.1em;margin-right:2px}.envb .lv i,.envlv b i{width:5px;height:5px;background:#e0301e;display:block;flex:none}'+
+  '.envb .lv{display:flex;align-items:center;gap:6px;font-size:11px;font-weight:700;letter-spacing:.1em;margin-right:2px}.envb .lv i{width:8px;height:8px;background:#e0301e;display:block;flex:none;margin-top:-1px}.envlv b i{width:9px;height:9px;background:#e0301e;display:block;flex:none;margin-top:-1px}'+
   '.envb .cv{color:#a29f97;transition:transform .22s ease;margin-left:-2px}.envb.open .cv{transform:rotate(180deg)}.envb [hidden]{display:none}'+
   '.envp{position:absolute;top:50px;left:22px;right:22px;z-index:6;max-width:350px;box-sizing:border-box;background:var(--bg);border:1px solid var(--line);border-radius:18px;padding:0 16px 10px;font-family:Barlow,sans-serif;opacity:0;transform:translateY(-4px);transition:opacity .22s ease,transform .22s ease;pointer-events:none}'+
   '.envp.open{opacity:1;transform:none;pointer-events:auto}'+
-  '.envlv{display:flex;align-items:center;justify-content:space-between;height:56px;cursor:pointer}.envlv b{display:flex;align-items:center;gap:6px;font-size:12px;font-weight:700;letter-spacing:.12em;color:var(--ink)}'+
+  '.envlv{display:flex;align-items:center;justify-content:space-between;height:56px;cursor:pointer}.envlv b{display:flex;align-items:center;gap:7px;font-size:13px;font-weight:700;letter-spacing:.12em;color:var(--ink)}'+
   '.envlv small{display:block;font-size:12px;color:#8a877f;margin-top:3px;letter-spacing:.01em}'+
   '.envsw{position:relative;flex:none;width:44px;height:26px;border-radius:13px;background:#e4e2dd;border:0;padding:0;cursor:pointer;transition:background .22s ease;-webkit-tap-highlight-color:transparent}'+
   '.envsw:after{content:"";position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:#fff;transition:transform .22s ease}.envsw.on{background:var(--ink)}.envsw.on:after{transform:translateX(18px)}'+
@@ -2602,7 +2602,7 @@ var ENVUI=(function(){var st=$i('stage');if(!st)return null;
  arc.innerHTML='<defs><clipPath id="envUp"><rect x="0" y="-20" width="'+ARC.W+'" height="'+(ARC.hz+20)+'"/></clipPath><clipPath id="envDn"><rect x="0" y="'+ARC.hz+'" width="'+ARC.W+'" height="'+(ARC.H-ARC.hz+20)+'"/></clipPath></defs>'+
   '<line x1="0" x2="'+ARC.W+'" y1="'+ARC.hz+'" y2="'+ARC.hz+'" stroke="#dcd9d2" stroke-width="1"/><g id="envTk" stroke="#dcd9d2" stroke-width="1"></g>'+
   '<path id="envPd" fill="none" stroke="#c4c0b7" stroke-width="1" stroke-dasharray="1.5 3" stroke-linecap="round" clip-path="url(#envDn)"/><path id="envPu" fill="none" stroke="#141414" stroke-width="1" clip-path="url(#envUp)"/>'+
-  '<text id="envSr" text-anchor="end"></text><text id="envSs"></text><rect id="envNw" width="5" height="5" fill="#e0301e"/>'+
+  '<text id="envSr" text-anchor="end"></text><text id="envSs"></text><rect id="envNw" width="7" height="7" fill="#e0301e"/>'+
   '<circle id="envSun" r="8" stroke="#141414" stroke-width="1"/>';
  var tw=document.createElement('div');tw.appendChild(arc);var ts=sec('TIME',tw,'<output id="envTo"></output>');
  var drag=false,raf=0,want=null;
@@ -2641,7 +2641,7 @@ function envShow(){if(!ENVUI)return;var ms=nowMs(),d=new Date(ms+9*3600e3),hh=d.
  var hx=ARC.x(h),hy=ARC.y(el),near=hy-9<ARC.hz-4;$i('envSr').style.opacity=near&&ARC.sr!==null&&hx+9>ARC.sr-46&&hx-9<ARC.sr-4?0:1;$i('envSs').style.opacity=near&&ARC.ss!==null&&hx+9>ARC.ss+4&&hx-9<ARC.ss+46?0:1;
  $i('envTo').textContent=t;
  // a red square on the horizon at the real hour, when the picture is not live
- var nw=$i('envNw');if(live)nw.setAttribute('visibility','hidden');else{var r=new Date(Date.now()+9*3600e3),rh=r.getUTCHours()+r.getUTCMinutes()/60;nw.setAttribute('visibility','visible');nw.setAttribute('x',(ARC.x(rh)-2.5).toFixed(1));nw.setAttribute('y',ARC.hz-2.5);}}
+ var nw=$i('envNw');if(live)nw.setAttribute('visibility','hidden');else{var r=new Date(Date.now()+9*3600e3),rh=r.getUTCHours()+r.getUTCMinutes()/60;nw.setAttribute('visibility','visible');nw.setAttribute('x',(ARC.x(rh)-3.5).toFixed(1));nw.setAttribute('y',ARC.hz-3.5);}}
 setInterval(envShow,5000);
 window.__senEnv={env:function(){return ENV;},temp:function(t){if(!WXLIVE)WXLIVE={cover:WX.cover,code:WX.code,rain:WX.rain,snow:WX.snow,wind:WX.wind,kind:WX.kind,ok:true};WXLIVE.temp=t;envLast='';envShow();}};
 
