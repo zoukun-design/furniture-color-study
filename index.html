@@ -2570,6 +2570,7 @@ var ENVUI=(function(){var st=$i('stage');if(!st)return null;
   '.envb{position:absolute;top:8px;left:22px;z-index:3;display:flex;align-items:center;gap:8px;height:34px;padding:0 12px;border:0;border-radius:17px;background:#f3f2ef;color:var(--ink);font-family:Barlow,sans-serif;cursor:pointer;-webkit-tap-highlight-color:transparent;white-space:nowrap}'+
   '.envb svg{display:block;flex:none}.envb .tx{font-size:14px;font-weight:500;font-variant-numeric:tabular-nums;letter-spacing:.01em}.envb .tp{font-size:14px;color:#6f6c64;font-variant-numeric:tabular-nums}'+
   '.envb .lv{display:flex;align-items:center;gap:6px;font-size:11px;font-weight:700;letter-spacing:.1em;margin-right:2px}.envb .lv i{width:8px;height:8px;background:#e0301e;display:block;flex:none;margin-top:-1px}.envlv b i{width:9px;height:9px;background:#e0301e;display:block;flex:none;margin-top:-1px}'+
+  '@keyframes envPulse{0%,100%{opacity:1}50%{opacity:.18}}.envb .lv i,.envlv.on b i{animation:envPulse 1.8s ease-in-out infinite}.envlv b i{transition:background .22s ease}.envlv:not(.on) b i{background:#cfcbc3}@media (prefers-reduced-motion:reduce){.envb .lv i,.envlv.on b i{animation:none}}'+
   '.envb .cv{color:#a29f97;transition:transform .22s ease;margin-left:-2px}.envb.open .cv{transform:rotate(180deg)}.envb [hidden]{display:none}'+
   '.envp{position:absolute;top:50px;left:22px;right:22px;z-index:6;max-width:350px;box-sizing:border-box;background:var(--bg);border:1px solid var(--line);border-radius:18px;padding:0 16px 10px;font-family:Barlow,sans-serif;opacity:0;transform:translateY(-4px);transition:opacity .22s ease,transform .22s ease;pointer-events:none}'+
   '.envp.open{opacity:1;transform:none;pointer-events:auto}'+
@@ -2635,7 +2636,7 @@ function envShow(){if(!ENVUI)return;var ms=nowMs(),d=new Date(ms+9*3600e3),hh=d.
  if(k===envLast)return;envLast=k;
  $i('envLv').hidden=!live;$i('envS').innerHTML=iconSvg(sea,20);$i('envT').textContent=t;$i('envW').innerHTML=iconSvg(wi,20);var c=$i('envC');c.textContent=tc;c.hidden=!tc;
  ENVUI.btn.setAttribute('aria-label',(live?'Live, ':'')+ENVCAP[sea]+', '+t+', '+ENVCAP[wk]+(tc?', '+tc:''));
- ENVUI.sw.classList.toggle('on',live);ENVUI.sw.setAttribute('aria-checked',live?'true':'false');
+ ENVUI.sw.classList.toggle('on',live);ENVUI.sw.parentNode.classList.toggle('on',live);ENVUI.sw.setAttribute('aria-checked',live?'true':'false');
  [].forEach.call(ENVUI.pan.querySelectorAll('.envo button'),function(b){var on=b.dataset.v===(b.dataset.k==='wx'?wk:sea);b.classList.toggle('on',on);b.setAttribute('aria-pressed',on?'true':'false');});
  envTrack();var h=hh+mm/60,s=$i('envSun');s.setAttribute('cx',ARC.x(h).toFixed(1));s.setAttribute('cy',ARC.y(el).toFixed(1));s.setAttribute('fill',el>0?'#fff':'#141414');
  var hx=ARC.x(h),hy=ARC.y(el),near=hy-9<ARC.hz-4;$i('envSr').style.opacity=near&&ARC.sr!==null&&hx+9>ARC.sr-46&&hx-9<ARC.sr-4?0:1;$i('envSs').style.opacity=near&&ARC.ss!==null&&hx+9>ARC.ss+4&&hx-9<ARC.ss+46?0:1;
