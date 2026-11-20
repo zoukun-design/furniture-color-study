@@ -3184,11 +3184,13 @@ function update(){var el=(vt-T0)/1000*(cur&&!QUICK[cur.k]?(cur.k==='dance'?1/0.7
  hands.L=hands.R=null;me.wT=0;var wantLean=0,wantTilt=0.05,wantHY=0;me.atB=false;me.sway=0;me.bounce=0;me.squint=0;
  switch(c.k){
  case 'enter':prop.lap=prop.mug=prop.book=prop.roll='away';prop.mugHand='L';prop.stackPos='away';prop.stack=[];prop.held=null;prop.open=null;prop.done=[];prop.sheet=0;prop.sheetSpan=null;
-  me.F=c.from.slice();me.away=false;me.w=0;me.qa=Math.floor(me.qa)+0.3;HC.L=HC.R=null;PC.L=PC.R=null;SV={};me.sitK=0;seated=false;
+  me.F=c.from.slice();me.away=false;me.door=c.from.slice();me.doorOut=false;me.doorT=vt;me.doorD=650;me.w=0;me.qa=Math.floor(me.qa)+0.3;HC.L=HC.R=null;PC.L=PC.R=null;SV={};me.sitK=0;seated=false;
   if(c.carry==='work'){prop.lap='carry';prop.mug='hand';prop.lapU=LAPU0;}else if(c.carry==='read'){prop.book='read';prop.spread=1;prop.page=-1;RD.np=vt/1000+rnd(3,5);RD.pt=-1;prop.bookCol=BOOKCOLS[Math.floor(Math.random()*BOOKCOLS.length)];}
   else if(c.carry==='research'){prop.stack=makeBooks(8);prop.stackPos='carry';}else if(c.carry==='drawings'){prop.roll='carry';prop.rollSide='L';prop.sheetHi=false;}else if(c.carry==='gaze'){prop.mug='hand';prop.mugHand='R';}
   me.yaw=Math.atan2(2000-c.from[1],1700-c.from[0]);cur=null;break;
- case 'go':case 'walkDirect':{if(!c.path){c.path=c.k==='go'?route(me.F,val(c.pt)):c.pts();c.i=0;c.spd=0;c.mode='start';}
+ case 'go':case 'walkDirect':{if(!c.path){c.path=c.k==='go'?route(me.F,val(c.pt)):c.pts();c.i=0;c.spd=0;c.mode='start';
+   // walking out of the room: she fades as she nears the way out (from where she is, if that is nearer than the fade)
+   if(c.k==='go'){var xp=val(c.pt);EXITS.forEach(function(e){if(xp&&Math.abs(xp[0]-e[0])<1&&Math.abs(xp[1]-e[1])<1){me.door=e.slice();me.doorOut=true;me.doorD=Math.max(150,Math.min(650,Math.hypot(me.F[0]-e[0],me.F[1]-e[1])-30));}});}}
   var tg,du,dv,d,last,rem,fd,fin;
   if(c.k==='go'){// she follows the route by aiming at a point a little way ahead along it, so a corner becomes a curve she
    // walks round, not two straight legs and a kink; her heading turns smoothly and she goes the way she faces
@@ -3333,7 +3335,12 @@ function update(){var el=(vt-T0)/1000*(cur&&!QUICK[cur.k]?(cur.k==='dance'?1/0.7
  if(prop.mug==='hand'){var mh=prop.mugHand||'L',msg=mh==='R'?1:-1;if(!hands[mh]){prop.mugHd=mugHoldDir(bb,msg);
   hands[mh]=H(mugCarry(bb,msg),{rel:true,hd:N(A(M(prop.mugHd,-1),[0,0,-0.15])),pole:N(A(A(M(bb.r,0.22*msg),M(bb.f,-0.7)),[0,0,-0.65]))});}}
  if(prop.stackPos==='carry'){var sc=stackCarry(bb),hs=stackHeight(prop.stack);if(!hands.L)hands.L=H(A(A(sc,M(bb.r,-104)),[0,0,hs*0.35]),{rel:true,hd:N(A(bb.f,[0,0,0.2]))});if(!hands.R)hands.R=H(A(A(sc,M(bb.r,104)),[0,0,hs*0.35]),{rel:true,hd:N(A(bb.f,[0,0,0.2]))});}
- var out=Math.max(me.F[0]-2800,me.F[1]-3000);me.op=me.away?0:cl((-out-40)/300,0,1);
+ // she fades out over the last steps to the way out and in over the first steps from it (eased, about a second
+ // and a quarter each way); coming in, she is whole within 1.6 s whatever the distance. Near the edge of the floor she
+ // is never whole
+ var out=Math.max(me.F[0]-2800,me.F[1]-3000),eo=cl((-out-40)/300,0,1),dop=1;
+ if(me.door){var dd=Math.hypot(me.F[0]-me.door[0],me.F[1]-me.door[1]),kd=cl((dd-30)/me.doorD,0,1);if(!me.doorOut){kd=Math.max(kd,cl((vt-me.doorT)/1600,0,1));if(kd>=1)me.door=null;}dop=kd*kd*(3-2*kd);}
+ me.op=me.away?0:Math.min(eo,dop);
  if(vt>me.nextBlink){me.blinkTo=vt+130;me.nextBlink=vt+(Math.random()<0.15?300:rnd(2600,6500));}
  if(!me.away)chooseSlot();}
 // which layer of the drawing she belongs in: before the chair or after it, before desk B or after it.
