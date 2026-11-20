@@ -1816,7 +1816,8 @@ var decoded={};function predecode(k){if(decoded[k])return;decoded[k]=1;var save=
 var G=document.getElementById('sensei');if(!G)return;
 function $i(id){return document.getElementById(id);}
 var svg=G.ownerSVGElement,LOW=$i('senLow'),DA=$i('laptop'),CHR=$i('chair'),CHS=$i('chairShadow'),CHST=$i('chairStatic'),CHU=$i('chairUp'),DB=$i('deskBProps'),OVB=$i('senOverB');
-var SLOT={top:svg,front:$i('slotFront'),b:$i('slotB')};
+// the topmost slot is a group of its own at the end of the scene, so the room's light layers can lie over it
+var SLOT={top:mk('g',{id:'senTop'},svg),front:$i('slotFront'),b:$i('slotB')};SLOT.top.appendChild(LOW);SLOT.top.appendChild(G);
 if(!LOW||!DA||!CHR||!CHST||!CHU||!DB||!OVB||!SLOT.front||!SLOT.b)return;
 if(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches){G.remove();LOW.remove();return;}
 CHST.style.display='none';
@@ -2408,41 +2409,25 @@ function drawDay(force){if(!SUNB.parentNode&&PDB)DB.insertBefore(SUNB,PDB.g);var
  var el=SKYNOW.el*RAD,az=(WFACE-SKYNOW.az)*RAD,clr=WX.kind==='clear'?1:WX.kind==='cloudy'?0.6:0.05;
  var inten=sm(ph(el,0.02,0.2))*(1-sm(ph(az,1.05,1.38)))*(az>-1.3?1:0)*clr;
  pb(sunPool);pb(swPool);if(inten>0.01){var kh=1/Math.tan(Math.max(el,0.08)),du=Math.cos(az)*kh,dv=Math.sin(az)*kh,warm=1-sm(ph(el,0.12,0.6));
-  var col='rgba(255,'+Math.round(250-14*warm)+','+Math.round(240-34*warm)+',';if(LIGHT){pb(LIGHT.pS);pb(LIGHT.pSh);pb(LIGHT.pA);pb(LIGHT.pB);}pb(saPool);pb(sbPool);
+  // sunlight multiplies what it falls on: each surface comes up by the same factor in its own colour (a white wall
+  // stays white, the pale floor goes golden, the black desk only to a dark warm grey). A colour-dodge layer of colour b
+  // gives base/(1-b), so b=1-1/factor
+  var fk=[0.52,0.48,0.40-0.1*warm].map(function(k){return 1+k*inten;}),cold='rgb('+fk.map(function(f){return Math.round(255*(1-1/f));}).join(',')+')';if(LIGHT){pb(LIGHT.pS);pb(LIGHT.pA);pb(LIGHT.pB);}pb(saPool);pb(sbPool);
   PANES.forEach(function(p){var q=[[p[0],p[2]],[p[1],p[2]],[p[1],p[3]],[p[0],p[3]]].map(function(x){return [x[1]*du,x[0]+x[1]*dv];}),c=clipRoom(q);   // (the floor patch may lie outside the room while the light still lands on the desks and the side wall)
-   if(c.length>2){var cpts=c.map(function(x){return W([x[0],x[1],0]);});pa(sunPool,pd(cpts),col+(0.9*inten).toFixed(3)+')');if(LIGHT)pa(LIGHT.pS,pd(cpts),'rgba(0,0,0,'+(0.95*inten).toFixed(3)+')');}
+   if(c.length>2){var cpts=c.map(function(x){return W([x[0],x[1],0]);});pa(sunPool,pd(cpts),cold);if(LIGHT)pa(LIGHT.pS,pd(cpts),'rgba(0,0,0,'+(0.95*inten).toFixed(3)+')');}
    // the same window's light at desk-top height, on each desk top it reaches
    [[DESKA,saPool,'pA'],[DESKB,sbPool,'pB']].forEach(function(dk){var dd=[[p[0],p[2]],[p[1],p[2]],[p[1],p[3]],[p[0],p[3]]].map(function(x){var h2=x[1]-TOPZ;return [h2*du,x[0]+h2*dv];}),dc=clipRect(dd,dk[0]);
-    if(dc.length>2){var dp=pd(dc.map(function(x){return W([x[0],x[1],TOPZ+1]);}));pa(dk[1],dp,col+(0.9*inten).toFixed(3)+')');if(LIGHT)pa(LIGHT[dk[2]],dp,'rgba(0,0,0,'+(0.95*inten).toFixed(3)+')');}});
+    if(dc.length>2){var dp=pd(dc.map(function(x){return W([x[0],x[1],TOPZ+1]);}));pa(dk[1],dp,cold);if(LIGHT)pa(LIGHT[dk[2]],dp,'rgba(0,0,0,'+(0.95*inten).toFixed(3)+')');}});
    // the rest of that window's light, coming in toward the south, lands on the side wall before it reaches the floor
    if(dv<-0.02){var wq=[[p[0],p[2]],[p[1],p[2]],[p[1],p[3]],[p[0],p[3]]].map(function(x){var d=-x[0]/dv;return [d*du,x[1]-d];}),wc=clipRect(wq,[8,ROOM[0]-8,0,2890]);
-    if(wc.length>2){var wp2=pd(wc.map(function(x){return W([x[0],0,x[1]]);}));pa(swPool,wp2,col+(0.9*inten).toFixed(3)+')');if(LIGHT)pa(LIGHT.pS,wp2,'rgba(0,0,0,'+(0.95*inten).toFixed(3)+')');}}});  // shadows cast into the light: each desk top and the chair, flattened onto the floor along the sun
-  pb(smPool);var sh=function(pts){return hull2(pts.map(function(p){return W([p[0]+p[2]*du,p[1]+p[2]*dv,0]);}));};
-  [DESKA,DESKB].forEach(function(r){var s2=pd(sh([[r[0],r[2],TOPZ],[r[1],r[2],TOPZ],[r[1],r[3],TOPZ],[r[0],r[3],TOPZ]]));pa(smPool,s2,'#000');if(LIGHT)pa(LIGHT.pSh,s2,'#fff');
-   // and on the side wall, where the desk tops stand in the light that would reach it
-   if(dv<-0.02){var shw=function(P){var s3=-P[1]/dv;return [P[0]+s3*du,P[2]-s3];},ww=[[r[0],r[2],TOPZ],[r[1],r[2],TOPZ],[r[1],r[3],TOPZ],[r[0],r[3],TOPZ],[r[0],r[2],TOPZ-40],[r[1],r[3],TOPZ-40]].map(shw).filter(function(x){return x[1]>-4000;});
-    var hw=hull2(ww.map(function(x){return W([x[0],0,Math.max(-200,x[1])]);}));pa(smPool,pd(hw),'#000');if(LIGHT)pa(LIGHT.pSh,pd(hw),'#fff');}});
-  // the chair: seat, back panel, the two arm pads and the gas column, each casting its own shape
-  var box3=function(f){var p=[];f(p);return sh(p);},cut=function(pts,al){pa(smPool,pd(pts),al?'rgba(0,0,0,'+al+')':'#000');if(LIGHT)pa(LIGHT.pSh,pd(pts),'rgba(255,255,255,'+(al||1)+')');};
-  cut(box3(function(p){[-250,250].forEach(function(a){[-250,250].forEach(function(bb){p.push(cw(a,bb,450));});});}),0.92);
-  cut(box3(function(p){[205,250].forEach(function(a){[-235,235].forEach(function(bb){p.push(cw(a,bb,450));p.push(cw(a,bb,1010));});});}),0.92);
-  [-275,275].forEach(function(sb){cut(box3(function(p){[-200,150].forEach(function(a){[sb-30,sb+30].forEach(function(bb){p.push(cw(a,bb,668));p.push(cw(a,bb,640));});});}),0.9);});
-  cut(box3(function(p){[-28,28].forEach(function(a){[-28,28].forEach(function(bb){p.push(cw(a,bb,40));p.push(cw(a,bb,430));});});}),0.8);
-  // the desks' legs: the main desk's two inverted-T posts, the sub desk's four tubes and their cross bars
-  var post=function(u,v,w,z1,al){cut(box3(function(p){[-w/2,w/2].forEach(function(x){[-w/2,w/2].forEach(function(y){p.push([u+x,v+y,0]);p.push([u+x,v+y,z1]);});});}),al);};
-  [DESKA[0]+280,DESKA[1]-280].forEach(function(ul){post(ul,(DESKA[2]+DESKA[3])/2,40,TOPZ-52,0.95);cut(box3(function(p){[ul-22,ul+22].forEach(function(u){[DESKA[2]+120,DESKA[3]-120].forEach(function(v){p.push([u,v,TOPZ-52]);p.push([u,v,TOPZ-22]);});});}),0.95);});
-  [DESKB[2]+140,DESKB[3]-140].forEach(function(vl){[DESKB[0]+55,DESKB[1]-55].forEach(function(ut){post(ut,vl,26,TOPZ,0.85);});
-   cut(box3(function(p){[vl-12,vl+12].forEach(function(v){[DESKB[0]+55,DESKB[1]-55].forEach(function(u){p.push([u,v,318]);p.push([u,v,342]);});});}),0.8);});
-  // and she casts her own shadow when she stands in the sun
-  if(!me.away&&me.op>0.3){var ff=[Math.cos(me.yaw),Math.sin(me.yaw),0],rr=[ff[1],-ff[0],0],F0=[me.F[0],me.F[1],0],ks=me.k||0;
-   cut(box3(function(p){[[0,170],[880-300*ks,200],[1250-330*ks,150],[1520-340*ks,115]].forEach(function(l){[-1,1].forEach(function(sg){p.push(A(A(F0,M(rr,sg*l[1])),[0,0,l[0]]));});});}),0.85*me.op);}
-  pe(smPool);
+    if(wc.length>2){var wp2=pd(wc.map(function(x){return W([x[0],0,x[1]]);}));pa(swPool,wp2,cold);if(LIGHT)pa(LIGHT.pS,wp2,'rgba(0,0,0,'+(0.95*inten).toFixed(3)+')');}}});  // shadows cast into the light: each desk top and the chair, flattened onto the floor along the sun
+  SUNV={on:true,du:du,dv:dv,inten:inten};
   // how far the sun is on her, the plant by the window and the chair
   if(LIGHT){var bb2=body(),pl=bb2.pel,ld=function(pts){var n=0;pts.forEach(function(P){n+=sunLit(P,du,dv);});return n/pts.length;};
    var Lh=me.away?0:ld([[pl[0],pl[1],pl[2]-300],pl,A(pl,[0,0,300]),A(pl,[0,0,560]),A(pl,[0,0,700])]),Lp=ld([[330,2660,500],[330,2660,900],[330,2660,1300],[230,2560,1100],[430,2760,1100]]),Lc=ld([cw(0,0,480),cw(230,0,800),cw(0,240,660),cw(0,-240,660)]);
    LIGHT.lit.her+=(Lh-LIGHT.lit.her)*0.35;LIGHT.lit.plant=Lp;LIGHT.lit.chair=Lc;}
- }else{pb(saPool);pb(sbPool);if(LIGHT){pb(LIGHT.pS);pb(LIGHT.pSh);pb(LIGHT.pA);pb(LIGHT.pB);}}
- pe(saPool);pe(sbPool);if(LIGHT){pe(LIGHT.pS);pe(LIGHT.pSh);pe(LIGHT.pA);pe(LIGHT.pB);
+ }else{SUNV={on:false};pb(saPool);pb(sbPool);if(LIGHT){pb(LIGHT.pS);pb(LIGHT.pA);pb(LIGHT.pB);}}
+ pe(saPool);pe(sbPool);if(LIGHT){pe(LIGHT.pS);pe(LIGHT.pA);pe(LIGHT.pB);
   // the shade over everything the sun is not on: deeper the stronger the sun, a little cool (the sky's light)
   var shOn=inten>0.02;LIGHT.SHD.style.display=shOn?'':'none';if(shOn){LIGHT.SHD.setAttribute('fill',hexOf2(hmix('#ffffff','#dcdfe6',Math.min(1,inten))));
    [['her','her'],['plant','plant'],['chair','chair']].forEach(function(k){var g=(1-0.92*LIGHT.lit[k[0]]).toFixed(3);LIGHT.F[k[1]].setAttribute('values','0 0 0 0 '+g+' 0 0 0 0 '+g+' 0 0 0 0 '+g+' 0 0 0 1 0');});}}
@@ -2478,7 +2463,7 @@ function roomSil(parent,fill){var U2=ROOM[0],V2=ROOM[1],T=124,H2=2900;[[[-T,-T,0
 function wrapBetween(a,b,id){var g=mk('g',{id:id});a.parentNode.insertBefore(g,a.nextSibling);var n=g.nextSibling;while(n&&n!==b){var nx=n.nextSibling;g.appendChild(n);n=nx;}return g;}
 var LIGHT=(function(){var ca=$i('chairShadow'),la=$i('laptop'),sb=$i('slotB'),dbp=$i('deskBProps');if(!ca||!la||!sb||!dbp)return null;
  wrapBetween(ca,la,'deskAStatic');wrapBetween(sb,dbp,'deskBStatic');la.parentNode.insertBefore(SUNA,la);SHG.id='senSheet';PDB.g.id='senDBProps';
- [SUNG,SUNW,SUNA,SUNB].forEach(function(g){g.style.mixBlendMode='multiply';});SUNW.setAttribute('mask','url(#sunMask)');
+ [SUNG,SUNW,SUNA,SUNB].forEach(function(g){g.style.mixBlendMode='color-dodge';});
  var LM=mk('mask',{id:'litMask',maskUnits:'userSpaceOnUse',x:-2000,y:-2000,width:6000,height:6000},defs);roomSil(LM,'#fff');[].forEach.call(svg.querySelectorAll('polygon[fill="url(#skyG)"]'),function(p){mk('polygon',{points:p.getAttribute('points'),fill:'#000'},LM);});
  function sil(id,g){var f=mk('filter',{id:id,x:'-10%',y:'-10%',width:'120%',height:'120%','color-interpolation-filters':'sRGB'},defs),m=mk('feColorMatrix',{type:'matrix',values:'0 0 0 0 '+g+' 0 0 0 0 '+g+' 0 0 0 0 '+g+' 0 0 0 1 0'},f);return m;}
  var XL='http://www.w3.org/1999/xlink',F={w:sil('silW',1),her:sil('silHer',1),plant:sil('silPlant',1),chair:sil('silChair',1)};
@@ -2488,13 +2473,61 @@ var LIGHT=(function(){var ca=$i('chairShadow'),la=$i('laptop'),sb=$i('slotB'),db
  function use(id,fk){var u=document.createElementNS(NS,'use');u.setAttribute('href','#'+id);u.setAttributeNS(XL,'xlink:href','#'+id);u.setAttribute('filter','url(#'+(fk==='her'?'silHer':fk==='plant'?'silPlant':fk==='chair'?'silChair':'silW')+')');LM.appendChild(u);}
  var RC=mk('clipPath',{id:'roomClip'},defs);roomSil(RC,'#fff');var pS=pool(mk('g',{'clip-path':'url(#roomClip)'},LM)),pSh=pool(mk('g',{'clip-path':'url(#roomClip)'},LM));   // (shadows can reach past the floor's edge: kept to the room)
  still('deskAStatic');var pA=pool(mk('g',{},LM));
- ['laptop','mug','slotFront'].forEach(function(id){use(id);});use('chair','chair');use('chairUp','chair');use('slotB','her');still('deskBStatic');use('senSheet');
- var pB=pool(mk('g',{},LM));use('senDBProps');use('senOverB','her');use('plant','plant');use('senLow','her');use('sensei','her');
+ use('laptop');use('mug');use('slotFront','her');use('chair','chair');use('chairUp','chair');use('slotB','her');still('deskBStatic');use('senSheet');
+ var pB=pool(mk('g',{},LM));use('senDBProps');use('senOverB','her');use('senTop','her');   // (she, her low parts and the plant move between the slots: each slot once, in scene order)
  var SHD=mk('rect',{x:-2000,y:-2000,width:6000,height:6000,fill:'#ffffff','pointer-events':'none',mask:'url(#litMask)',style:'mix-blend-mode:multiply;display:none'});svg.appendChild(SHD);
  var lit={her:0,plant:0,chair:0};
  return {SHD:SHD,pS:pS,pSh:pSh,pA:pA,pB:pB,F:F,lit:lit};})();
 // is a point in the sun? Back along the light toward the window it must come out through a pane
 function sunLit(P,du,dv){if(du<0.02)return 0;var s=P[0]/du,qv=P[1]-s*dv,qz=P[2]+s;for(var i=0;i<PANES.length;i++){var p=PANES[i];if(qv>=p[0]&&qv<=p[1]&&qz>=p[2]&&qz<=p[3])return 1;}return 0;}
+
+// ---------- shadows: whatever stands between the window and a sunlit surface casts onto it ----------
+// Each frame, every solid in the scene (her body part by part, the chair, the desks and their legs, the laptop, mug,
+// books and roll, the plant) is projected along the sunlight onto each surface the sun reaches: the floor, the side
+// wall and the two desk tops. The shadows cut the light out of the patches and put the shade back in its place.
+var SUNV={on:false,du:0,dv:0,inten:0};
+var SHADOW=(function(){function m(id){var mm=mk('mask',{id:id,maskUnits:'userSpaceOnUse',x:-200,y:-200,width:1400,height:1500},defs);mk('rect',{x:-200,y:-200,width:1400,height:1500,fill:'#fff'},mm);return mm;}
+ var mW=m('sunMaskW'),mA=m('sunMaskA'),mB=m('sunMaskB');SUNW.setAttribute('mask','url(#sunMaskW)');SUNA.setAttribute('mask','url(#sunMaskA)');SUNB.setAttribute('mask','url(#sunMaskB)');
+ function pair(cut,shadeAfter,soft){var a=mk('path',{fill:'#000'},cut),b=mk('path',{fill:'#fff'});if(soft){a.setAttribute('fill-opacity',0.5);b.setAttribute('fill-opacity',0.5);}
+  if(shadeAfter)shadeAfter.parentNode.insertBefore(b,shadeAfter.nextSibling);return [a,b];}
+ var lm=LIGHT?LIGHT.pSh.g:null;
+ return {floor:pair(SMK,lm),floorS:pair(SMK,lm),wall:pair(mW,lm),wallS:pair(mW,lm),A:pair(mA,LIGHT?LIGHT.pA.g:null),B:pair(mB,LIGHT?LIGHT.pB.g:null)};})();
+(function(){if(!SHADOW)return;['floorS','wallS'].forEach(function(k){SHADOW[k].forEach(function(e){e.setAttribute('fill-opacity',0.45);});});})();
+// the points of a solid that bound its shadow: one set per convex piece
+var BALL=[[1,0,0],[-1,0,0],[0,1,0],[0,-1,0],[0,0,1],[0,0,-1],[.577,.577,.577],[.577,-.577,.577],[-.577,.577,.577],[-.577,-.577,.577],[.577,.577,-.577],[.577,-.577,-.577],[-.577,.577,-.577],[-.577,-.577,-.577],[.707,.707,0],[.707,-.707,0],[-.707,.707,0],[-.707,-.707,0]];
+function primPts(q){var o=[],i,k;function ball(c,r,into){BALL.forEach(function(d){into.push(A(c,M(d,r)));});}
+ if(q.t==='sph'){ball(q.c,q.r,o);return [o];}
+ if(q.t==='cap'){ball(q.a,q.r,o);ball(q.b,q.r,o);return [o];}
+ if(q.t==='box'){[-1,1].forEach(function(a){[-1,1].forEach(function(b){[-1,1].forEach(function(c){o.push(A(q.c,A(A(M(q.ax[0],a),M(q.ax[1],b)),M(q.ax[2],c))));});});});return [o];}
+ if(q.t==='cyl'){var e1=N(X(q.u,Math.abs(q.u[2])<0.9?[0,0,1]:[1,0,0])),e2=X(q.u,e1);for(i=0;i<10;i++){var a=2*Math.PI*i/10,rv=A(M(e1,q.r*Math.cos(a)),M(e2,q.r*Math.sin(a)));o.push(A(q.b,rv));o.push(A(A(q.b,M(q.u,q.h)),rv));}return [o];}
+ if(q.t==='cbox'){[q.a0,q.a1].forEach(function(a){[q.b0,q.b1].forEach(function(b){[q.z0,q.z1].forEach(function(z){o.push(cw(a+(q.sl?q.sl*(z-q.sz):0),b,z));});});});return [o];}
+ if(q.t==='sweep'){var out=[];for(i=0;i+1<q.rings.length;i++){var c0=q.rings[i][0],c1=q.rings[i+1][0],ax=Sb(c1,c0);if(L(ax)<1)continue;var u=N(ax),lat=Sb(q.r,M(u,D(q.r,u)));if(L(lat)<1e-6)continue;lat=N(lat);var th=N(X(u,lat)),s=[];
+   [q.rings[i],q.rings[i+1]].forEach(function(rg){for(k=0;k<12;k++){var a2=2*Math.PI*k/12;s.push(A(rg[0],A(M(lat,rg[1]*Math.cos(a2)),M(th,rg[2]*Math.sin(a2)))));}});out.push(s);}return out;}
+ return [];}
+// what never moves: the desks' legs and frames, the chair's gas column, the plant (pot and a crown of leaves, whose
+// shadow is broken by the gaps between them, so it is lighter)
+function bx(u,v,z0,z1,wu,wv){return {t:'box',c:[u,v,(z0+z1)/2],ax:[[wu/2,0,0],[0,wv/2,0],[0,0,(z1-z0)/2]]};}
+var STILL=(function(){var o=[];[DESKA[0]+280,DESKA[1]-280].forEach(function(ul){o.push(bx(ul,(DESKA[2]+DESKA[3])/2,0,TOPZ-52,40,40));o.push(bx(ul,(DESKA[2]+DESKA[3])/2,TOPZ-52,TOPZ-22,44,DESKA[3]-DESKA[2]-240));});
+ [DESKB[2]+140,DESKB[3]-140].forEach(function(vl){[DESKB[0]+55,DESKB[1]-55].forEach(function(ut){o.push(bx(ut,vl,0,TOPZ,26,26));});o.push(bx((DESKB[0]+DESKB[1])/2,vl,318,342,DESKB[1]-DESKB[0]-110,24));});
+ o.push(bx(190,190,0,2890,380,380));   // the concrete column in the corner
+ return o;})();
+var PLANTS=[{t:'cyl',b:[330,2660,0],u:[0,0,1],r:150,h:420},{t:'sph',c:[330,2660,1050],r:250},{t:'sph',c:[280,2590,1380],r:210},{t:'sph',c:[400,2740,760],r:220}];
+function drawShadows(){if(!SHADOW)return;var S=SHADOW,ks=['floor','floorS','wall','wallS','A','B'];
+ if(!SUNV.on||!GEO){ks.forEach(function(k){S[k][0].setAttribute('d','');S[k][1].setAttribute('d','');});return;}
+ var du=SUNV.du,dv=SUNV.dv,acc={floor:'',floorS:'',wall:'',wallS:'',A:'',B:''};
+ function proj(pts,rec){if(rec==='floor')return pts.map(function(P){return [P[0]+P[2]*du,P[1]+P[2]*dv];});
+  if(rec==='A'||rec==='B')return pts.map(function(P){var s=Math.max(0,P[2]-TOPZ);return [P[0]+s*du,P[1]+s*dv];});
+  return pts.map(function(P){var s=Math.max(0,P[1]/-dv);return [P[0]+s*du,P[2]-s];});}
+ function scr(rec,x){return rec==='floor'?W([x[0],x[1],0]):rec==='wall'?W([x[0],0,x[1]]):W([x[0],x[1],TOPZ+1]);}
+ function cast(pts,rec,key){var h=hull(proj(pts,rec));if(h.length<3)return;var c=rec==='floor'?clipRoom(h):rec==='wall'?clipRect(h,[0,ROOM[0],0,2900]):clipRect(h,rec==='A'?DESKA:DESKB);
+  if(c.length<3)return;acc[key]+='M'+c.map(function(x){var w=scr(rec,x);return w[0].toFixed(1)+','+w[1].toFixed(1);}).join('L')+'Z';}
+ var wallOn=dv<-0.02,list=[];
+ for(var k in GEO){var isDesk=k==='deskA'||k==='deskB';GEO[k].forEach(function(q){primPts(q).forEach(function(p){list.push({p:p,top:!isDesk});});});}
+ STILL.forEach(function(q){primPts(q).forEach(function(p){list.push({p:p,top:false});});});
+ list.push({p:primPts({t:'cap',a:cw(0,0,60),b:cw(0,0,420),r:28})[0],top:true});
+ list.forEach(function(it){cast(it.p,'floor','floor');if(wallOn)cast(it.p,'wall','wall');if(it.top){var zt=0;it.p.forEach(function(P){zt=Math.max(zt,P[2]);});if(zt>TOPZ+2){cast(it.p,'A','A');cast(it.p,'B','B');}}});
+ PLANTS.forEach(function(q){primPts(q).forEach(function(p){cast(p,'floor','floorS');if(wallOn)cast(p,'wall','wallS');});});
+ ks.forEach(function(k){S[k][0].setAttribute('d',acc[k]);S[k][1].setAttribute('d',acc[k]);});}
 
 var VIEW=(function(){var panes=[].slice.call(svg.querySelectorAll('polygon[fill="url(#skyG)"]'));if(!panes.length)return null;
  // ---------- the view out of the window: only the sky (in fact another building of the university stands across the way) ----------
@@ -2528,11 +2561,17 @@ var VIEW=(function(){var panes=[].slice.call(svg.querySelectorAll('polygon[fill=
  var stars=[];for(var i=0;i<22;i++){var c=mk('circle',{r:rr(0.55,0.85),fill:'#e9ecf4'},gStar),w=wp(rr(400,2950),rr(1150,2060));c.setAttribute('cx',w[0].toFixed(1));c.setAttribute('cy',w[1].toFixed(1));stars.push({e:c,ph:rr(0,6.3),sp:rr(0.6,1.4)});}
  // clouds: long flat streaks, two or three laid one over another a little apart, one colour; as many as the sky has
  function streak(v0,v1,z,r){var o=[],i;for(i=0;i<=8;i++){var a=Math.PI/2+Math.PI*i/8;o.push([v0+r*Math.cos(a),z+r*Math.sin(a)]);}for(i=0;i<=8;i++){var a2=-Math.PI/2+Math.PI*i/8;o.push([v1+r*Math.cos(a2),z+r*Math.sin(a2)]);}return o;}
- var clouds=[],CZ=[1640,1880,1500,1940,1320,1760,2010,1420,1580,1840];for(var k=0;k<10;k++){var g=mk('g',{},gCloud),v0=150+k*340+rr(-120,120),z0=CZ[k]+rr(-50,50),L=rr(380,760),th=rr(28,50);
-  mk('path',{d:poly(streak(v0-L/2,v0+L/2,z0,th))},g);
-  if(rr(0,1)<0.9){var L2=L*rr(0.35,0.6),o2=rr(-0.25,0.3)*L;mk('path',{d:poly(streak(v0+o2-L2/2,v0+o2+L2/2,z0+th*1.5,th*0.8))},g);}
-  if(rr(0,1)<0.4){var L3=L*rr(0.25,0.45),o3=rr(-0.3,0.3)*L;mk('path',{d:poly(streak(v0+o3-L3/2,v0+o3+L3/2,z0-th*1.4,th*0.6))},g);}
-  clouds.push({g:g,v0:v0,sp:rr(0.85,1.15),rank:rr(0,1)});}
+ // clouds: small heaps of cumulus, a flat base with a few rounded tops. They are far off, so they are drawn level
+ // to the eye (not laid on the slant of the glass), and the low ones are farther still: smaller, flatter and paler,
+ // nearer the colour of the sky behind them (the air in between), so the sky has depth. None is pure white.
+ var kz=Math.abs(wp(0,1000)[1]-wp(0,0)[1])/1000,xa=wp(0,1500),xb=wp(3400,1500),X0=Math.min(xa[0],xb[0])-90,X1=Math.max(xa[0],xb[0])+90;
+ var clouds=[],CZ=[1640,1880,1500,1940,1320,1760,2010,1420,1580,1840];for(var k=0;k<10;k++){var g=mk('g',{},gCloud),v0=150+k*340+rr(-120,120),z0=CZ[k]+rr(-50,50),nz=cl((z0-1250)/800,0,1),Ws=(220+380*nz)*rr(0.8,1.2)*kz,Hs=Ws*(0.3+0.12*nz),n=3+Math.floor(rr(0,3)),cp=wp(v0,z0);
+  function sp2(a){return 'M'+a.map(function(q){return q[0].toFixed(1)+','+q[1].toFixed(1);}).join('L')+'Z';}
+  var base=[];for(var a4=0;a4<=8;a4++){var an4=Math.PI/2+Math.PI*a4/8;base.push([-Ws/2+Hs*0.18+Hs*0.18*Math.cos(an4),-Hs*0.18+Hs*0.18*Math.sin(an4)]);}for(a4=0;a4<=8;a4++){var an5=-Math.PI/2+Math.PI*a4/8;base.push([Ws/2-Hs*0.18+Hs*0.18*Math.cos(an5),-Hs*0.18+Hs*0.18*Math.sin(an5)]);}
+  mk('path',{d:sp2(base)},g);
+  for(var j2=0;j2<n;j2++){var f2=(j2+0.5)/n,mid=1-Math.abs(f2-0.5)*2,r2=Hs*(0.45+0.55*mid)*rr(0.85,1.1),cx2=-Ws/2+Ws*f2+rr(-0.05,0.05)*Ws,lobe=[];
+   for(var a3=0;a3<=16;a3++){var an=Math.PI*a3/16;lobe.push([cx2+r2*Math.cos(an)*1.1,-Hs*0.1-r2*Math.sin(an)]);}mk('path',{d:sp2(lobe)},g);}
+  var pa0=wp(0,z0),pa1=wp(1000,z0);clouds.push({g:g,x0:cp[0],y:cp[1],ax:pa0[0],ay:pa0[1],sx:(pa1[1]-pa0[1])/(pa1[0]-pa0[0]),sp:rr(0.85,1.15),rank:rr(0,1),nz:nz});}
  clouds.sort(function(a,b){return a.rank-b.rank;});
  var CK=[[0,'#353d55'],[4.8,'#353d55'],[5.8,'#c3a0a2'],[6.8,'#f3ece6'],[11,'#ffffff'],[16,'#f9f5ee'],[17.4,'#f0c5a6'],[18.4,'#9b8295'],[19.6,'#3b4359'],[24,'#353d55']];
  function keyCol(h){for(var j=0;j+1<CK.length;j++)if(h>=CK[j][0]&&h<=CK[j+1][0]){var k=(h-CK[j][0])/(CK[j+1][0]-CK[j][0]);return hmix(CK[j][1],CK[j+1][1],k*k*(3-2*k));}return CK[0][1];}
@@ -2544,9 +2583,9 @@ var VIEW=(function(){var panes=[].slice.call(svg.querySelectorAll('polygon[fill=
   var wind=(WX.wind||3);
   if(Math.abs(h-lastH)>0.01||WX!==lastWX){lastH=h;lastWX=WX;
    // clouds: how many are out, and their colour: lit by the hour, greyer and heavier as the weather closes in
-   var cc=hexOf(keyCol(h));if(grey)cc=hmix(cc,dark>0.5?'#2c323d':'#9aa0a6',0.65);else if(WX.kind==='cloudy')cc=hmix(cc,dark>0.5?'#323947':'#d7dadc',0.3);
-   cvis=WX.kind==='fog'?0:Math.round(cl(WX.cover/100,0,1)*clouds.length);clouds.forEach(function(c,i2){c.g.setAttribute('fill',cc);c.g.style.display=i2<cvis?'':'none';});
-   gCloud.setAttribute('opacity',(grey?0.95:0.92-0.3*dark).toFixed(2));
+   var cc=hexOf(keyCol(h));if(grey)cc=hmix(cc,dark>0.5?'#2c323d':'#9aa0a6',0.65);else if(WX.kind==='cloudy')cc=hmix(cc,dark>0.5?'#323947':'#d7dadc',0.3);cc=hexOf2(cc);
+   cvis=WX.kind==='fog'?0:Math.round(cl(WX.cover/100,0,1)*clouds.length);var skyL=hexOf2((SKY[2]||SKY[0]).getAttribute('stop-color')),skyM=hexOf2((SKY[1]||SKY[0]).getAttribute('stop-color'));clouds.forEach(function(c,i2){c.g.setAttribute('fill',hexOf2(hmix(cc,hexOf2(hmix(skyL,skyM,c.nz)),0.55-0.3*c.nz)));c.g.style.display=i2<cvis?'':'none';});
+   gCloud.setAttribute('opacity',(grey?0.9:0.85-0.3*dark).toFixed(2));
    // the sun where it is, if it is in the window and not behind a full sky of cloud
    var sp=skyPos(S.el,S.az);if(sp&&WX.cover<85&&!wet){var warm=1-sm(ph(S.el,0,12));sun.setAttribute('d',poly(disc(sp[0],sp[1],44,24)));sun.setAttribute('fill',hmix('#f2b27e','#fff3da',1-warm));sun.style.display='';}else sun.style.display='none';
    // the moon where it is, lit on the side toward the sun as much as its phase gives
@@ -2562,7 +2601,7 @@ var VIEW=(function(){var panes=[].slice.call(svg.querySelectorAll('polygon[fill=
    gStar.style.display=dark>0.4&&WX.cover<75&&!wet&&WX.kind!=='fog'?'':'none';}
   if(dark>0.4&&gStar.style.display!=='none'){var sv2=1-WX.cover/100;stars.forEach(function(s){s.e.setAttribute('opacity',((dark-0.4)/0.6*sv2*(0.45+0.25*Math.sin(t*s.sp+s.ph))).toFixed(2));});}
   // clouds drift ten times a second, faster in a wind
-  if(t-lastC>0.1){lastC=t;var cs=8+wind*5,sw=1.5+wind*1.6;TREES.forEach(function(T){var a1=Math.sin(t*0.9+T.ph)*sw+Math.sin(t*2.3+T.ph*2)*sw*0.3,o0=wp(T.v,T.z),o1=wp(T.v+a1,T.z);T.g.setAttribute('transform','translate('+(o1[0]-o0[0]).toFixed(2)+','+(o1[1]-o0[1]).toFixed(2)+')');});clouds.forEach(function(c,i2){if(i2>=cvis)return;var v=((c.v0-cs*c.sp*t)%3600+3600)%3600-300,d=v-c.v0,a=wp(0,0),b2=wp(d,0);c.g.setAttribute('transform','translate('+(b2[0]-a[0]).toFixed(2)+','+(b2[1]-a[1]).toFixed(2)+')');});}
+  if(t-lastC>0.1){lastC=t;var cs=8+wind*5,sw=1.5+wind*1.6;TREES.forEach(function(T){var a1=Math.sin(t*0.9+T.ph)*sw+Math.sin(t*2.3+T.ph*2)*sw*0.3,o0=wp(T.v,T.z),o1=wp(T.v+a1,T.z);T.g.setAttribute('transform','translate('+(o1[0]-o0[0]).toFixed(2)+','+(o1[1]-o0[1]).toFixed(2)+')');});clouds.forEach(function(c,i2){if(i2>=cvis)return;var span=X1-X0,sx=((c.x0-X0-cs*kz*c.sp*t)%span+span)%span+X0;var sy=c.ay+(sx-c.ax)*c.sx;c.g.setAttribute('transform','translate('+sx.toFixed(2)+','+sy.toFixed(2)+')');});}
   // rain falls in slanting streaks (more of them the harder it rains), snow drifts down in flakes
   var nd=WX.kind==='snow'?Math.min(46,14+WX.snow*14):WX.kind==='rain'||WX.kind==='storm'?Math.min(46,12+WX.rain*9):0;
   drops.forEach(function(q,i2){if(i2>=nd){if(q.on){q.e.setAttribute('opacity',0);q.on=false;}return;}q.on=true;
@@ -2607,7 +2646,7 @@ function draw(){var t=vt/1000;GEO={};drawDay();if(VIEW)VIEW(dayHour());plantOrde
   if(prop.mug==='desk')gp('deskAprops',{t:'cyl',b:MUG0,u:[0,0,1],r:41,h:96});
   if(prop.roll==='desk'&&prop.rollPose){var rq=prop.rollPose,ra=N(rq.ax);gp('deskBprops',{t:'cap',a:Sb(rq.c,M(ra,rq.len/2-rq.r)),b:A(rq.c,M(ra,rq.len/2-rq.r)),r:rq.r});}}
  var vis=!me.away&&me.op>0.01;[G,LOW,OVB].forEach(function(e){e.style.display=vis?'':'none';});
- if(!vis){placeChair(false);place(CHU,sortKeep(CHU,CHP));return;}
+ if(!vis){placeChair(false);place(CHU,sortKeep(CHU,CHP));drawShadows();return;}
  var op=me.op<0.999?me.op.toFixed(3):'1';[G,LOW,OVB].forEach(function(e){e.setAttribute('opacity',op);});
  var b=body(),f=b.f,r=b.r,bp=b.bp,k=b.k,br=2.5*Math.sin(t*1.75);
  // legs: a planted stance and a quick swing per foot; seated, the knees sit forward of the hips, a little together
@@ -2691,7 +2730,7 @@ function draw(){var t=vt/1000;GEO={};drawDay();if(VIEW)VIEW(dayHour());plantOrde
   var sb=cl(D(side,V3)/0.5,-1,1),fm=mix(e,h,0.6),lat=D(Sb(fm,bp(0,0,300)),side),bes=tg.beside?1:sm(ph(lat,110,175));
   pu.d=dep(mix(shp[s],e,0.5))+14*sb+160*sb*(tg.beside?1:sm(ph(D(Sb(e,bp(0,0,300)),side),110,175)));pf.d=dep(fm)+20*sb+160*sb*bes;});
  drawCarried(b);
- paintAll(b);}
+ paintAll(b);drawShadows();}
 // the head: bob hair, then a face cap on the sphere with cheeks, eyes and mouth, then blunt bangs and side locks that frame it
 function drawHead(hc3){var q=P.head;pb(q.p);var hc=W(hc3),R=112*S,yawH=me.yaw+me.hYaw,pitch=me.tilt+me.lean*0.7,deg=Math.PI/180;
  var f0=[Math.cos(yawH),Math.sin(yawH),0],hr=[f0[1],-f0[0],0],hf=A(M(f0,Math.cos(pitch)),[0,0,-Math.sin(pitch)]),hu=A([0,0,Math.cos(pitch)],M(f0,Math.sin(pitch)));
