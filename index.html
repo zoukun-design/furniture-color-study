@@ -2395,7 +2395,7 @@ function drawDay(force){if(!SUNB.parentNode&&PDB)DB.insertBefore(SUNB,PDB.g);var
     var c1='#'+rgb.map(function(x){return ('0'+x.toString(16)).slice(-2);}).join('');c0=hmix(c1,gc,gy);}SKY[j].setAttribute('stop-color',c0);}break;}
  // at night the panes turn to mirrors of the lit room: the sheen comes up as the sky goes dark
  var night=Math.max(1-sm(ph(h,4.8,6.8)),sm(ph(h,17.8,19.6)));
- var bias=140-100*night,o0=W([0,0,0]),o1=W([bias-140,0,0]);[SHA,SHB].forEach(function(g){if(g){g.setAttribute('transform','translate('+(o1[0]-o0[0]).toFixed(2)+','+(o1[1]-o0[1]).toFixed(2)+')');g.setAttribute('opacity',(1-0.25*night).toFixed(3));}});SHEEN.forEach(function(g){g.setAttribute('opacity',(0.7+0.3*night).toFixed(3));});
+ var bias=140-100*night,o0=W([0,0,0]),o1=W([bias-140,0,0]);[SHA,SHB].forEach(function(g){if(g){g.setAttribute('transform','translate('+(o1[0]-o0[0]).toFixed(2)+','+(o1[1]-o0[1]).toFixed(2)+')');g.setAttribute('opacity',(1-0.25*night).toFixed(3));}});SHEEN.forEach(function(g){g.setAttribute('opacity',(0.22+0.23*night).toFixed(3));});
  // sun: up at 6, down at 18.5; it comes in through the east windows from sunrise until about one o'clock
  // the real sun: the windows face east, so its bearing from east is the angle the light comes in at (south is +v, and
  // light from the south-east travels toward the north)
@@ -2450,6 +2450,17 @@ var VIEW=(function(){var panes=[].slice.call(svg.querySelectorAll('polygon[fill=
  function skyPos(el,az){var ar=az-90;if(el<-3||el>34||ar<-64||ar>64)return null;return [VC+ar*KV,Z0+el*KZ];}
  var gStar=mk('g',{},art),moon=mk('path',{},art),sun=mk('path',{},art),gTrail=mk('g',{fill:'none','stroke-linecap':'round'},art),gPlane=mk('g',{},art),gCloud=mk('g',{},art),
   gMeteor=mk('g',{fill:'none','stroke-linecap':'round'},art),gBird=mk('g',{fill:'none','stroke-linecap':'round','stroke-linejoin':'round'},art),gFall=mk('g',{'stroke-linecap':'round'},art),flash=mk('path',{fill:'#ffffff',opacity:0,d:poly([[0,800],[3400,800],[3400,2200],[0,2200]])},art);
+ // the tops of the trees below: a ginkgo and a zelkova that change with the year (green, yellow in late autumn,
+ // bare twigs in winter) and an evergreen camphor; they sway a little in the wind
+ var gTrees=mk('g',{},art),TREES=[];
+ [[520,930,250,'d',0.0],[1230,880,200,'e',1.3],[2080,950,270,'d',2.1],[2760,900,220,'e',0.7],[3200,920,230,'d',2.9]].forEach(function(q4){var g=mk('g',{},gTrees),n=7+Math.floor(rr(0,4)),lv=[],br=mk('path',{fill:'none','stroke-width':0.7,'stroke-linecap':'round'},g);
+  var bd='';if(q4[3]==='d'){for(var k5=0;k5<7;k5++){var a5=Math.PI*(0.2+0.6*k5/6),l5=q4[2]*rr(0.85,1.25);bd+=line([[q4[0],q4[1]-40],[q4[0]+Math.cos(a5)*l5*0.55,q4[1]+Math.sin(a5)*l5*0.55],[q4[0]+Math.cos(a5+rr(-0.25,0.25))*l5,q4[1]+Math.sin(a5)*l5]]);}}
+  br.setAttribute('d',bd);
+  for(var k6=0;k6<n;k6++){var aa=Math.PI*(0.08+0.84*k6/(n-1)),rd=q4[2]*rr(0.55,0.85);lv.push(mk('path',{d:poly(disc(q4[0]+Math.cos(aa)*rd*0.75,q4[1]+Math.sin(aa)*rd*0.8,q4[2]*rr(0.32,0.45),16))},g));}
+  lv.push(mk('path',{d:poly(disc(q4[0],q4[1]+q4[2]*0.35,q4[2]*0.6,18))},g));TREES.push({g:g,lv:lv,br:br,kind:q4[3],ph:q4[4],v:q4[0],z:q4[1]});});
+ // leaf colour through the year, by the day of the year (deciduous); null: bare
+ function leafCol(doy){var K=[[0,null],[80,null],[95,'#a9c77a'],[130,'#7fa65a'],[200,'#6b8f4c'],[280,'#7d9550'],[305,'#c7b04a'],[322,'#ddb63f'],[338,'#c89a3c'],[350,null],[366,null]];
+  for(var i=0;i+1<K.length;i++)if(doy>=K[i][0]&&doy<K[i+1][0]){if(!K[i][1]||!K[i+1][1])return K[i][1]&&doy-K[i][0]<6?K[i][1]:K[i+1][1]&&K[i+1][0]-doy<6?K[i+1][1]:null;var k=(doy-K[i][0])/(K[i+1][0]-K[i][0]);return hexOf(hmix(K[i][1],K[i+1][1],k));}return null;}
  var stars=[];for(var i=0;i<22;i++){var c=mk('circle',{r:rr(0.55,0.85),fill:'#e9ecf4'},gStar),w=wp(rr(400,2950),rr(1150,2060));c.setAttribute('cx',w[0].toFixed(1));c.setAttribute('cy',w[1].toFixed(1));stars.push({e:c,ph:rr(0,6.3),sp:rr(0.6,1.4)});}
  // clouds: long flat streaks, two or three laid one over another a little apart, one colour; as many as the sky has
  function streak(v0,v1,z,r){var o=[],i;for(i=0;i<=8;i++){var a=Math.PI/2+Math.PI*i/8;o.push([v0+r*Math.cos(a),z+r*Math.sin(a)]);}for(i=0;i<=8;i++){var a2=-Math.PI/2+Math.PI*i/8;o.push([v1+r*Math.cos(a2),z+r*Math.sin(a2)]);}return o;}
@@ -2479,10 +2490,15 @@ var VIEW=(function(){var panes=[].slice.call(svg.querySelectorAll('polygon[fill=
    if(mp&&kl>0.03&&WX.cover<85&&!wet){var R=34,sv=VC+(S.az-90)*KV,side=sv>mp[0]?1:-1,o3=[];for(var j=0;j<=16;j++){var a=-Math.PI/2+Math.PI*j/16;o3.push([mp[0]+side*R*Math.cos(a),mp[1]+R*Math.sin(a)]);}
     for(j=0;j<=16;j++){var a2=Math.PI/2-Math.PI*j/16;o3.push([mp[0]+side*R*Math.cos(a2)*(1-2*kl),mp[1]+R*Math.sin(a2)]);}
     moon.setAttribute('d',poly(o3));moon.setAttribute('fill','#efeadb');moon.setAttribute('opacity',(0.3+0.7*dark).toFixed(2));moon.style.display='';}else moon.style.display='none';
+   var jd=new Date(S.ms+9*3600e3),doy=Math.floor((jd-Date.UTC(jd.getUTCFullYear(),0,1))/864e5),dc=leafCol(doy),nightC=dark>0.5?0.78:0.55*dark;
+   TREES.forEach(function(T){var c=T.kind==='e'?'#506b46':dc;var lit=WX.kind==='clear'&&S.el>0?0.08:0;
+    if(c){c=hexOf(hmix(c,'#ffffff',lit));T.lv.forEach(function(e){e.setAttribute('fill',hexOf(hmix(c,'#1d2430',nightC)));e.style.display='';});T.g.setAttribute('opacity',1);T.br.style.display='none';}
+    // bare in winter: the mass of fine twigs reads as a pale brown-grey haze of a crown
+    else{T.lv.forEach(function(e){e.setAttribute('fill',hexOf(hmix('#8f8378','#1d2430',nightC)));e.style.display='';});T.g.setAttribute('opacity',0.5);T.br.style.display='none';}});
    gStar.style.display=dark>0.4&&WX.cover<75&&!wet&&WX.kind!=='fog'?'':'none';}
   if(dark>0.4&&gStar.style.display!=='none'){var sv2=1-WX.cover/100;stars.forEach(function(s){s.e.setAttribute('opacity',((dark-0.4)/0.6*sv2*(0.45+0.25*Math.sin(t*s.sp+s.ph))).toFixed(2));});}
   // clouds drift ten times a second, faster in a wind
-  if(t-lastC>0.1){lastC=t;var cs=8+wind*5;clouds.forEach(function(c,i2){if(i2>=cvis)return;var v=((c.v0-cs*c.sp*t)%3600+3600)%3600-300,d=v-c.v0,a=wp(0,0),b2=wp(d,0);c.g.setAttribute('transform','translate('+(b2[0]-a[0]).toFixed(2)+','+(b2[1]-a[1]).toFixed(2)+')');});}
+  if(t-lastC>0.1){lastC=t;var cs=8+wind*5,sw=1.5+wind*1.6;TREES.forEach(function(T){var a1=Math.sin(t*0.9+T.ph)*sw+Math.sin(t*2.3+T.ph*2)*sw*0.3,o0=wp(T.v,T.z),o1=wp(T.v+a1,T.z);T.g.setAttribute('transform','translate('+(o1[0]-o0[0]).toFixed(2)+','+(o1[1]-o0[1]).toFixed(2)+')');});clouds.forEach(function(c,i2){if(i2>=cvis)return;var v=((c.v0-cs*c.sp*t)%3600+3600)%3600-300,d=v-c.v0,a=wp(0,0),b2=wp(d,0);c.g.setAttribute('transform','translate('+(b2[0]-a[0]).toFixed(2)+','+(b2[1]-a[1]).toFixed(2)+')');});}
   // rain falls in slanting streaks (more of them the harder it rains), snow drifts down in flakes
   var nd=WX.kind==='snow'?Math.min(46,14+WX.snow*14):WX.kind==='rain'||WX.kind==='storm'?Math.min(46,12+WX.rain*9):0;
   drops.forEach(function(q,i2){if(i2>=nd){if(q.on){q.e.setAttribute('opacity',0);q.on=false;}return;}q.on=true;
@@ -2510,9 +2526,11 @@ var VIEW=(function(){var panes=[].slice.call(svg.querySelectorAll('polygon[fill=
   // a trail left behind thins and goes
   trails=trails.filter(function(q){var k=(t-q.t0)/18;if(k>=1){q.tr.e.remove();q.tr.e2.remove();return false;}q.tr.e.setAttribute('opacity',(0.7*(1-k)).toFixed(2));q.tr.e2.setAttribute('opacity',(0.25*(1-k)).toFixed(2));q.tr.e2.setAttribute('stroke-width',(2.4+3*k).toFixed(2));return true;});
   // shooting stars on a clear night: a thin line drawn across in under a second, fading from its tail
-  if(!meteor&&vt>nextMeteor&&dark>0.6&&WX.cover<60&&!wet){var mv0=rnd(500,2900),mz0=rnd(1550,2060),ang=rnd(-2.6,-0.5)*(Math.random()<0.5?1:-1);meteor={t0:t,v:mv0,z:mz0,dv:Math.cos(ang)*rnd(380,700),dz:-Math.abs(Math.sin(ang))*rnd(220,420),d:rnd(0.45,0.9),e:mk('path',{stroke:'#f3f5fb','stroke-width':0.8},gMeteor)};}
-  if(meteor){var mk2=(t-meteor.t0)/meteor.d;if(mk2>=1){meteor.e.remove();meteor=null;nextMeteor=vt+rnd(6000,20000);}
-   else{var hd=sm(cl(mk2/0.7,0,1)),tl=sm(cl((mk2-0.25)/0.75,0,1));meteor.e.setAttribute('d',line([[meteor.v+meteor.dv*tl,meteor.z+meteor.dz*tl],[meteor.v+meteor.dv*hd,meteor.z+meteor.dz*hd]]));meteor.e.setAttribute('opacity',(1-sm(cl((mk2-0.6)/0.4,0,1))).toFixed(2));}}};})();
+  if(!meteor&&vt>nextMeteor&&dark>0.6&&WX.cover<60&&!wet){var mv0=rnd(500,2900),mz0=rnd(1550,2060),ang=rnd(-2.6,-0.5)*(Math.random()<0.5?1:-1);meteor={t0:t,v:mv0,z:mz0,dv:Math.cos(ang)*rnd(600,1000),dz:-Math.abs(Math.sin(ang))*rnd(300,520),d:rnd(1.0,1.5),e:mk('path',{fill:'#f6f8ff',stroke:'none'},gMeteor),h:mk('circle',{r:1.5,fill:'#ffffff'},gMeteor)};}
+  if(meteor){var mk2=(t-meteor.t0)/meteor.d;if(mk2>=1){meteor.e.remove();meteor.h.remove();meteor=null;nextMeteor=vt+rnd(6000,20000);}
+   else{var hd=cl(mk2/0.75,0,1),hd2=1-(1-hd)*(1-hd),tl=sm(cl((mk2-0.2)/0.8,0,1)),hx2=meteor.v+meteor.dv*hd2,hz2=meteor.z+meteor.dz*hd2,tx=meteor.v+meteor.dv*tl,tz=meteor.z+meteor.dz*tl,ll=Math.hypot(hx2-tx,hz2-tz)||1,nx=-(hz2-tz)/ll*5,nz=(hx2-tx)/ll*5;
+    meteor.e.setAttribute('d',poly([[tx,tz],[hx2+nx,hz2+nz],[hx2-nx,hz2-nz]]));var op=(1-sm(cl((mk2-0.7)/0.3,0,1)));meteor.e.setAttribute('opacity',(0.85*op).toFixed(2));
+    var hw=wp(hx2,hz2);meteor.h.setAttribute('cx',hw[0].toFixed(1));meteor.h.setAttribute('cy',hw[1].toFixed(1));meteor.h.setAttribute('opacity',(op*(hd<1?1:0.4)).toFixed(2));}}};})();
 
 var PLANT=$i('plant'),plantFront=null;
 function plantOrder(){if(!PLANT)return;var fr=me.away||(me.F[0]+me.F[1])>2990;if(fr===plantFront)return;plantFront=fr;
