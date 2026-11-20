@@ -2375,7 +2375,7 @@ function wxKind(c,cov){return c>=95?'storm':(c>=71&&c<=77)||c===85||c===86?'snow
  if(force){var P={clear:[5,1],cloudy:[60,2],overcast:[100,3],rain:[100,63],snow:[100,73],storm:[100,95],fog:[100,45]}[force]||[25,1];WX={cover:P[0],code:P[1],rain:force==='rain'?2.5:force==='storm'?6:0,snow:force==='snow'?1.5:0,wind:force==='storm'?9:3,kind:force,ok:true};return;}
  if(window.__senManual)return;
  function get(){try{fetch('https://api.open-meteo.com/v1/forecast?latitude='+LAT+'&longitude='+LON+'&current=weather_code,cloud_cover,rain,showers,snowfall,wind_speed_10m&wind_speed_unit=ms&timezone=Asia%2FTokyo').then(function(r){return r.json();}).then(function(j){var c=j.current;if(!c)return;
-   var k=wxKind(c.weather_code,c.cloud_cover);WX={cover:c.cloud_cover,code:c.weather_code,rain:Math.max((c.rain||0)+(c.showers||0),k==='rain'||k==='storm'?0.5:0),snow:Math.max((c.snowfall||0)*10,k==='snow'?0.5:0),wind:c.wind_speed_10m||0,kind:k,ok:true};lastDay=-1;}).catch(function(){});}catch(e){}}
+   var k=wxKind(c.weather_code,c.cloud_cover);WXLIVE={cover:c.cloud_cover,code:c.weather_code,rain:Math.max((c.rain||0)+(c.showers||0),k==='rain'||k==='storm'?0.5:0),snow:Math.max((c.snowfall||0)*10,k==='snow'?0.5:0),wind:c.wind_speed_10m||0,kind:k,ok:true};if(!ENV.wx)WX=WXLIVE;lastDay=-1;if(typeof envShow==='function')envShow();}).catch(function(){});}catch(e){}}
  get();setInterval(get,15*60e3);})();
 function clipRoom(poly){var U=ROOM[0]-8,V=ROOM[1]-8,edges=[[0,1,8],[0,-1,-U],[1,1,8],[1,-1,-V]];
  edges.forEach(function(e){var out=[];for(var i=0;i<poly.length;i++){var a=poly[i],b=poly[(i+1)%poly.length],da=e[1]*a[e[0]]-e[2],db=e[1]*b[e[0]]-e[2];
@@ -2529,6 +2529,75 @@ function drawShadows(){if(!SHADOW)return;var S=SHADOW,ks=['floor','floorS','wall
  PLANTS.forEach(function(q){primPts(q).forEach(function(p){cast(p,'floor','floorS');if(wallOn)cast(p,'wall','wallS');});});
  ks.forEach(function(k){S[k][0].setAttribute('d',acc[k]);S[k][1].setAttribute('d',acc[k]);});}
 
+// ---------- the sky's state at the top left: weather, season, time of day, as icons; tap to pick other ones ----------
+var ENV={wx:null,season:null,time:null};   // null: as it really is now
+var WXLIVE=null;
+var ICON=(function(){
+ function cloud(dy,s){s=s||1;return 'M'+(7.2)+' '+(16+dy)+'h9.6a3.4 3.4 0 0 0 .4-6.78A5 5 0 0 0 7.5 10.4 2.85 2.85 0 0 0 7.2 '+(16+dy)+'z';}
+ function rays(cx,cy,r0,r1,n,a0){var d='';for(var i=0;i<n;i++){var a=(a0||0)+2*Math.PI*i/n;d+='M'+(cx+r0*Math.cos(a)).toFixed(2)+' '+(cy+r0*Math.sin(a)).toFixed(2)+'L'+(cx+r1*Math.cos(a)).toFixed(2)+' '+(cy+r1*Math.sin(a)).toFixed(2);}return d;}
+ function circ(cx,cy,r){return 'M'+(cx-r)+' '+cy+'a'+r+' '+r+' 0 1 0 '+(2*r)+' 0a'+r+' '+r+' 0 1 0 '+(-2*r)+' 0';}
+ function clock(h,m){var a=(h%12+m/60)/12*2*Math.PI-Math.PI/2,b=m/60*2*Math.PI-Math.PI/2;return circ(12,12,8.5)+'M12 12L'+(12+4.6*Math.cos(a)).toFixed(2)+' '+(12+4.6*Math.sin(a)).toFixed(2)+'M12 12L'+(12+6.6*Math.cos(b)).toFixed(2)+' '+(12+6.6*Math.sin(b)).toFixed(2);}
+ var petals='';for(var i=0;i<5;i++){var a=-Math.PI/2+2*Math.PI*i/5;petals+=circ(12+3.6*Math.cos(a),12+3.6*Math.sin(a),2.6);}
+ return {clock:clock,
+  live:circ(12,12,1.7)+'M8.6 8.6a4.8 4.8 0 0 0 0 6.8M15.4 8.6a4.8 4.8 0 0 1 0 6.8M5.8 5.8a8.8 8.8 0 0 0 0 12.4M18.2 5.8a8.8 8.8 0 0 1 0 12.4',
+  clear:circ(12,12,3.8)+rays(12,12,6.4,8.8,8),
+  cloudy:'M5.9 10.6a3.3 3.3 0 0 1 6-2.6M9 3.3v1.6M4.4 5.2l1.1 1.1M2.6 9.8h1.6M13.6 5.2l-1.1 1.1'+cloud(3),
+  overcast:cloud(0)+'M4.5 12.5a3 3 0 0 1 2.8-3.2',
+  rain:cloud(-3)+'M9 15.5l-1 2.5M12.5 15.5l-1 2.5M16 15.5l-1 2.5M10.5 19.5l-.6 1.5M14 19.5l-.6 1.5',
+  snow:cloud(-3)+circ(8.8,17,.55)+circ(12.3,16.6,.55)+circ(15.8,17,.55)+circ(10.5,20,.55)+circ(14,20,.55),
+  storm:cloud(-3)+'M12.8 14.5l-2.3 3.6h3l-2.3 3.6',
+  fog:'M4 8.5h16M6 12h12M4 15.5h16M8 19h8',
+  spring:petals+circ(12,12,.9),
+  summer:circ(12,7.5,3)+rays(12,7.5,4.8,6.3,6,-Math.PI/2)+'M3 15.5c1.5-1.3 3-1.3 4.5 0s3 1.3 4.5 0 3-1.3 4.5 0 3 1.3 4.5 0M3 19.5c1.5-1.3 3-1.3 4.5 0s3 1.3 4.5 0 3-1.3 4.5 0 3 1.3 4.5 0',
+  autumn:'M5 19C5 10.5 10.5 5 19 5c0 8.5-5.5 14-14 14zM5 19l3.5-3.5M8.5 15.5L15 9M10.5 13.5V10.2M12.8 11.2h3.2',
+  winter:'M12 3.5v17M4.6 7.75l14.8 8.5M4.6 16.25l14.8-8.5M9.8 4.9L12 7.1l2.2-2.2M9.8 19.1L12 16.9l2.2 2.2M4.9 10.5l3 .8-.8-3M19.1 13.5l-3-.8.8 3M4.9 13.5l3-.8-.8 3M19.1 10.5l-3 .8.8-3',
+  dawn:'M3 18h18M7 18a5 5 0 0 1 10 0M12 4.5v5M9.8 6.7L12 4.5l2.2 2.2',
+  dusk:'M3 18h18M7 18a5 5 0 0 1 10 0M12 4.5v5M9.8 7.3L12 9.5l2.2-2.2',
+  night:'M15.5 4.6a8 8 0 1 0 3.9 11.6A6.5 6.5 0 0 1 15.5 4.6z'+circ(18.5,6,.5)};})();
+function iconSvg(d,px){return '<svg width="'+px+'" height="'+px+'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="'+(px>26?1.2:1.3)+'" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="'+d+'"/></svg>';}
+var SEASONS={spring:'04-15',summer:'07-20',autumn:'11-10',winter:'01-20'};
+function jstNow(){return new Date(Date.now()+9*3600e3);}
+function seasonOf(ms){var m=new Date(ms+9*3600e3).getUTCMonth()+1;return m>=3&&m<=5?'spring':m>=6&&m<=8?'summer':m>=9&&m<=11?'autumn':'winter';}
+// the hour of sunrise or sunset on a day (Japan time), found by stepping the sun
+function sunCross(base,am){var best=am?6:17;for(var mi=(am?3:14)*60;mi<(am?10:21)*60;mi+=5){var ms=base+mi*60e3,s=sunAt(ms),a=altAz(s.ha,s.dec);if(am?a.el>0:a.el<0){best=mi/60;break;}}return best;}
+function envApply(){var run=window.__senManual?vt:(Date.now()-T_START),sp=T_FAST?120:1;
+ if(ENV.season===null&&ENV.time===null)T_FIX=null;
+ else{var n=jstNow(),y=n.getUTCFullYear(),ds=ENV.season?(SEASONS[ENV.season]):null;if(ENV.season==='winter'&&n.getUTCMonth()>=6)y++;
+  var base=ds?Date.parse(y+'-'+ds+'T00:00:00+09:00'):Date.UTC(n.getUTCFullYear(),n.getUTCMonth(),n.getUTCDate())-9*3600e3;
+  var hr=ENV.time===null?(n.getUTCHours()+n.getUTCMinutes()/60):ENV.time==='dawn'?sunCross(base,true)+0.2:ENV.time==='dusk'?sunCross(base,false)-0.15:{morning:9,noon:12,afternoon:15,night:21}[ENV.time];
+  T_FIX=base+hr*3600e3-run*sp;}
+ if(ENV.wx){var P={clear:[5,1],cloudy:[60,2],overcast:[100,3],rain:[100,63],snow:[100,73],storm:[100,95],fog:[100,45]}[ENV.wx];WX={cover:P[0],code:P[1],rain:ENV.wx==='rain'?2.5:ENV.wx==='storm'?6:0,snow:ENV.wx==='snow'?1.5:0,wind:ENV.wx==='storm'?9:3,kind:ENV.wx,ok:true};}
+ else if(WXLIVE)WX=WXLIVE;
+ lastDay=-1;drawDay(true);envShow();}
+var ENVUI=(function(){var st=$i('stage');if(!st)return null;
+ var css=document.createElement('style');css.textContent=
+  '.envb{position:absolute;top:3px;left:22px;z-index:3;display:flex;gap:0;appearance:none;border:0;background:none;padding:0;color:var(--ink);cursor:pointer}'+
+  '.envb span{flex:none;width:36px;height:40px;display:flex;flex-direction:column;align-items:center;justify-content:center;position:relative}'+
+  '.envb span.ov:after{content:"";position:absolute;bottom:3px;width:3px;height:3px;border-radius:50%;background:currentColor}'+
+  '.envp{position:absolute;top:46px;left:22px;z-index:6;background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:6px 8px;display:flex;flex-direction:column;gap:2px}'+
+  '.envp[hidden]{display:none}.envp .envr{display:flex;flex-direction:row;flex-wrap:nowrap;gap:2px;justify-content:center}.envp .envr+.envr{border-top:1px solid var(--line);padding-top:2px}'+
+  '.envp button{flex:none;margin:0;appearance:none;border:0;background:none;width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:var(--mute);cursor:pointer;padding:0}'+
+  '.envp button.on{color:var(--ink);box-shadow:inset 0 0 0 1px var(--ink)}';
+ document.head.appendChild(css);
+ var btn=document.createElement('button');btn.type='button';btn.className='envb';btn.setAttribute('aria-label','Weather, season and time of day');btn.innerHTML='<span id="envW"></span><span id="envS"></span><span id="envT"></span>';st.appendChild(btn);
+ var pan=document.createElement('div');pan.className='envp';pan.hidden=true;st.appendChild(pan);
+ var ROWS=[['wx',['clear','cloudy','overcast','rain','snow','storm','fog']],['season',['spring','summer','autumn','winter']],['time',['dawn','morning','noon','afternoon','dusk','night']]];
+ var TIP={live:'Now',clear:'Clear',cloudy:'Partly cloudy',overcast:'Overcast',rain:'Rain',snow:'Snow',storm:'Thunderstorm',fog:'Fog',spring:'Spring',summer:'Summer',autumn:'Autumn',winter:'Winter',dawn:'Sunrise',morning:'Morning',noon:'Noon',afternoon:'Afternoon',dusk:'Sunset',night:'Night'};
+ ROWS.forEach(function(r){var row=document.createElement('div');row.className='envr';[null].concat(r[1]).forEach(function(v){var b=document.createElement('button');b.type='button';b.dataset.k=r[0];b.dataset.v=v===null?'':v;b.setAttribute('aria-label',TIP[v||'live']);b.title=TIP[v||'live'];
+   var d=v===null?ICON.live:v==='morning'?ICON.clock(9,0):v==='noon'?ICON.clock(12,0):v==='afternoon'?ICON.clock(3,0):ICON[v];b.innerHTML=iconSvg(d,24);
+   b.onclick=function(e){e.stopPropagation();ENV[r[0]]=v;envApply();};row.appendChild(b);});pan.appendChild(row);});
+ btn.onclick=function(e){e.stopPropagation();pan.hidden=!pan.hidden;envShow();};
+ document.addEventListener('click',function(e){if(!pan.hidden&&!pan.contains(e.target))pan.hidden=true;});
+ return {btn:btn,pan:pan};})();
+var envLast='';
+function envShow(){if(!ENVUI)return;var ms=nowMs(),d=new Date(ms+9*3600e3),hh=d.getUTCHours(),mm=d.getUTCMinutes(),k=WX.kind+'|'+seasonOf(ms)+'|'+hh+':'+mm+'|'+ENV.wx+ENV.season+ENV.time;
+ if(k!==envLast){envLast=k;var w=$i('envW'),s=$i('envS'),t=$i('envT');w.innerHTML=iconSvg(ICON[WX.kind]||ICON.clear,29);s.innerHTML=iconSvg(ICON[seasonOf(ms)],29);t.innerHTML=iconSvg(ICON.clock(hh,mm),29);
+  w.className=ENV.wx?'ov':'';s.className=ENV.season?'ov':'';t.className=ENV.time?'ov':'';
+  ENVUI.btn.setAttribute('aria-label','Weather: '+WX.kind+', season: '+seasonOf(ms)+', time '+hh+':'+('0'+mm).slice(-2));}
+ [].forEach.call(ENVUI.pan.querySelectorAll('button'),function(b){var v=b.dataset.v||null;b.classList.toggle('on',ENV[b.dataset.k]===v);});}
+setInterval(envShow,5000);
+
+(function(){var w=QP.get('weather');if(w&&ICON[w])ENV.wx=w;envShow();})();
 var VIEW=(function(){var panes=[].slice.call(svg.querySelectorAll('polygon[fill="url(#skyG)"]'));if(!panes.length)return null;
  // ---------- the view out of the window: only the sky (in fact another building of the university stands across the way) ----------
  // painted on the plane of the glass and shown through each pane, under the glass's sheen. The sun and the moon are
