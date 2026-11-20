@@ -2593,7 +2593,7 @@ var ENVUI=(function(){var st=$i('stage');if(!st)return null;
  btn.innerHTML='<span class="lv" id="envLv"><i></i>LIVE</span><span id="envS"></span><span class="tx" id="envT"></span><span id="envW"></span><span class="tp" id="envC"></span><span class="cv">'+iconSvg('chev',12)+'</span>';st.appendChild(btn);
  var pan=document.createElement('div');pan.className='envp';st.appendChild(pan);
  // LIVE
- var lv=document.createElement('div');lv.className='envlv';lv.innerHTML='<div><b><i></i>LIVE</b><small>Yokohama, as it is now</small></div><button type="button" class="envsw" role="switch" aria-label="Live"></button>';pan.appendChild(lv);
+ var lv=document.createElement('div');lv.className='envlv';lv.innerHTML='<div><b><i></i>LIVE</b><small>Yokohama &middot; Now</small></div><button type="button" class="envsw" role="switch" aria-label="Live"></button>';pan.appendChild(lv);
  var sw=lv.lastChild;lv.onclick=function(e){e.stopPropagation();if(envLive())envFreeze();else{ENV.wx=null;ENV.season=null;ENV.time=null;}envApply();};
  function sec(lab,inner,right){var s=document.createElement('div');s.className='envs';s.innerHTML='<div class="envh"><span>'+lab+'</span>'+(right||'')+'</div>';s.appendChild(inner);pan.appendChild(s);return s;}
  function opts(k,list){var o=document.createElement('div');o.className='envo';o.style.gridTemplateColumns='repeat('+list.length+',1fr)';
