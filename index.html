@@ -2631,9 +2631,11 @@ var ENVUI=(function(){var st=$i('stage');if(!st)return null;
  // their own, which nothing in them can rise above). Closed with the round button under the card, or a tap on the blur
  var pan=document.createElement('div');pan.className='envp';document.body.appendChild(pan);
  var bg=document.createElement('div');bg.className='envbg';document.body.insertBefore(bg,pan);
- function place(){var r=btn.getBoundingClientRect(),s=st.getBoundingClientRect();pan.style.top=Math.round(r.bottom+8)+'px';pan.style.left=Math.round(s.left+22)+'px';pan.style.width=Math.round(Math.min(350,s.width-44))+'px';}
+ // in the middle of what can be seen of the screen (the browser's own bars left out), the close button included
+ function place(){var vv=window.visualViewport,vw=vv?vv.width:innerWidth,vh=vv?vv.height:innerHeight,ox=vv?vv.offsetLeft:0,oy=vv?vv.offsetTop:0,w=Math.round(Math.min(350,vw-44));
+  pan.style.width=w+'px';pan.style.left=Math.round(ox+(vw-w)/2)+'px';var h=pan.offsetHeight+62;pan.style.top=Math.round(oy+Math.max(12,(vh-h)/2))+'px';}
  function setOpen(o){if(o)place();pan.classList.toggle('open',o);btn.classList.toggle('open',o);bg.classList.toggle('open',o);if(o){envTrack();envLast='';envShow();}}
- window.addEventListener('resize',function(){if(pan.classList.contains('open'))place();});
+ function rep(){if(pan.classList.contains('open'))place();}window.addEventListener('resize',rep);if(window.visualViewport){visualViewport.addEventListener('resize',rep);visualViewport.addEventListener('scroll',rep);}
  document.addEventListener('keydown',function(e){if(e.key==='Escape'&&pan.classList.contains('open'))setOpen(false);});
  // LIVE
  var lv=document.createElement('div');lv.className='envlv';lv.innerHTML='<div><b><i></i><span class="lt">LIVE</span></b><small>Yokohama &middot; Now</small></div><button type="button" class="envsw" role="switch" aria-label="Live"></button>';pan.appendChild(lv);
