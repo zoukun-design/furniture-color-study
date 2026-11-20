@@ -2564,7 +2564,9 @@ function envFreeze(){var d=new Date(nowMs()+9*3600e3);if(ENV.time===null)ENV.tim
 function envBase(){var n=jstNow(),y=n.getUTCFullYear(),ds=ENV.season?SEASONS[ENV.season]:null;if(ENV.season==='winter'&&n.getUTCMonth()>=6)y++;
  return ds?Date.parse(y+'-'+ds+'T00:00:00+09:00'):Date.UTC(n.getUTCFullYear(),n.getUTCMonth(),n.getUTCDate())-9*3600e3;}
 function envEl(ms){var s=sunAt(ms);return altAz(s.ha,s.dec).el;}
-var ARC={W:318,H:84,hz:54,top:10,x:function(h){return 10+h/24*(this.W-20);},y:function(el){return el>=0?this.hz-el/90*(this.hz-this.top):this.hz+(-el)/90*(this.H-this.hz-6);}};
+// the day's highest sun always at the top and its lowest at the bottom, one scale for every day: the horizon is
+// what moves (low in summer, high in winter), so the graph keeps the same place under its title
+var ARC={W:318,H:74,top:8,bot:8,pk:60,k:0.5,hz:40,x:function(h){return 10+h/24*(this.W-20);},y:function(el){return this.top+(this.pk-el)*this.k;}};
 var ENVUI=(function(){var st=$i('stage');if(!st)return null;
  var css=document.createElement('style');css.textContent=
   '.envb{position:absolute;top:8px;left:22px;z-index:3;display:flex;align-items:center;gap:8px;height:34px;padding:0 12px;border:0;border-radius:17px;background:#f3f2ef;color:var(--ink);font-family:Barlow,sans-serif;cursor:pointer;-webkit-tap-highlight-color:transparent;white-space:nowrap}'+
@@ -2584,7 +2586,7 @@ var ENVUI=(function(){var st=$i('stage');if(!st)return null;
   '.envo button{appearance:none;border:0;background:none;padding:0;margin:0;display:flex;flex-direction:column;align-items:center;gap:5px;cursor:pointer;color:#8a877f;-webkit-tap-highlight-color:transparent}'+
   '.envo .ic{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;transition:background .22s ease,color .22s ease}.envo .ic svg{display:block}'+
   '.envo .cp{font-size:10px;letter-spacing:.04em;line-height:1;transition:color .22s ease}'+
-  '.envo button.on{color:var(--ink)}.envo button.on .ic{background:var(--ink);color:#fff}.envo button.on .cp{font-weight:600}'+
+  '.envo button.on{color:var(--ink)}.envo button.on .ic{background:var(--ink);color:#fff}.envo .ic svg{transition:stroke-width .22s ease}.envo button.on .ic svg{stroke-width:1.45}.envo button.on .cp{font-weight:600}'+
   '.envarc{display:block;width:100%;height:auto;touch-action:none;cursor:ew-resize;overflow:visible}.envarc text{transition:opacity .22s ease;font-family:Barlow,sans-serif;font-size:10px;fill:#8a877f;font-variant-numeric:tabular-nums}';
  document.head.appendChild(css);
  var btn=document.createElement('button');btn.type='button';btn.className='envb';
@@ -2600,8 +2602,8 @@ var ENVUI=(function(){var st=$i('stage');if(!st)return null;
  sec('SEASON',opts('season',['spring','summer','autumn','winter']));
  // the sun's path: above the horizon a solid line, below it a dotted one; sunrise and sunset written where it crosses
  var NS='http://www.w3.org/2000/svg',arc=document.createElementNS(NS,'svg');arc.setAttribute('class','envarc');arc.setAttribute('viewBox','0 0 '+ARC.W+' '+ARC.H);arc.setAttribute('aria-label','Time of day: drag the sun');
- arc.innerHTML='<defs><clipPath id="envUp"><rect x="0" y="-20" width="'+ARC.W+'" height="'+(ARC.hz+20)+'"/></clipPath><clipPath id="envDn"><rect x="0" y="'+ARC.hz+'" width="'+ARC.W+'" height="'+(ARC.H-ARC.hz+20)+'"/></clipPath></defs>'+
-  '<line x1="0" x2="'+ARC.W+'" y1="'+ARC.hz+'" y2="'+ARC.hz+'" stroke="#dcd9d2" stroke-width="1"/><g id="envTk" stroke="#dcd9d2" stroke-width="1"></g>'+
+ arc.innerHTML='<defs><clipPath id="envUp"><rect id="envUpR" x="0" y="-20" width="'+ARC.W+'" height="60"/></clipPath><clipPath id="envDn"><rect id="envDnR" x="0" y="40" width="'+ARC.W+'" height="60"/></clipPath></defs>'+
+  '<line id="envHz" x1="0" x2="'+ARC.W+'" y1="40" y2="40" stroke="#dcd9d2" stroke-width="1"/><g id="envTk" stroke="#dcd9d2" stroke-width="1"></g>'+
   '<path id="envPd" fill="none" stroke="#c4c0b7" stroke-width="1" stroke-dasharray="1.5 3" stroke-linecap="round" clip-path="url(#envDn)"/><path id="envPu" fill="none" stroke="#141414" stroke-width="1" clip-path="url(#envUp)"/>'+
   '<text id="envSr" text-anchor="end"></text><text id="envSs"></text><rect id="envNw" width="7" height="7" fill="#e0301e"/>'+
   '<circle id="envSun" r="8" stroke="#141414" stroke-width="1"/>';
@@ -2620,8 +2622,11 @@ var ENVUI=(function(){var st=$i('stage');if(!st)return null;
  return {btn:btn,pan:pan,sw:sw,arc:arc};})();
 var envTrackKey='';
 function hm(h){var m=Math.round(h*60);return Math.floor(m/60)+':'+('0'+m%60).slice(-2);}
-function envTrack(){if(!ENVUI)return;var base=envBase();if(base===envTrackKey)return;envTrackKey=base;var d='',sr=null,ss=null,prev=null;
- for(var i=0;i<=144;i++){var h=i/6,el=envEl(base+h*3600e3);d+=(i?'L':'M')+ARC.x(h).toFixed(1)+' '+ARC.y(el).toFixed(1);
+function envTrack(){if(!ENVUI)return;var base=envBase();if(base===envTrackKey)return;envTrackKey=base;var d='',sr=null,ss=null,prev=null,E=[];
+ for(var i=0;i<=144;i++)E.push(envEl(base+i/6*3600e3));
+ ARC.pk=Math.max.apply(null,E);ARC.k=(ARC.H-ARC.top-ARC.bot)/(ARC.pk-Math.min.apply(null,E));ARC.hz=+ARC.y(0).toFixed(1);
+ $i('envUpR').setAttribute('height',ARC.hz+20);$i('envDnR').setAttribute('y',ARC.hz);$i('envHz').setAttribute('y1',ARC.hz);$i('envHz').setAttribute('y2',ARC.hz);
+ for(var i=0;i<=144;i++){var h=i/6,el=E[i];d+=(i?'L':'M')+ARC.x(h).toFixed(1)+' '+ARC.y(el).toFixed(1);
   if(prev!==null){if(prev<=0&&el>0&&sr===null)sr=(i-1+(-prev)/(el-prev))/6;if(prev>0&&el<=0&&ss===null)ss=(i-1+prev/(prev-el))/6;}prev=el;}
  $i('envPu').setAttribute('d',d);$i('envPd').setAttribute('d',d);
  var tk='';[0,6,12,18,24].forEach(function(h){var x=ARC.x(h).toFixed(1);tk+='<line x1="'+x+'" x2="'+x+'" y1="'+ARC.hz+'" y2="'+(ARC.hz+4)+'"/>';});$i('envTk').innerHTML=tk;
