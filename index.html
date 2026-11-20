@@ -1825,7 +1825,8 @@ function $i(id){return document.getElementById(id);}
 (function(){var o=SVGElement.prototype.setAttribute;if(o.__same)return;var f=function(k,v){v=String(v);if(this.getAttribute(k)===v)return;o.call(this,k,v);};f.__same=1;SVGElement.prototype.setAttribute=f;})();
 var svg=G.ownerSVGElement,LOW=$i('senLow'),DA=$i('laptop'),CHR=$i('chair'),CHS=$i('chairShadow'),CHST=$i('chairStatic'),CHU=$i('chairUp'),DB=$i('deskBProps'),OVB=$i('senOverB');
 // the topmost slot is a group of its own at the end of the scene, so the room's light layers can lie over it
-var SLOT={top:mk('g',{id:'senTop'},svg),front:$i('slotFront'),b:$i('slotB')};SLOT.top.appendChild(LOW);SLOT.top.appendChild(G);
+// (made here by hand: mk's namespace is not set yet at this point, and a g without the svg namespace is never drawn)
+var SLOT={top:(function(){var g=document.createElementNS('http://www.w3.org/2000/svg','g');g.id='senTop';svg.appendChild(g);return g;})(),front:$i('slotFront'),b:$i('slotB')};SLOT.top.appendChild(LOW);SLOT.top.appendChild(G);
 if(!LOW||!DA||!CHR||!CHST||!CHU||!DB||!OVB||!SLOT.front||!SLOT.b)return;
 if(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches){G.remove();LOW.remove();return;}
 CHST.style.display='none';
