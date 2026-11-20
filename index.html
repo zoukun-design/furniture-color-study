@@ -2491,7 +2491,9 @@ var SHADOW=(function(){function m(id){var mm=mk('mask',{id:id,maskUnits:'userSpa
  function pair(cut,shadeAfter,soft){var a=mk('path',{fill:'#000'},cut),b=mk('path',{fill:'#fff'});if(soft){a.setAttribute('fill-opacity',0.5);b.setAttribute('fill-opacity',0.5);}
   if(shadeAfter)shadeAfter.parentNode.insertBefore(b,shadeAfter.nextSibling);return [a,b];}
  var lm=LIGHT?LIGHT.pSh.g:null;
- return {floor:pair(SMK,lm),floorS:pair(SMK,lm),wall:pair(mW,lm),wallS:pair(mW,lm),A:pair(mA,LIGHT?LIGHT.pA.g:null),B:pair(mB,LIGHT?LIGHT.pB.g:null)};})();
+ return {floor:pair(SMK,lm),floorS:pair(SMK,lm),wall:pair(mW,lm),wallS:pair(mW,lm),A:pair(mA,LIGHT?LIGHT.pA.g:null),B:pair(mB,LIGHT?LIGHT.pB.g:null),
+  // hers apart, so that they fade with her as she comes in and goes out
+  floorH:pair(SMK,lm),wallH:pair(mW,lm),AH:pair(mA,LIGHT?LIGHT.pA.g:null),BH:pair(mB,LIGHT?LIGHT.pB.g:null)};})();
 (function(){if(!SHADOW)return;['floorS','wallS'].forEach(function(k){SHADOW[k].forEach(function(e){e.setAttribute('fill-opacity',0.45);});});})();
 // the points of a solid that bound its shadow: one set per convex piece
 var BALL=[[1,0,0],[-1,0,0],[0,1,0],[0,-1,0],[0,0,1],[0,0,-1],[.577,.577,.577],[.577,-.577,.577],[-.577,.577,.577],[-.577,-.577,.577],[.577,.577,-.577],[.577,-.577,-.577],[-.577,.577,-.577],[-.577,-.577,-.577],[.707,.707,0],[.707,-.707,0],[-.707,.707,0],[-.707,-.707,0]];
@@ -2512,9 +2514,11 @@ var STILL=(function(){var o=[];[DESKA[0]+280,DESKA[1]-280].forEach(function(ul){
  o.push(bx(190,190,0,2890,380,380));   // the concrete column in the corner
  return o;})();
 var PLANTS=[{t:'cyl',b:[330,2660,0],u:[0,0,1],r:150,h:420},{t:'sph',c:[330,2660,1050],r:250},{t:'sph',c:[280,2590,1380],r:210},{t:'sph',c:[400,2740,760],r:220}];
-function drawShadows(){if(!SHADOW)return;var S=SHADOW,ks=['floor','floorS','wall','wallS','A','B'];
+// what is not hers: the desks, what lies on them, the chair
+function notHers(k){return k==='deskA'||k==='deskB'||k==='deskAprops'||k==='deskBprops'||/^c[A-Z]/.test(k)||(k==='lap'&&prop.lap==='desk')||(k==='mug'&&prop.mug==='desk')||((k==='roll'||k==='rollB')&&prop.roll==='desk')||(k==='stack'&&prop.stackPos==='desk');}
+function drawShadows(){if(!SHADOW)return;var S=SHADOW,ks=['floor','floorS','wall','wallS','A','B','floorH','wallH','AH','BH'];
  if(!SUNV.on||!GEO){ks.forEach(function(k){S[k][0].setAttribute('d','');S[k][1].setAttribute('d','');});return;}
- var du=SUNV.du,dv=SUNV.dv,acc={floor:'',floorS:'',wall:'',wallS:'',A:'',B:''};
+ var du=SUNV.du,dv=SUNV.dv,acc={floor:'',floorS:'',wall:'',wallS:'',A:'',B:'',floorH:'',wallH:'',AH:'',BH:''};
  function proj(pts,rec){if(rec==='floor')return pts.map(function(P){return [P[0]+P[2]*du,P[1]+P[2]*dv];});
   if(rec==='A'||rec==='B')return pts.map(function(P){var s=Math.max(0,P[2]-TOPZ);return [P[0]+s*du,P[1]+s*dv];});
   return pts.map(function(P){var s=Math.max(0,P[1]/-dv);return [P[0]+s*du,P[2]-s];});}
@@ -2522,12 +2526,13 @@ function drawShadows(){if(!SHADOW)return;var S=SHADOW,ks=['floor','floorS','wall
  function cast(pts,rec,key){var h=hull(proj(pts,rec));if(h.length<3)return;var c=rec==='floor'?clipRoom(h):rec==='wall'?clipRect(h,[0,ROOM[0],0,2900]):clipRect(h,rec==='A'?DESKA:DESKB);
   if(c.length<3)return;acc[key]+='M'+c.map(function(x){var w=scr(rec,x);return w[0].toFixed(1)+','+w[1].toFixed(1);}).join('L')+'Z';}
  var wallOn=dv<-0.02,list=[];
- for(var k in GEO){var isDesk=k==='deskA'||k==='deskB';GEO[k].forEach(function(q){primPts(q).forEach(function(p){list.push({p:p,top:!isDesk});});});}
+ for(var k in GEO){var isDesk=k==='deskA'||k==='deskB',h=notHers(k)?'':'H';GEO[k].forEach(function(q){primPts(q).forEach(function(p){list.push({p:p,top:!isDesk,h:h});});});}
  STILL.forEach(function(q){primPts(q).forEach(function(p){list.push({p:p,top:false});});});
  list.push({p:primPts({t:'cap',a:cw(0,0,60),b:cw(0,0,420),r:28})[0],top:true});
- list.forEach(function(it){cast(it.p,'floor','floor');if(wallOn)cast(it.p,'wall','wall');if(it.top){var zt=0;it.p.forEach(function(P){zt=Math.max(zt,P[2]);});if(zt>TOPZ+2){cast(it.p,'A','A');cast(it.p,'B','B');}}});
+ list.forEach(function(it){var h=it.h||'';cast(it.p,'floor','floor'+h);if(wallOn)cast(it.p,'wall','wall'+h);if(it.top){var zt=0;it.p.forEach(function(P){zt=Math.max(zt,P[2]);});if(zt>TOPZ+2){cast(it.p,'A','A'+h);cast(it.p,'B','B'+h);}}});
  PLANTS.forEach(function(q){primPts(q).forEach(function(p){cast(p,'floor','floorS');if(wallOn)cast(p,'wall','wallS');});});
- ks.forEach(function(k){S[k][0].setAttribute('d',acc[k]);S[k][1].setAttribute('d',acc[k]);});}
+ ks.forEach(function(k){S[k][0].setAttribute('d',acc[k]);S[k][1].setAttribute('d',acc[k]);});
+ var fo=me.away?'0':me.op<0.999?me.op.toFixed(3):'1';['floorH','wallH','AH','BH'].forEach(function(k){S[k][0].setAttribute('fill-opacity',fo);S[k][1].setAttribute('fill-opacity',fo);});}
 
 // ---------- the sky's state at the top left: weather, season, time of day, as icons; tap to pick other ones ----------
 var ENV={wx:null,season:null,time:null};   // null: as it really is now
@@ -2571,7 +2576,7 @@ var ENVUI=(function(){var st=$i('stage');if(!st)return null;
  var css=document.createElement('style');css.textContent=
   '.envb{position:absolute;top:8px;left:22px;z-index:3;display:flex;align-items:center;gap:8px;height:34px;padding:0 12px;border:0;border-radius:17px;background:#f3f2ef;color:var(--ink);font-family:Barlow,sans-serif;cursor:pointer;-webkit-tap-highlight-color:transparent;white-space:nowrap}'+
   '.envb svg{display:block;flex:none}.envb .tx{font-size:14px;font-weight:500;font-variant-numeric:tabular-nums;letter-spacing:.01em}.envb .tp{font-size:14px;color:#6f6c64;font-variant-numeric:tabular-nums}'+
-  '.envb .lv{display:flex;align-items:center;gap:6px;font-size:11px;font-weight:700;letter-spacing:.1em;margin-right:2px}.envb .lv i{width:8px;height:8px;background:#e0301e;display:block;flex:none;margin-top:-1px}.envlv b i{width:9px;height:9px;background:#e0301e;display:block;flex:none;margin-top:-1px}'+
+  '.envb .lv{display:flex;align-items:center;gap:6px;font-size:11px;font-weight:700;letter-spacing:.1em;margin-right:2px}.envb .lv i{width:8px;height:8px;background:#e0301e;display:block;flex:none;top:-1px}.envlv b i{width:9px;height:9px;background:#e0301e;display:block;flex:none;margin-top:-1px}'+
   '@keyframes envRing{0%{transform:scale(1);opacity:.5}100%{transform:scale(2.3);opacity:0}}.envb .lv i,.envlv b i{position:relative}.envb .lv i:after,.envlv.on b i:after{content:"";position:absolute;left:0;top:0;width:100%;height:100%;background:#e0301e;animation:envRing 2s cubic-bezier(.2,.6,.35,1) infinite}.envlv b i{transition:background .22s ease}.envlv:not(.on) b i{background:#cfcbc3}@media (prefers-reduced-motion:reduce){.envb .lv i:after,.envlv.on b i:after{animation:none;opacity:0}}'+
   '.envb .cv{color:#a29f97;transition:transform .22s ease;margin-left:-2px}.envb.open .cv{transform:rotate(180deg)}.envb [hidden]{display:none}'+
   '.envp{position:absolute;top:50px;left:22px;right:22px;z-index:6;max-width:350px;box-sizing:border-box;background:var(--bg);border:1px solid var(--line);border-radius:18px;padding:0 16px 10px;font-family:Barlow,sans-serif;opacity:0;transform:translateY(-4px);transition:opacity .22s ease,transform .22s ease;pointer-events:none}'+
@@ -2617,7 +2622,12 @@ var ENVUI=(function(){var st=$i('stage');if(!st)return null;
  arc.addEventListener('click',function(e){e.stopPropagation();});
  sec('WEATHER',opts('wx',['clear','cloudy','overcast','rain','snow','storm','fog']));
  btn.onclick=function(e){e.stopPropagation();var o=pan.classList.toggle('open');btn.classList.toggle('open',o);envTrack();envLast='';envShow();};
- document.addEventListener('click',function(e){if(pan.classList.contains('open')&&!pan.contains(e.target)){pan.classList.remove('open');btn.classList.remove('open');}});
+ // while the card is open, a tap outside it only closes it: the tap never reaches what lies under it (a colour
+ // swatch, a photo), from the press to the click
+ var eat=false;function out(e){return pan.classList.contains('open')&&!pan.contains(e.target)&&!btn.contains(e.target);}
+ ['pointerdown','mousedown','touchstart'].forEach(function(t){window.addEventListener(t,function(e){if(out(e)){eat=true;e.stopPropagation();}},{capture:true,passive:true});});
+ ['pointerup','mouseup','touchend'].forEach(function(t){window.addEventListener(t,function(e){if(eat&&!pan.contains(e.target)&&!btn.contains(e.target))e.stopPropagation();},{capture:true,passive:true});});
+ window.addEventListener('click',function(e){if(out(e)||(eat&&!pan.contains(e.target)&&!btn.contains(e.target))){e.stopPropagation();e.preventDefault();pan.classList.remove('open');btn.classList.remove('open');}eat=false;},true);
  pan.addEventListener('click',function(e){e.stopPropagation();});
  return {btn:btn,pan:pan,sw:sw,arc:arc};})();
 var envTrackKey='';
