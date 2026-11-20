@@ -2329,7 +2329,7 @@ function H(p,o){o=o||{};o.p=p;return o;}
 // ---------- drawing one frame ----------
 // ---------- a day going by outside: the app opens in the morning; one day takes 12 minutes ----------
 // the sky behind the glass moves through dawn, a soft day blue, sunset and night; the sun comes in low and warm in the
-// morning (the windows face east), its patches on the floor shortening and sliding as it climbs and leaving by early afternoon
+// morning (the windows face east-south-east), its patches on the floor shortening and sliding as it climbs and leaving by early afternoon
 var SUNG=$i('sunG'),SKY=svg.querySelectorAll('#skyG stop'),PANES=JSON.parse(SUNG.getAttribute('data-panes')),ROOM=JSON.parse(SUNG.getAttribute('data-room'));
 var SKYK=[[0,['#1e2737','#29354b','#3d4a60']],[4.8,['#1e2737','#29354b','#3d4a60']],[5.8,['#5c6884','#a99aa3','#e3bfa6']],[6.8,['#a3b3c3','#cbd0d5','#ede4d6']],
  [8.5,['#aebdca','#cdd7de','#ecefec']],[12,['#a5b8c9','#c7d3dc','#e7ecee']],[14.5,['#aabbca','#cad4db','#eaeceb']],[16,['#b0bcc7','#d0d6d9','#eee9e0']],[17.6,['#9a9fb8','#d0b4a8','#efcfae']],
@@ -2342,7 +2342,9 @@ function hmix(a,b,k){var x=hx(a),y=hx(b);return 'rgb('+x.map(function(v,i){retur
 // reported for the city right now. URL options to look at other times: ?at=18:30 (start at that time today and run on),
 // ?date=2026-06-21, ?fast (a whole day in 12 minutes), ?weather=clear|cloudy|overcast|rain|snow|storm|fog
 var QP=(function(){try{return new URLSearchParams(window.__QP||location.search);}catch(e){return {get:function(){return null;}};}})();
-var LAT=35.4437,LON=139.638,RAD=Math.PI/180,T_START=Date.now(),T_OFF=0,T_FAST=QP.get('fast')!==null,T_FIX=null;
+// the room: Kanagawa University, Yokohama campus, building 8; its windows look out east-south-east (the face along
+// the lane to building 1 runs about 13° east of north, so the window faces a bearing of about 103°)
+var WFACE=103,LAT=35.4437,LON=139.638,RAD=Math.PI/180,T_START=Date.now(),T_OFF=0,T_FAST=QP.get('fast')!==null,T_FIX=null;
 (function(){var at=QP.get('at'),dt0=QP.get('date'),now=new Date(Date.now()+9*3600e3),y=now.getUTCFullYear(),mo=now.getUTCMonth(),d=now.getUTCDate(),hh=now.getUTCHours(),mi=now.getUTCMinutes(),ss=now.getUTCSeconds();
  if(dt0&&/^\d{4}-\d{2}-\d{2}$/.test(dt0)){y=+dt0.slice(0,4);mo=+dt0.slice(5,7)-1;d=+dt0.slice(8,10);}
  if(at&&/^\d{1,2}:\d{2}$/.test(at)){hh=+at.split(':')[0];mi=+at.split(':')[1];ss=0;}else if(T_FAST){hh=7;mi=0;ss=0;}
@@ -2397,9 +2399,9 @@ function drawDay(force){if(!SUNB.parentNode&&PDB)DB.insertBefore(SUNB,PDB.g);var
  var night=Math.max(1-sm(ph(h,4.8,6.8)),sm(ph(h,17.8,19.6)));
  var bias=140-100*night,o0=W([0,0,0]),o1=W([bias-140,0,0]);[SHA,SHB].forEach(function(g){if(g){g.setAttribute('transform','translate('+(o1[0]-o0[0]).toFixed(2)+','+(o1[1]-o0[1]).toFixed(2)+')');g.setAttribute('opacity',(1-0.25*night).toFixed(3));}});SHEEN.forEach(function(g){g.setAttribute('opacity',(0.22+0.23*night).toFixed(3));});
  // sun: up at 6, down at 18.5; it comes in through the east windows from sunrise until about one o'clock
- // the real sun: the windows face east, so its bearing from east is the angle the light comes in at (south is +v, and
+ // the real sun: the windows face east-south-east (bearing WFACE), so the bearing off that is the angle the light comes in at (south is +v, and
  // light from the south-east travels toward the north)
- var el=SKYNOW.el*RAD,az=(90-SKYNOW.az)*RAD,clr=WX.kind==='clear'?1:WX.kind==='cloudy'?0.6:0.05;
+ var el=SKYNOW.el*RAD,az=(WFACE-SKYNOW.az)*RAD,clr=WX.kind==='clear'?1:WX.kind==='cloudy'?0.6:0.05;
  var inten=sm(ph(el,0.02,0.2))*(1-sm(ph(az,1.05,1.38)))*(az>-1.3?1:0)*clr;
  pb(sunPool);if(inten>0.01){var kh=1/Math.tan(Math.max(el,0.08)),du=Math.cos(az)*kh,dv=Math.sin(az)*kh,warm=1-sm(ph(el,0.12,0.6));
   var col='rgba(255,'+Math.round(244-34*warm)+','+Math.round(214-62*warm)+',';
@@ -2430,12 +2432,12 @@ function drawDay(force){if(!SUNB.parentNode&&PDB)DB.insertBefore(SUNB,PDB.g);var
  pe(sunPool);}
 // ---------- the view out of the window: a town under the sky, painted on the plane of the glass ----------
 // low roofs and a few taller blocks, trees in the foreground; clouds drift over; the sun comes up out of the town in
-// the morning (the windows face east), the moon rises in the evening, lights come on in the windows at dusk and go
+// the morning (the windows face east-south-east), the moon rises in the evening, lights come on in the windows at dusk and go
 // off one by one through the night. Drawn once into <defs> and shown through each pane, under the glass's sheen.
 var VIEW=(function(){var panes=[].slice.call(svg.querySelectorAll('polygon[fill="url(#skyG)"]'));if(!panes.length)return null;
  // ---------- the view out of the window: only the sky (in fact another building of the university stands across the way) ----------
  // painted on the plane of the glass and shown through each pane, under the glass's sheen. The sun and the moon are
- // where they really are over Yokohama now (the windows face east), the clouds and rain are today's weather; birds by
+ // where they really are over Yokohama now (the windows face east-south-east), the clouds and rain are today's weather; birds by
  // day, aeroplanes going over, and at night stars and the odd shooting star
  var XL='http://www.w3.org/1999/xlink',art=mk('g',{id:'senView'},defs),UPL=-61,VC=1690,KV=22,KZ=36,Z0=940;
  panes.forEach(function(p,i){var cp=mk('clipPath',{id:'senViewClip'+i},defs);mk('polygon',{points:p.getAttribute('points')},cp);
@@ -2447,7 +2449,7 @@ var VIEW=(function(){var panes=[].slice.call(svg.querySelectorAll('polygon[fill=
  function poly(a){return 'M'+pts(a)+'Z';}function line(a){return 'M'+pts(a);}
  function disc(v,z,r,n){var o=[];for(var i=0;i<n;i++){var a=2*Math.PI*i/n;o.push([v+r*Math.cos(a),z+r*Math.sin(a)]);}return o;}
  // a body in the sky (degrees above the horizon, bearing) to a place on the glass; null when it is not in the window
- function skyPos(el,az){var ar=az-90;if(el<-3||el>34||ar<-64||ar>64)return null;return [VC+ar*KV,Z0+el*KZ];}
+ function skyPos(el,az){var ar=az-WFACE;if(el<-3||el>34||ar<-64||ar>64)return null;return [VC+ar*KV,Z0+el*KZ];}
  var gStar=mk('g',{},art),moon=mk('path',{},art),sun=mk('path',{},art),gTrail=mk('g',{fill:'none','stroke-linecap':'round'},art),gPlane=mk('g',{},art),gCloud=mk('g',{},art),
   gMeteor=mk('g',{fill:'none','stroke-linecap':'round'},art),gBird=mk('g',{fill:'none','stroke-linecap':'round','stroke-linejoin':'round'},art),gFall=mk('g',{'stroke-linecap':'round'},art),flash=mk('path',{fill:'#ffffff',opacity:0,d:poly([[0,800],[3400,800],[3400,2200],[0,2200]])},art);
  // the tops of the trees below: a ginkgo and a zelkova that change with the year (green, yellow in late autumn,
@@ -2487,7 +2489,7 @@ var VIEW=(function(){var panes=[].slice.call(svg.querySelectorAll('polygon[fill=
    var sp=skyPos(S.el,S.az);if(sp&&WX.cover<85&&!wet){var warm=1-sm(ph(S.el,0,12));sun.setAttribute('d',poly(disc(sp[0],sp[1],44,24)));sun.setAttribute('fill',hmix('#f2b27e','#fff3da',1-warm));sun.style.display='';}else sun.style.display='none';
    // the moon where it is, lit on the side toward the sun as much as its phase gives
    var M=S.moon,mp=M&&skyPos(M.el,M.az),kl=M?(1-Math.cos(2*Math.PI*M.phase))/2:0;
-   if(mp&&kl>0.03&&WX.cover<85&&!wet){var R=34,sv=VC+(S.az-90)*KV,side=sv>mp[0]?1:-1,o3=[];for(var j=0;j<=16;j++){var a=-Math.PI/2+Math.PI*j/16;o3.push([mp[0]+side*R*Math.cos(a),mp[1]+R*Math.sin(a)]);}
+   if(mp&&kl>0.03&&WX.cover<85&&!wet){var R=34,sv=VC+(S.az-WFACE)*KV,side=sv>mp[0]?1:-1,o3=[];for(var j=0;j<=16;j++){var a=-Math.PI/2+Math.PI*j/16;o3.push([mp[0]+side*R*Math.cos(a),mp[1]+R*Math.sin(a)]);}
     for(j=0;j<=16;j++){var a2=Math.PI/2-Math.PI*j/16;o3.push([mp[0]+side*R*Math.cos(a2)*(1-2*kl),mp[1]+R*Math.sin(a2)]);}
     moon.setAttribute('d',poly(o3));moon.setAttribute('fill','#efeadb');moon.setAttribute('opacity',(0.3+0.7*dark).toFixed(2));moon.style.display='';}else moon.style.display='none';
    var jd=new Date(S.ms+9*3600e3),doy=Math.floor((jd-Date.UTC(jd.getUTCFullYear(),0,1))/864e5),dc=leafCol(doy),nightC=dark>0.5?0.78:0.55*dark;
@@ -2518,10 +2520,11 @@ var VIEW=(function(){var panes=[].slice.call(svg.querySelectorAll('polygon[fill=
    body:mk('path',{fill:'#5a5f68'},gPlane),r:mk('circle',{r:1.2,fill:'#e0473c'},gPlane),gr:mk('circle',{r:1.2,fill:'#4fd18a'},gPlane),st:mk('circle',{r:1.4,fill:'#ffffff'},gPlane)};
    if(plane.trail)plane.tr={e:mk('path',{stroke:'#ffffff','stroke-width':1.3,opacity:0.7},gTrail),e2:mk('path',{stroke:'#ffffff','stroke-width':2.4,opacity:0.25},gTrail)};}
   if(plane){var pt=t-plane.t0,pv=plane.v0+plane.dir*plane.sp*pt,pz=plane.z+plane.dz*pt/30,night=dark>0.5;
-   var nose=[pv+plane.dir*22,pz],tail=[pv-plane.dir*22,pz];plane.body.setAttribute('d',night?'':poly([[pv+plane.dir*22,pz],[pv-plane.dir*4,pz+12],[pv-plane.dir*10,pz+12],[pv-plane.dir*2,pz+2],[pv-plane.dir*18,pz+2],[pv-plane.dir*24,pz+8],[pv-plane.dir*26,pz+8],[pv-plane.dir*22,pz],[pv-plane.dir*26,pz-8],[pv-plane.dir*24,pz-8],[pv-plane.dir*18,pz-2],[pv-plane.dir*2,pz-2],[pv-plane.dir*10,pz-12],[pv-plane.dir*4,pz-12]]));
-   var lw=wp(pv-plane.dir*6,pz+11),rw=wp(pv-plane.dir*6,pz-11),tw=wp(pv-plane.dir*24,pz);plane.r.setAttribute('cx',lw[0].toFixed(1));plane.r.setAttribute('cy',lw[1].toFixed(1));plane.gr.setAttribute('cx',rw[0].toFixed(1));plane.gr.setAttribute('cy',rw[1].toFixed(1));
+   // (the shape at 1.6 times its first size: a small but readable aeroplane)
+   var nose=[pv+plane.dir*35.2,pz],tail=[pv-plane.dir*35.2,pz];plane.body.setAttribute('d',night?'':poly([[pv+plane.dir*35.2,pz],[pv-plane.dir*6.4,pz+19.2],[pv-plane.dir*16,pz+19.2],[pv-plane.dir*3.2,pz+3.2],[pv-plane.dir*28.8,pz+3.2],[pv-plane.dir*38.4,pz+12.8],[pv-plane.dir*41.6,pz+12.8],[pv-plane.dir*35.2,pz],[pv-plane.dir*41.6,pz-12.8],[pv-plane.dir*38.4,pz-12.8],[pv-plane.dir*28.8,pz-3.2],[pv-plane.dir*3.2,pz-3.2],[pv-plane.dir*16,pz-19.2],[pv-plane.dir*6.4,pz-19.2]]));
+   var lw=wp(pv-plane.dir*9.6,pz+17.6),rw=wp(pv-plane.dir*9.6,pz-17.6),tw=wp(pv-plane.dir*38.4,pz);plane.r.setAttribute('cx',lw[0].toFixed(1));plane.r.setAttribute('cy',lw[1].toFixed(1));plane.gr.setAttribute('cx',rw[0].toFixed(1));plane.gr.setAttribute('cy',rw[1].toFixed(1));
    plane.st.setAttribute('cx',tw[0].toFixed(1));plane.st.setAttribute('cy',tw[1].toFixed(1));var nl=night?1:0;plane.r.setAttribute('opacity',nl*0.9);plane.gr.setAttribute('opacity',nl*0.9);plane.st.setAttribute('opacity',night&&(pt%1.3)<0.12?1:0);
-   if(plane.tr){var t0v=plane.v0,len=Math.min(Math.abs(pv-t0v),900),a0=[pv-plane.dir*len,pz-plane.dz*len/(plane.sp*30)],a1=[pv-plane.dir*32,pz];plane.tr.e.setAttribute('d',line([a1,[pv-plane.dir*Math.min(len,360),pz-plane.dz*Math.min(len,360)/(plane.sp*30)]]));plane.tr.e2.setAttribute('d',line([[pv-plane.dir*Math.min(len,360),pz],a0]));}
+   if(plane.tr){var t0v=plane.v0,len=Math.min(Math.abs(pv-t0v),900),a0=[pv-plane.dir*len,pz-plane.dz*len/(plane.sp*30)],a1=[pv-plane.dir*48,pz];plane.tr.e.setAttribute('d',line([a1,[pv-plane.dir*Math.min(len,360),pz-plane.dz*Math.min(len,360)/(plane.sp*30)]]));plane.tr.e2.setAttribute('d',line([[pv-plane.dir*Math.min(len,360),pz],a0]));}
    if(pv<-100||pv>3500){[plane.body,plane.r,plane.gr,plane.st].forEach(function(e){e.remove();});if(plane.tr)trails.push({tr:plane.tr,t0:t});plane=null;nextPlane=vt+rnd(40000,110000);}}
   // a trail left behind thins and goes
   trails=trails.filter(function(q){var k=(t-q.t0)/18;if(k>=1){q.tr.e.remove();q.tr.e2.remove();return false;}q.tr.e.setAttribute('opacity',(0.7*(1-k)).toFixed(2));q.tr.e2.setAttribute('opacity',(0.25*(1-k)).toFixed(2));q.tr.e2.setAttribute('stroke-width',(2.4+3*k).toFixed(2));return true;});
