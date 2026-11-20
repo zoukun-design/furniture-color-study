@@ -2752,7 +2752,7 @@ var VIEW=(function(){var panes=[].slice.call(svg.querySelectorAll('polygon[fill=
  function hexOf(c){var m=c.match(/\d+/g);return m?'#'+m.slice(0,3).map(function(x){return ('0'+(+x).toString(16)).slice(-2);}).join(''):c;}
  // rain and snow: a fixed set of streaks or flakes recycled as they fall out of the bottom of the window
  var drops=[];for(i=0;i<46;i++)drops.push({e:M3('path',{stroke:'#c9d2dc','stroke-width':0.5,fill:'none',opacity:0},gFall),v:rr(300,3100),z:rr(900,2100),s:rr(0.8,1.2),ph:rr(0,6.3)});
- var lastH=-9,lastWX=null,lastC=-9,bird=null,nextBird=vt+rnd(15000,40000),plane=null,trails=[],nextPlane=vt+rnd(20000,50000),meteor=null,nextMeteor=vt+rnd(4000,12000),nextFlash=vt+rnd(6000,15000),flashT=-9,cvis=0;
+ var lastH=-9,lastWX=null,lastC=-9,bird=null,nextBird=vt+rnd(15000,40000),plane=null,trails=[],nextPlane=vt+rnd(20000,50000),meteor=null,nextMeteor=vt+rnd(4000,12000),nextFlash=vt+rnd(800,3000),flashT=-9,flashA=1,cvis=0;
  return function(h){var t=vt/1000,S=SKYNOW,dark=Math.max(1-sm(ph(h,4.9,6.4)),sm(ph(h,17.9,19.5))),wet=WX.kind==='rain'||WX.kind==='storm'||WX.kind==='snow',grey=wet||WX.kind==='overcast'||WX.kind==='fog';
   var wind=(WX.wind||3);
   if(Math.abs(h-lastH)>0.01||WX!==lastWX){lastH=h;lastWX=WX;
@@ -2781,7 +2781,9 @@ var VIEW=(function(){var panes=[].slice.call(svg.querySelectorAll('polygon[fill=
    if(WX.kind==='snow'){var zz=2100-((t*170*q.s+q.z)%1300),vv=q.v+40*Math.sin(t*0.9*q.s+q.ph)-wind*12*((t*0.5)%1);var w0=wp(vv,zz);q.e.setAttribute('d','M'+w0[0].toFixed(1)+','+w0[1].toFixed(1)+'h0.01');q.e.setAttribute('stroke','#ffffff');q.e.setAttribute('stroke-width',2.6);q.e.setAttribute('opacity',0.95);}
    else{var z1=2150-((t*2600*q.s+q.z*3)%1350),sl=-wind*9,vv2=((q.v+sl*0.1*t*60)%2900+2900)%2900+250;q.e.setAttribute('d',line([[vv2,z1],[vv2+sl,z1-90]]));q.e.setAttribute('stroke',dark>0.5?'#7f8a9a':'#f2f5f8');q.e.setAttribute('stroke-width',0.6);q.e.setAttribute('opacity',0.75);}});
   // a thunderstorm lights the sky now and then
-  if(WX.kind==='storm'&&vt>nextFlash){flashT=t;nextFlash=vt+rnd(5000,16000);}var fk=t-flashT;flash.setAttribute('opacity',(fk>=0&&fk<0.35?(fk<0.08?0.55:fk<0.14?0.1:fk<0.22?0.4:0.4*(1-(fk-0.22)/0.13)):0).toFixed(2));
+  // lightning often: every one to four and a half seconds, a third of the time followed straight away by another,
+  // some near and bright, some far and faint
+  if(WX.kind==='storm'&&vt>nextFlash){flashT=t;flashA=0.5+0.5*Math.random();nextFlash=vt+(Math.random()<0.33?rnd(450,900):rnd(1000,4500));}var fk=t-flashT;flash.setAttribute('opacity',((fk>=0&&fk<0.35?(fk<0.08?0.55:fk<0.14?0.1:fk<0.22?0.4:0.4*(1-(fk-0.22)/0.13)):0)*flashA).toFixed(2));
   // now and then by day a few birds cross, flapping and gliding (not in rain or snow)
   if(!bird&&vt>nextBird&&S.el>2&&!wet){var n=2+Math.floor(rnd(0,3)),dir=Math.random()<0.5?-1:1,z=rnd(1300,1900);bird={t0:t,dir:dir,v0:dir<0?3150:250,b:[]};
    for(var i2=0;i2<n;i2++)bird.b.push({e:M3('path',{stroke:'#454a52','stroke-width':0.9},gBird),dv:i2*rnd(70,120)*-dir,dz:rnd(-60,60)+z,ph:rnd(0,6)});}
