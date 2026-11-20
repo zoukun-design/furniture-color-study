@@ -1728,7 +1728,7 @@ function comboText(){return 'Main Desk: '+INFO.a.maker+' '+COL.a[st.a][0]+' / Su
 var cardBlob=null,cardUrl=null,cardKey='';
 function makeCard(){var key=st.a+'-'+st.b+'-'+sel.area+'-'+sel.user;if(key===cardKey&&cardBlob)return Promise.resolve(cardBlob);
  var W=1080,H=1350,cv=document.createElement('canvas');cv.width=W;cv.height=H;var c=cv.getContext('2d');
- var svg=document.querySelector('#stage > svg').cloneNode(true),cs=getComputedStyle(document.documentElement);
+ var svg=document.querySelector('#stage > svg').cloneNode(true),cs=getComputedStyle(document.documentElement);svg.style.width='';svg.style.height='';
  ['#sensei','#senLow','#senOver','#senOverB','#laptop','#mug','#chairUp','#deskBProps','#sunG'].forEach(function(id){var e=svg.querySelector(id);if(e)e.remove();});['#a2b8cc','#c9d8e2','#eef1ee'].forEach(function(c,i){var st=svg.querySelectorAll('#skyG stop')[i];if(st)st.setAttribute('stop-color',c);});var cst=svg.querySelector('#chairStatic');if(cst)cst.removeAttribute('style');['#chair','#chairShadow'].forEach(function(id){var e=svg.querySelector(id);if(e)e.removeAttribute('transform');});
  ['aTop','aSideU','aSideV','bTop','bSideU','bSideV'].forEach(function(k){var v=cs.getPropertyValue('--'+k).trim();svg.querySelectorAll('.'+k).forEach(function(e){e.setAttribute('fill',v);e.removeAttribute('class');});});
  svg.setAttribute('xmlns','http://www.w3.org/2000/svg');svg.setAttribute('width','924');svg.setAttribute('height','1043');
@@ -1815,6 +1815,14 @@ var decoded={};function predecode(k){if(decoded[k])return;decoded[k]=1;var save=
 (function(){
 var G=document.getElementById('sensei');if(!G)return;
 function $i(id){return document.getElementById(id);}
+// a value written again unchanged is not written. To the browser every write is a change, and a change inside
+// something shown elsewhere too (the view through the three panes, the shade's mask) makes it rebuild those copies
+// the drawing's own svg is given its size in pixels (measured from the page's percent rule, again whenever its box
+// changes). Sized in percent, the browser lays out every one of the drawing's shapes again whenever any one moves
+(function(){var sv=G.ownerSVGElement,host=sv&&sv.parentNode;if(!host)return;var busy=false;
+ function fit(){if(busy)return;busy=true;sv.style.width='';sv.style.height='';var r=sv.getBoundingClientRect();if(r.width>0&&r.height>0){sv.style.width=r.width+'px';sv.style.height=r.height+'px';}busy=false;}
+ fit();if(window.ResizeObserver)new ResizeObserver(fit).observe(host);window.addEventListener('resize',fit);window.addEventListener('orientationchange',function(){setTimeout(fit,300);});})();
+(function(){var o=SVGElement.prototype.setAttribute;if(o.__same)return;var f=function(k,v){v=String(v);if(this.getAttribute(k)===v)return;o.call(this,k,v);};f.__same=1;SVGElement.prototype.setAttribute=f;})();
 var svg=G.ownerSVGElement,LOW=$i('senLow'),DA=$i('laptop'),CHR=$i('chair'),CHS=$i('chairShadow'),CHST=$i('chairStatic'),CHU=$i('chairUp'),DB=$i('deskBProps'),OVB=$i('senOverB');
 // the topmost slot is a group of its own at the end of the scene, so the room's light layers can lie over it
 var SLOT={top:mk('g',{id:'senTop'},svg),front:$i('slotFront'),b:$i('slotB')};SLOT.top.appendChild(LOW);SLOT.top.appendChild(G);
@@ -2249,7 +2257,8 @@ function drawDeskB(){var ext=prop.sheet,sp=prop.sheetSpan;
   SHG.style.display=sp.hi-sp.lo>1?'':'none';SHCR.setAttribute('x',SHEET.u0-2);SHCR.setAttribute('y',(sp.lo-dv).toFixed(1));SHCR.setAttribute('width',SHEET.w+4);SHCR.setAttribute('height',Math.max(0,sp.hi-sp.lo).toFixed(1));}
  else{if(SHDV){SHDV=0;SHG.setAttribute('transform',SHM);}SHG.style.display=ext>1?'':'none';}
  if(!sp&&ext>1){SHCR.setAttribute('x',SHEET.u0-2);SHCR.setAttribute('y',(prop.sheetHi?SHEET.v0+SHEET.h-ext-2:SHEET.v0-2).toFixed(1));SHCR.setAttribute('width',SHEET.w+4);SHCR.setAttribute('height',(ext+2).toFixed(1));}
- pb(PDB);if(prop.roll==='desk'&&prop.rollPose)drawRoll(PDB,prop.rollPose);pe(PDB);}
+ pb(PDB);if(prop.roll==='desk'&&prop.rollPose)drawRoll(PDB,prop.rollPose);pe(PDB);
+ if(LIGHT&&LIGHT.sheet){LIGHT.sheet.setAttribute('transform',SHG.getAttribute('transform')||'');if(LIGHT.sheet.style.display!==SHG.style.display)LIGHT.sheet.style.display=SHG.style.display;}}
 // a roll of drawings: paper side, the near end with its spiral
 function drawRoll(p,rp,half){var ax=N(rp.ax),hl=rp.len/2,r=rp.r,e0=Sb(rp.c,M(ax,hl)),e1=A(rp.c,M(ax,hl));if(half>0)e0=Sb(rp.c,M(ax,6));else if(half<0)e1=A(rp.c,M(ax,6));
  var pz=X(ax,UP);pz=L(pz)<0.1?[1,0,0]:N(pz);var py=N(X(ax,pz)),r0=ring(e0,py,pz,r,r,16),r1=ring(e1,py,pz,r,r,16);
@@ -2381,8 +2390,11 @@ function clipRoom(poly){var U=ROOM[0]-8,V=ROOM[1]-8,edges=[[0,1,8],[0,-1,-U],[1,
  edges.forEach(function(e){var out=[];for(var i=0;i<poly.length;i++){var a=poly[i],b=poly[(i+1)%poly.length],da=e[1]*a[e[0]]-e[2],db=e[1]*b[e[0]]-e[2];
   if(da>=0)out.push(a);if((da>=0)!==(db>=0)){var k=da/(da-db);out.push([a[0]+(b[0]-a[0])*k,a[1]+(b[1]-a[1])*k]);}}poly=out;});return poly;}
 var SUNW=mk('g',{'pointer-events':'none'});SUNG.parentNode.insertBefore(SUNW,SUNG.nextSibling);var swPool=pool(SUNW);
-var AMB=mk('rect',{x:-2000,y:-2000,width:6000,height:6000,fill:'#ffffff',opacity:0,'pointer-events':'none',style:'mix-blend-mode:multiply'});
-(function(){var mkk=mk('mask',{id:'ambMask',maskUnits:'userSpaceOnUse',x:-2000,y:-2000,width:6000,height:6000},defs);roomSil(mkk,'#fff');   // only over the room itself, not the page around it
+// the layers over the whole room are only as big as the drawing (a rect thousands of units wide costs a large mask
+// image on some browsers every frame)
+var VB0=svg.viewBox&&svg.viewBox.baseVal&&svg.viewBox.baseVal.width?svg.viewBox.baseVal:{x:0,y:0,width:924,height:1043},VBA={x:VB0.x-20,y:VB0.y-20,width:VB0.width+40,height:VB0.height+40};
+var AMB=mk('rect',{x:VBA.x,y:VBA.y,width:VBA.width,height:VBA.height,fill:'#ffffff',opacity:0,'pointer-events':'none',style:'mix-blend-mode:multiply'});
+(function(){var mkk=mk('mask',{id:'ambMask',maskUnits:'userSpaceOnUse',x:VBA.x,y:VBA.y,width:VBA.width,height:VBA.height},defs);roomSil(mkk,'#fff');   // only over the room itself, not the page around it
  [].forEach.call(svg.querySelectorAll('polygon[fill="url(#skyG)"]'),function(p){mk('polygon',{points:p.getAttribute('points'),fill:'#000'},mkk);});AMB.setAttribute('mask','url(#ambMask)');svg.appendChild(AMB);})();
 var lastDay=-1,sunPool=pool(SUNG),SHEEN=[].slice.call(svg.querySelectorAll('.glassSheen'));
 // where the sun falls it also casts: desks and the chair throw shadows into the patches (a mask cut from the patches,
@@ -2408,7 +2420,7 @@ function drawDay(force){if(!SUNB.parentNode&&PDB)DB.insertBefore(SUNB,PDB.g);var
  // light from the south-east travels toward the north)
  var el=SKYNOW.el*RAD,az=(WFACE-SKYNOW.az)*RAD,clr=WX.kind==='clear'?1:WX.kind==='cloudy'?0.6:0.05;
  var inten=sm(ph(el,0.02,0.2))*(1-sm(ph(az,1.05,1.38)))*(az>-1.3?1:0)*clr;
- pb(sunPool);pb(swPool);if(inten>0.01){var kh=1/Math.tan(Math.max(el,0.08)),du=Math.cos(az)*kh,dv=Math.sin(az)*kh,warm=1-sm(ph(el,0.12,0.6));
+ pb(sunPool);pb(swPool);if(inten>0.06){var kh=1/Math.tan(Math.max(el,0.08)),du=Math.cos(az)*kh,dv=Math.sin(az)*kh,warm=1-sm(ph(el,0.12,0.6));
   // sunlight multiplies what it falls on: each surface comes up by the same factor in its own colour (a white wall
   // stays white, the pale floor goes golden, the black desk only to a dark warm grey). A colour-dodge layer of colour b
   // gives base/(1-b), so b=1-1/factor
@@ -2429,7 +2441,7 @@ function drawDay(force){if(!SUNB.parentNode&&PDB)DB.insertBefore(SUNB,PDB.g);var
  }else{SUNV={on:false};pb(saPool);pb(sbPool);if(LIGHT){pb(LIGHT.pS);pb(LIGHT.pA);pb(LIGHT.pB);}}
  pe(saPool);pe(sbPool);if(LIGHT){pe(LIGHT.pS);pe(LIGHT.pA);pe(LIGHT.pB);
   // the shade over everything the sun is not on: deeper the stronger the sun, a little cool (the sky's light)
-  var shOn=inten>0.02;LIGHT.SHD.style.display=shOn?'':'none';if(shOn){LIGHT.SHD.setAttribute('fill',hexOf2(hmix('#ffffff','#dcdfe6',Math.min(1,inten))));
+  var shOn=inten>0.06;LIGHT.SHD.style.display=shOn?'':'none';LIGHT.live(shOn);if(shOn){LIGHT.SHD.setAttribute('fill',hexOf2(hmix('#ffffff','#dcdfe6',Math.min(1,inten))));
    [['her','her'],['plant','plant'],['chair','chair']].forEach(function(k){var g=(1-0.92*LIGHT.lit[k[0]]).toFixed(3);LIGHT.F[k[1]].setAttribute('values','0 0 0 0 '+g+' 0 0 0 0 '+g+' 0 0 0 0 '+g+' 0 0 0 1 0');});}}
  pe(sunPool);pe(swPool);
  // the light in the room as a whole: the hour, the weather and the lamps colour everything in it a little. Night: the
@@ -2464,20 +2476,26 @@ function wrapBetween(a,b,id){var g=mk('g',{id:id});a.parentNode.insertBefore(g,a
 var LIGHT=(function(){var ca=$i('chairShadow'),la=$i('laptop'),sb=$i('slotB'),dbp=$i('deskBProps');if(!ca||!la||!sb||!dbp)return null;
  wrapBetween(ca,la,'deskAStatic');wrapBetween(sb,dbp,'deskBStatic');la.parentNode.insertBefore(SUNA,la);SHG.id='senSheet';PDB.g.id='senDBProps';
  [SUNG,SUNW,SUNA,SUNB].forEach(function(g){g.style.mixBlendMode='color-dodge';});
- var LM=mk('mask',{id:'litMask',maskUnits:'userSpaceOnUse',x:-2000,y:-2000,width:6000,height:6000},defs);roomSil(LM,'#fff');[].forEach.call(svg.querySelectorAll('polygon[fill="url(#skyG)"]'),function(p){mk('polygon',{points:p.getAttribute('points'),fill:'#000'},LM);});
+ var LM=mk('mask',{id:'litMask',maskUnits:'userSpaceOnUse',x:VBA.x,y:VBA.y,width:VBA.width,height:VBA.height},defs);roomSil(LM,'#fff');[].forEach.call(svg.querySelectorAll('polygon[fill="url(#skyG)"]'),function(p){mk('polygon',{points:p.getAttribute('points'),fill:'#000'},LM);});
  function sil(id,g){var f=mk('filter',{id:id,x:'-10%',y:'-10%',width:'120%',height:'120%','color-interpolation-filters':'sRGB'},defs),m=mk('feColorMatrix',{type:'matrix',values:'0 0 0 0 '+g+' 0 0 0 0 '+g+' 0 0 0 0 '+g+' 0 0 0 1 0'},f);return m;}
  var XL='http://www.w3.org/1999/xlink',F={w:sil('silW',1),her:sil('silHer',1),plant:sil('silPlant',1),chair:sil('silChair',1)};
  // the desks' frames never move: their silhouettes are copied into the mask once, plain white, instead of being
  // re-filtered every frame
  function still(id){var src=$i(id),c=src.cloneNode(true);c.removeAttribute('id');[].forEach.call(c.querySelectorAll('*'),function(e){e.removeAttribute('id');if(e.getAttribute('fill')&&e.getAttribute('fill')!=='none')e.setAttribute('fill','#fff');if(e.getAttribute('stroke')&&e.getAttribute('stroke')!=='none')e.setAttribute('stroke','#fff');e.removeAttribute('opacity');e.removeAttribute('fill-opacity');e.removeAttribute('mask');e.removeAttribute('filter');});LM.appendChild(c);}
- function use(id,fk){var u=document.createElementNS(NS,'use');u.setAttribute('href','#'+id);u.setAttributeNS(XL,'xlink:href','#'+id);u.setAttribute('filter','url(#'+(fk==='her'?'silHer':fk==='plant'?'silPlant':fk==='chair'?'silChair':'silW')+')');LM.appendChild(u);}
+ // the copies are tied to their originals only while the shade is shown: otherwise every move she makes would have
+ // the browser rebuild copies nobody sees
+ var USES=[],live=true;function setLive(on){if(on===live)return;live=on;USES.forEach(function(u){var h=on?u._h:'#senNone';u.setAttribute('href',h);u.setAttributeNS(XL,'xlink:href',h);});}
+ function use(id,fk){var u=document.createElementNS(NS,'use');u._h='#'+id;USES.push(u);u.setAttribute('href','#'+id);u.setAttributeNS(XL,'xlink:href','#'+id);u.setAttribute('filter','url(#'+(fk==='her'?'silHer':fk==='plant'?'silPlant':fk==='chair'?'silChair':'silW')+')');LM.appendChild(u);}
  var RC=mk('clipPath',{id:'roomClip'},defs);roomSil(RC,'#fff');var pS=pool(mk('g',{'clip-path':'url(#roomClip)'},LM)),pSh=pool(mk('g',{'clip-path':'url(#roomClip)'},LM));   // (shadows can reach past the floor's edge: kept to the room)
  still('deskAStatic');var pA=pool(mk('g',{},LM));
- use('laptop');use('mug');use('slotFront','her');use('chair','chair');use('chairUp','chair');use('slotB','her');still('deskBStatic');use('senSheet');
+ use('laptop');use('mug');use('slotFront','her');use('chair','chair');use('chairUp','chair');use('slotB','her');still('deskBStatic');
+ // the drawing on the sub desk only as its sheet of paper (its lines and lettering are no use in a mask)
+ var pr=SHG.querySelector('rect'),SHS=mk('g',{'clip-path':'url(#senSheetClip)'},LM);mk('rect',{x:pr.getAttribute('x'),y:pr.getAttribute('y'),width:pr.getAttribute('width'),height:pr.getAttribute('height'),fill:'#fff'},SHS);
  var pB=pool(mk('g',{},LM));use('senDBProps');use('senOverB','her');use('senTop','her');   // (she, her low parts and the plant move between the slots: each slot once, in scene order)
- var SHD=mk('rect',{x:-2000,y:-2000,width:6000,height:6000,fill:'#ffffff','pointer-events':'none',mask:'url(#litMask)',style:'mix-blend-mode:multiply;display:none'});svg.appendChild(SHD);
+ var SHD=mk('rect',{x:VBA.x,y:VBA.y,width:VBA.width,height:VBA.height,fill:'#ffffff','pointer-events':'none',mask:'url(#litMask)',style:'mix-blend-mode:multiply;display:none'});svg.appendChild(SHD);
  var lit={her:0,plant:0,chair:0};
- return {SHD:SHD,pS:pS,pSh:pSh,pA:pA,pB:pB,F:F,lit:lit};})();
+ setLive(false);
+ return {SHD:SHD,pS:pS,pSh:pSh,pA:pA,pB:pB,F:F,lit:lit,live:setLive,sheet:SHS};})();
 // is a point in the sun? Back along the light toward the window it must come out through a pane
 function sunLit(P,du,dv){if(du<0.02)return 0;var s=P[0]/du,qv=P[1]-s*dv,qz=P[2]+s;for(var i=0;i<PANES.length;i++){var p=PANES[i];if(qv>=p[0]&&qv<=p[1]&&qz>=p[2]&&qz<=p[3])return 1;}return 0;}
 
@@ -2516,22 +2534,32 @@ var STILL=(function(){var o=[];[DESKA[0]+280,DESKA[1]-280].forEach(function(ul){
 var PLANTS=[{t:'cyl',b:[330,2660,0],u:[0,0,1],r:150,h:420},{t:'sph',c:[330,2660,1050],r:250},{t:'sph',c:[280,2590,1380],r:210},{t:'sph',c:[400,2740,760],r:220}];
 // what is not hers: the desks, what lies on them, the chair
 function notHers(k){return k==='deskA'||k==='deskB'||k==='deskAprops'||k==='deskBprops'||/^c[A-Z]/.test(k)||(k==='lap'&&prop.lap==='desk')||(k==='mug'&&prop.mug==='desk')||((k==='roll'||k==='rollB')&&prop.roll==='desk')||(k==='stack'&&prop.stackPos==='desk');}
+// what never moves (the desks, their frames, the plant) is cast again only when the sun has moved a little
+var SHC={key:null,acc:null};
 function drawShadows(){if(!SHADOW)return;var S=SHADOW,ks=['floor','floorS','wall','wallS','A','B','floorH','wallH','AH','BH'];
- if(!SUNV.on||!GEO){ks.forEach(function(k){S[k][0].setAttribute('d','');S[k][1].setAttribute('d','');});return;}
- var du=SUNV.du,dv=SUNV.dv,acc={floor:'',floorS:'',wall:'',wallS:'',A:'',B:'',floorH:'',wallH:'',AH:'',BH:''};
+ if(!SUNV.on||!GEO){SHC.key=null;ks.forEach(function(k){S[k][0].setAttribute('d','');S[k][1].setAttribute('d','');});return;}
+ var du=SUNV.du,dv=SUNV.dv;function blank(){return {floor:'',floorS:'',wall:'',wallS:'',A:'',B:'',floorH:'',wallH:'',AH:'',BH:''};}var acc=blank();
  function proj(pts,rec){if(rec==='floor')return pts.map(function(P){return [P[0]+P[2]*du,P[1]+P[2]*dv];});
   if(rec==='A'||rec==='B')return pts.map(function(P){var s=Math.max(0,P[2]-TOPZ);return [P[0]+s*du,P[1]+s*dv];});
   return pts.map(function(P){var s=Math.max(0,P[1]/-dv);return [P[0]+s*du,P[2]-s];});}
  function scr(rec,x){return rec==='floor'?W([x[0],x[1],0]):rec==='wall'?W([x[0],0,x[1]]):W([x[0],x[1],TOPZ+1]);}
- function cast(pts,rec,key){var h=hull(proj(pts,rec));if(h.length<3)return;var c=rec==='floor'?clipRoom(h):rec==='wall'?clipRect(h,[0,ROOM[0],0,2900]):clipRect(h,rec==='A'?DESKA:DESKB);
+ var RB={floor:[8,ROOM[0]-8,8,ROOM[1]-8],wall:[0,ROOM[0],0,2900],A:DESKA,B:DESKB};
+ // a shadow that cannot reach a surface is not worked out for it
+ function cast(pts,rec,key){var q=proj(pts,rec),r=RB[rec],x0=1e9,x1=-1e9,y0=1e9,y1=-1e9;for(var i=0;i<q.length;i++){var a=q[i];if(a[0]<x0)x0=a[0];if(a[0]>x1)x1=a[0];if(a[1]<y0)y0=a[1];if(a[1]>y1)y1=a[1];}
+  if(x1<r[0]||x0>r[1]||y1<r[2]||y0>r[3])return;var h=hull(q);if(h.length<3)return;var c=rec==='floor'?clipRoom(h):rec==='wall'?clipRect(h,[0,ROOM[0],0,2900]):clipRect(h,rec==='A'?DESKA:DESKB);
   if(c.length<3)return;acc[key]+='M'+c.map(function(x){var w=scr(rec,x);return w[0].toFixed(1)+','+w[1].toFixed(1);}).join('L')+'Z';}
- var wallOn=dv<-0.02,list=[];
- for(var k in GEO){var isDesk=k==='deskA'||k==='deskB',h=notHers(k)?'':'H';GEO[k].forEach(function(q){primPts(q).forEach(function(p){list.push({p:p,top:!isDesk,h:h});});});}
- STILL.forEach(function(q){primPts(q).forEach(function(p){list.push({p:p,top:false});});});
- list.push({p:primPts({t:'cap',a:cw(0,0,60),b:cw(0,0,420),r:28})[0],top:true});
- list.forEach(function(it){var h=it.h||'';cast(it.p,'floor','floor'+h);if(wallOn)cast(it.p,'wall','wall'+h);if(it.top){var zt=0;it.p.forEach(function(P){zt=Math.max(zt,P[2]);});if(zt>TOPZ+2){cast(it.p,'A','A'+h);cast(it.p,'B','B'+h);}}});
- PLANTS.forEach(function(q){primPts(q).forEach(function(p){cast(p,'floor','floorS');if(wallOn)cast(p,'wall','wallS');});});
- ks.forEach(function(k){S[k][0].setAttribute('d',acc[k]);S[k][1].setAttribute('d',acc[k]);});
+ var wallOn=dv<-0.02;
+ function castAll(list){list.forEach(function(it){var h=it.h||'';cast(it.p,'floor','floor'+h);if(wallOn)cast(it.p,'wall','wall'+h);if(it.top){var zt=0;it.p.forEach(function(P){zt=Math.max(zt,P[2]);});if(zt>TOPZ+2){cast(it.p,'A','A'+h);cast(it.p,'B','B'+h);}}});}
+ var key=du.toFixed(3)+','+dv.toFixed(3);
+ if(SHC.key!==key){var keep=acc,st=[];acc=blank();
+  ['deskA','deskB'].forEach(function(k){(GEO[k]||[]).forEach(function(q){primPts(q).forEach(function(p){st.push({p:p,top:false});});});});
+  STILL.forEach(function(q){primPts(q).forEach(function(p){st.push({p:p,top:false});});});castAll(st);
+  PLANTS.forEach(function(q){primPts(q).forEach(function(p){cast(p,'floor','floorS');if(wallOn)cast(p,'wall','wallS');});});
+  SHC.key=key;SHC.acc=acc;acc=keep;}
+ var list=[];
+ for(var k in GEO){if(k==='deskA'||k==='deskB')continue;var h=notHers(k)?'':'H';GEO[k].forEach(function(q){primPts(q).forEach(function(p){list.push({p:p,top:true,h:h});});});}
+ list.push({p:primPts({t:'cap',a:cw(0,0,60),b:cw(0,0,420),r:28})[0],top:true});castAll(list);
+ ks.forEach(function(k){var d=SHC.acc[k]+acc[k];S[k][0].setAttribute('d',d);S[k][1].setAttribute('d',d);});
  var fo=me.away?'0':me.op<0.999?me.op.toFixed(3):'1';['floorH','wallH','AH','BH'].forEach(function(k){S[k][0].setAttribute('fill-opacity',fo);S[k][1].setAttribute('fill-opacity',fo);});}
 
 // ---------- the sky's state at the top left: weather, season, time of day, as icons; tap to pick other ones ----------
@@ -2668,10 +2696,21 @@ var VIEW=(function(){var panes=[].slice.call(svg.querySelectorAll('polygon[fill=
  // painted on the plane of the glass and shown through each pane, under the glass's sheen. The sun and the moon are
  // where they really are over Yokohama now (the windows face east-south-east), the clouds and rain are today's weather; birds by
  // day, aeroplanes going over, and at night stars and the odd shooting star
- var XL='http://www.w3.org/1999/xlink',art=mk('g',{id:'senView'},defs),UPL=-61,VC=1690,KV=22,KZ=36,Z0=940;
+ // Each pane shows it through a clip. What changes only now and then (the sky's bodies and stars; the clouds, ten
+ // times a second) is drawn once and shown in each pane by reference; what moves every frame (aeroplanes and their
+ // trails, birds, shooting stars, rain and snow, lightning) is drawn three times over, once in each pane, so the
+ // browser never has to rebuild the referenced copies sixty times a second. In each pane, back to front: sky bodies,
+ // aeroplanes, clouds, then the rest
+ var XL='http://www.w3.org/1999/xlink',art=mk('g',{id:'senView'},defs),artB=mk('g',{id:'senViewB'},defs),UPL=-61,VC=1690,KV=22,KZ=36,Z0=940;
+ var LT=[],LP=[],LMt=[],LB=[],LF=[],LFl=[];
+ function useOf(id,i){var u=document.createElementNS(NS,'use');u.setAttribute('href','#'+id);u.setAttributeNS(XL,'xlink:href','#'+id);u.setAttribute('clip-path','url(#senViewClip'+i+')');u.setAttribute('pointer-events','none');return u;}
  panes.forEach(function(p,i){var cp=mk('clipPath',{id:'senViewClip'+i},defs);mk('polygon',{points:p.getAttribute('points')},cp);
-  var u=document.createElementNS(NS,'use');u.setAttribute('href','#senView');u.setAttributeNS(XL,'xlink:href','#senView');u.setAttribute('clip-path','url(#senViewClip'+i+')');u.setAttribute('pointer-events','none');
-  p.parentNode.insertBefore(u,p.nextSibling);});
+  var a=useOf('senView',i),l1=mk('g',{'clip-path':'url(#senViewClip'+i+')','pointer-events':'none'}),b=useOf('senViewB',i),l2=mk('g',{'clip-path':'url(#senViewClip'+i+')','pointer-events':'none'});
+  LT.push(mk('g',{fill:'none','stroke-linecap':'round'},l1));LP.push(mk('g',{},l1));
+  LMt.push(mk('g',{fill:'none','stroke-linecap':'round'},l2));LB.push(mk('g',{fill:'none','stroke-linecap':'round','stroke-linejoin':'round'},l2));LF.push(mk('g',{'stroke-linecap':'round'},l2));LFl.push(mk('g',{},l2));
+  var nx=p.nextSibling;[a,l1,b,l2].forEach(function(e){p.parentNode.insertBefore(e,nx);});});
+ // one element made three times, one in each pane's layer, and set as one
+ function M3(t,a,L){var es=L.map(function(g){return mk(t,a,g);});return {setAttribute:function(k,v){for(var j=0;j<es.length;j++)es[j].setAttribute(k,v);},remove:function(){es.forEach(function(e){e.remove();});}};}
  var sd=7;function rr(a,b){sd=(sd*16807)%2147483647;return a+(b-a)*(sd-1)/2147483646;}
  function wp(v,z){return W([UPL,v,z]);}
  function pts(a){return a.map(function(q){var w=wp(q[0],q[1]);return w[0].toFixed(1)+','+w[1].toFixed(1);}).join('L');}
@@ -2679,11 +2718,11 @@ var VIEW=(function(){var panes=[].slice.call(svg.querySelectorAll('polygon[fill=
  function disc(v,z,r,n){var o=[];for(var i=0;i<n;i++){var a=2*Math.PI*i/n;o.push([v+r*Math.cos(a),z+r*Math.sin(a)]);}return o;}
  // a body in the sky (degrees above the horizon, bearing) to a place on the glass; null when it is not in the window
  function skyPos(el,az){var ar=az-WFACE;if(el<-3||el>34||ar<-64||ar>64)return null;return [VC+ar*KV,Z0+el*KZ];}
- var gStar=mk('g',{},art),moon=mk('path',{},art),sun=mk('path',{},art),gTrail=mk('g',{fill:'none','stroke-linecap':'round'},art),gPlane=mk('g',{},art),gCloud=mk('g',{},art),
-  gMeteor=mk('g',{fill:'none','stroke-linecap':'round'},art),gBird=mk('g',{fill:'none','stroke-linecap':'round','stroke-linejoin':'round'},art),gFall=mk('g',{'stroke-linecap':'round'},art),flash=mk('path',{fill:'#ffffff',opacity:0,d:poly([[0,800],[3400,800],[3400,2200],[0,2200]])},art);
+ var gStar=mk('g',{},art),moon=mk('path',{},art),sun=mk('path',{},art),gTrail=LT,gPlane=LP,gCloud=mk('g',{},artB),
+  gMeteor=LMt,gBird=LB,gFall=LF,flash=M3('path',{fill:'#ffffff',opacity:0,d:poly([[0,800],[3400,800],[3400,2200],[0,2200]])},LFl);
  // the tops of the trees below: a ginkgo and a zelkova that change with the year (green, yellow in late autumn,
  // bare twigs in winter) and an evergreen camphor; they sway a little in the wind
- var gTrees=mk('g',{style:'display:none'},art),TREES=[];   // (not shown: the sky only)
+ var gTrees=mk('g',{style:'display:none'}),TREES=[];   // (not shown: the sky only; kept out of the page so it costs nothing)
  [[520,930,250,'d',0.0],[1230,880,200,'e',1.3],[2080,950,270,'d',2.1],[2760,900,220,'e',0.7],[3200,920,230,'d',2.9]].forEach(function(q4){var g=mk('g',{},gTrees),n=7+Math.floor(rr(0,4)),lv=[],br=mk('path',{fill:'none','stroke-width':0.7,'stroke-linecap':'round'},g);
   var bd='';if(q4[3]==='d'){for(var k5=0;k5<7;k5++){var a5=Math.PI*(0.2+0.6*k5/6),l5=q4[2]*rr(0.85,1.25);bd+=line([[q4[0],q4[1]-40],[q4[0]+Math.cos(a5)*l5*0.55,q4[1]+Math.sin(a5)*l5*0.55],[q4[0]+Math.cos(a5+rr(-0.25,0.25))*l5,q4[1]+Math.sin(a5)*l5]]);}}
   br.setAttribute('d',bd);
@@ -2711,7 +2750,7 @@ var VIEW=(function(){var panes=[].slice.call(svg.querySelectorAll('polygon[fill=
  function keyCol(h){for(var j=0;j+1<CK.length;j++)if(h>=CK[j][0]&&h<=CK[j+1][0]){var k=(h-CK[j][0])/(CK[j+1][0]-CK[j][0]);return hmix(CK[j][1],CK[j+1][1],k*k*(3-2*k));}return CK[0][1];}
  function hexOf(c){var m=c.match(/\d+/g);return m?'#'+m.slice(0,3).map(function(x){return ('0'+(+x).toString(16)).slice(-2);}).join(''):c;}
  // rain and snow: a fixed set of streaks or flakes recycled as they fall out of the bottom of the window
- var drops=[];for(i=0;i<46;i++)drops.push({e:mk('path',{stroke:'#c9d2dc','stroke-width':0.5,fill:'none',opacity:0},gFall),v:rr(300,3100),z:rr(900,2100),s:rr(0.8,1.2),ph:rr(0,6.3)});
+ var drops=[];for(i=0;i<46;i++)drops.push({e:M3('path',{stroke:'#c9d2dc','stroke-width':0.5,fill:'none',opacity:0},gFall),v:rr(300,3100),z:rr(900,2100),s:rr(0.8,1.2),ph:rr(0,6.3)});
  var lastH=-9,lastWX=null,lastC=-9,bird=null,nextBird=vt+rnd(15000,40000),plane=null,trails=[],nextPlane=vt+rnd(20000,50000),meteor=null,nextMeteor=vt+rnd(4000,12000),nextFlash=vt+rnd(6000,15000),flashT=-9,cvis=0;
  return function(h){var t=vt/1000,S=SKYNOW,dark=Math.max(1-sm(ph(h,4.9,6.4)),sm(ph(h,17.9,19.5))),wet=WX.kind==='rain'||WX.kind==='storm'||WX.kind==='snow',grey=wet||WX.kind==='overcast'||WX.kind==='fog';
   var wind=(WX.wind||3);
@@ -2733,9 +2772,8 @@ var VIEW=(function(){var panes=[].slice.call(svg.querySelectorAll('polygon[fill=
     // bare in winter: the mass of fine twigs reads as a pale brown-grey haze of a crown
     else{T.lv.forEach(function(e){e.setAttribute('fill',hexOf(hmix('#8f8378','#1d2430',nightC)));e.style.display='';});T.g.setAttribute('opacity',0.5);T.br.style.display='none';}});
    gStar.style.display=dark>0.4&&WX.cover<75&&!wet&&WX.kind!=='fog'?'':'none';}
-  if(dark>0.4&&gStar.style.display!=='none'){var sv2=1-WX.cover/100;stars.forEach(function(s){s.e.setAttribute('opacity',((dark-0.4)/0.6*sv2*(0.45+0.25*Math.sin(t*s.sp+s.ph))).toFixed(2));});}
-  // clouds drift ten times a second, faster in a wind
-  if(t-lastC>0.1){lastC=t;var cs=8+wind*5,sw=1.5+wind*1.6;TREES.forEach(function(T){var a1=Math.sin(t*0.9+T.ph)*sw+Math.sin(t*2.3+T.ph*2)*sw*0.3,o0=wp(T.v,T.z),o1=wp(T.v+a1,T.z);T.g.setAttribute('transform','translate('+(o1[0]-o0[0]).toFixed(2)+','+(o1[1]-o0[1]).toFixed(2)+')');});clouds.forEach(function(c,i2){if(i2>=cvis)return;var span=X1-X0,sx=((c.x0-X0-cs*kz*c.sp*t)%span+span)%span+X0;var sy=c.ay+(sx-c.ax)*c.sx;c.g.setAttribute('transform','translate('+sx.toFixed(2)+','+sy.toFixed(2)+')');});}
+  // clouds drift and stars twinkle ten times a second, the clouds faster in a wind
+  if(t-lastC>0.1){lastC=t;if(dark>0.4&&gStar.style.display!=='none'){var sv2=1-WX.cover/100;stars.forEach(function(s){s.e.setAttribute('opacity',((dark-0.4)/0.6*sv2*(0.45+0.25*Math.sin(t*s.sp+s.ph))).toFixed(2));});}var cs=8+wind*5,sw=1.5+wind*1.6;if(gTrees.parentNode)TREES.forEach(function(T){var a1=Math.sin(t*0.9+T.ph)*sw+Math.sin(t*2.3+T.ph*2)*sw*0.3,o0=wp(T.v,T.z),o1=wp(T.v+a1,T.z);T.g.setAttribute('transform','translate('+(o1[0]-o0[0]).toFixed(2)+','+(o1[1]-o0[1]).toFixed(2)+')');});clouds.forEach(function(c,i2){if(i2>=cvis)return;var span=X1-X0,sx=((c.x0-X0-cs*kz*c.sp*t)%span+span)%span+X0;var sy=c.ay+(sx-c.ax)*c.sx;c.g.setAttribute('transform','translate('+sx.toFixed(2)+','+sy.toFixed(2)+')');});}
   // rain falls in slanting streaks (more of them the harder it rains), snow drifts down in flakes
   var nd=WX.kind==='snow'?Math.min(46,14+WX.snow*14):WX.kind==='rain'||WX.kind==='storm'?Math.min(46,12+WX.rain*9):0;
   drops.forEach(function(q,i2){if(i2>=nd){if(q.on){q.e.setAttribute('opacity',0);q.on=false;}return;}q.on=true;
@@ -2745,15 +2783,15 @@ var VIEW=(function(){var panes=[].slice.call(svg.querySelectorAll('polygon[fill=
   if(WX.kind==='storm'&&vt>nextFlash){flashT=t;nextFlash=vt+rnd(5000,16000);}var fk=t-flashT;flash.setAttribute('opacity',(fk>=0&&fk<0.35?(fk<0.08?0.55:fk<0.14?0.1:fk<0.22?0.4:0.4*(1-(fk-0.22)/0.13)):0).toFixed(2));
   // now and then by day a few birds cross, flapping and gliding (not in rain or snow)
   if(!bird&&vt>nextBird&&S.el>2&&!wet){var n=2+Math.floor(rnd(0,3)),dir=Math.random()<0.5?-1:1,z=rnd(1300,1900);bird={t0:t,dir:dir,v0:dir<0?3150:250,b:[]};
-   for(var i2=0;i2<n;i2++)bird.b.push({e:mk('path',{stroke:'#454a52','stroke-width':0.9},gBird),dv:i2*rnd(70,120)*-dir,dz:rnd(-60,60)+z,ph:rnd(0,6)});}
+   for(var i2=0;i2<n;i2++)bird.b.push({e:M3('path',{stroke:'#454a52','stroke-width':0.9},gBird),dv:i2*rnd(70,120)*-dir,dz:rnd(-60,60)+z,ph:rnd(0,6)});}
   if(bird){var bt=t-bird.t0,done=true;bird.b.forEach(function(q){var v=bird.v0+bird.dir*480*bt+q.dv,z=q.dz+30*Math.sin(bt*0.8+q.ph);if(v>100&&v<3300)done=false;
     var fl=Math.sin(bt*11+q.ph),gl=Math.sin(bt*1.3+q.ph)>0.3?0.25:1,a=12+14*fl*gl;q.e.setAttribute('d',line([[v-30,z+a],[v,z],[v+30,z+a]]));});
    if(done||bt>14){bird.b.forEach(function(q){q.e.remove();});bird=null;nextBird=vt+rnd(25000,70000);}}
   // an aeroplane going over, high and slow: by day a small dark shape, often drawing a vapour trail that spreads and
   // fades after it; by night only its lights, red and green at the wingtips and a white flash. Not above a closed sky
   if(!plane&&vt>nextPlane&&WX.cover<85&&!wet){var dir2=Math.random()<0.5?-1:1;plane={t0:t,dir:dir2,v0:dir2<0?3250:150,z:rnd(1600,2020),dz:rnd(-60,60),sp:rnd(70,110),trail:dark<0.5&&Math.random()<0.65,
-   body:mk('path',{fill:'#5a5f68'},gPlane),r:mk('circle',{r:1.2,fill:'#e0473c'},gPlane),gr:mk('circle',{r:1.2,fill:'#4fd18a'},gPlane),st:mk('circle',{r:1.4,fill:'#ffffff'},gPlane)};
-   if(plane.trail)plane.tr={e:mk('path',{stroke:'#ffffff','stroke-width':1.3,opacity:0.7},gTrail),e2:mk('path',{stroke:'#ffffff','stroke-width':2.4,opacity:0.25},gTrail)};}
+   body:M3('path',{fill:'#5a5f68'},gPlane),r:M3('circle',{r:1.2,fill:'#e0473c'},gPlane),gr:M3('circle',{r:1.2,fill:'#4fd18a'},gPlane),st:M3('circle',{r:1.4,fill:'#ffffff'},gPlane)};
+   if(plane.trail)plane.tr={e:M3('path',{stroke:'#ffffff','stroke-width':1.3,opacity:0.7},gTrail),e2:M3('path',{stroke:'#ffffff','stroke-width':2.4,opacity:0.25},gTrail)};}
   if(plane){var pt=t-plane.t0,pv=plane.v0+plane.dir*plane.sp*pt,pz=plane.z+plane.dz*pt/30,night=dark>0.5;
    // (the shape at 1.6 times its first size: a small but readable aeroplane)
    var nose=[pv+plane.dir*35.2,pz],tail=[pv-plane.dir*35.2,pz];plane.body.setAttribute('d',night?'':poly([[pv+plane.dir*35.2,pz],[pv-plane.dir*6.4,pz+19.2],[pv-plane.dir*16,pz+19.2],[pv-plane.dir*3.2,pz+3.2],[pv-plane.dir*28.8,pz+3.2],[pv-plane.dir*38.4,pz+12.8],[pv-plane.dir*41.6,pz+12.8],[pv-plane.dir*35.2,pz],[pv-plane.dir*41.6,pz-12.8],[pv-plane.dir*38.4,pz-12.8],[pv-plane.dir*28.8,pz-3.2],[pv-plane.dir*3.2,pz-3.2],[pv-plane.dir*16,pz-19.2],[pv-plane.dir*6.4,pz-19.2]]));
@@ -2764,7 +2802,7 @@ var VIEW=(function(){var panes=[].slice.call(svg.querySelectorAll('polygon[fill=
   // a trail left behind thins and goes
   trails=trails.filter(function(q){var k=(t-q.t0)/18;if(k>=1){q.tr.e.remove();q.tr.e2.remove();return false;}q.tr.e.setAttribute('opacity',(0.7*(1-k)).toFixed(2));q.tr.e2.setAttribute('opacity',(0.25*(1-k)).toFixed(2));q.tr.e2.setAttribute('stroke-width',(2.4+3*k).toFixed(2));return true;});
   // shooting stars on a clear night: a thin line drawn across in under a second, fading from its tail
-  if(!meteor&&vt>nextMeteor&&dark>0.6&&WX.cover<60&&!wet){var mv0=rnd(500,2900),mz0=rnd(1550,2060),ang=rnd(-2.6,-0.5)*(Math.random()<0.5?1:-1);meteor={t0:t,v:mv0,z:mz0,dv:Math.cos(ang)*rnd(600,1000),dz:-Math.abs(Math.sin(ang))*rnd(300,520),d:rnd(1.0,1.5),e:mk('path',{fill:'#f6f8ff',stroke:'none'},gMeteor),h:mk('circle',{r:1.5,fill:'#ffffff'},gMeteor)};}
+  if(!meteor&&vt>nextMeteor&&dark>0.6&&WX.cover<60&&!wet){var mv0=rnd(500,2900),mz0=rnd(1550,2060),ang=rnd(-2.6,-0.5)*(Math.random()<0.5?1:-1);meteor={t0:t,v:mv0,z:mz0,dv:Math.cos(ang)*rnd(600,1000),dz:-Math.abs(Math.sin(ang))*rnd(300,520),d:rnd(1.0,1.5),e:M3('path',{fill:'#f6f8ff',stroke:'none'},gMeteor),h:M3('circle',{r:1.5,fill:'#ffffff'},gMeteor)};}
   if(meteor){var mk2=(t-meteor.t0)/meteor.d;if(mk2>=1){meteor.e.remove();meteor.h.remove();meteor=null;nextMeteor=vt+rnd(6000,20000);}
    else{var hd=cl(mk2/0.75,0,1),hd2=1-(1-hd)*(1-hd),tl=sm(cl((mk2-0.2)/0.8,0,1)),hx2=meteor.v+meteor.dv*hd2,hz2=meteor.z+meteor.dz*hd2,tx=meteor.v+meteor.dv*tl,tz=meteor.z+meteor.dz*tl,ll=Math.hypot(hx2-tx,hz2-tz)||1,nx=-(hz2-tz)/ll*5,nz=(hx2-tx)/ll*5;
     meteor.e.setAttribute('d',poly([[tx,tz],[hx2+nx,hz2+nz],[hx2-nx,hz2-nz]]));var op=(1-sm(cl((mk2-0.7)/0.3,0,1)));meteor.e.setAttribute('opacity',(0.85*op).toFixed(2));
