@@ -2557,16 +2557,12 @@ var ICON=(function(){
   fog:{s:cloud(5.8,11.8,1)+'M4.5 15.6h15M7.5 19h9'},
   spring:{s:petal,f:circ(12,12.4,.95)},
   summer:{s:'M5.2 18.8C5.2 10.6 10.4 5.2 18.8 5.2c0 8.4-5.4 13.6-13.6 13.6zM5.2 18.8l9.4-9.4M9 15V11.8M9 15h3.2M12.2 11.8V9.4M12.2 11.8h2.4'},
-  autumn:{s:(function(){var L=[[-90,8.6],[-38,7.6],[-142,7.6],[18,5.2],[162,5.2]],o=[],cx=12,cy=13.2;L.sort(function(a,b){return a[0]-b[0];});
-   for(var i=0;i<L.length;i++){var a=L[i][0]*Math.PI/180,n=L[(i+1)%L.length][0],m=((L[i][0]+(n<L[i][0]?n+360:n))/2)*Math.PI/180,w=0.2;
-    o.push([cx+L[i][1]*0.62*Math.cos(a-w),cy+L[i][1]*0.62*Math.sin(a-w)]);o.push([cx+L[i][1]*Math.cos(a),cy+L[i][1]*Math.sin(a)]);o.push([cx+L[i][1]*0.62*Math.cos(a+w),cy+L[i][1]*0.62*Math.sin(a+w)]);
-    var vr=(L[i][0]>0&&n<0)?2.2:2.9;o.push([cx+vr*Math.cos(m),cy+vr*Math.sin(m)]);}
-   return 'M'+o.map(function(p){return f(p[0])+' '+f(p[1]);}).join('L')+'ZM12 13.2v7.6';})()},
+  autumn:{s:'M6.6 11.2h10.8M7.3 11.2c.2 4.9 2.3 8.4 4.7 9.4 2.4-1 4.5-4.5 4.7-9.4M6.6 11.2A5.4 4.3 0 0 1 17.4 11.2M12 6.9c0-1.3.6-2.3 1.8-2.9M9.4 8.3l1.2 2.9M14.6 8.3l-1.2 2.9'},   // an acorn
   winter:{s:(function(){var d='';for(var i=0;i<6;i++){var a=-Math.PI/2+Math.PI*i/3,c=Math.cos(a),s=Math.sin(a);function p(r,o){return f(12+r*c-o*s)+' '+f(12+r*s+o*c);}d+='M'+p(0,0)+'L'+p(8.8,0)+'M'+p(7.1,-1.9)+'L'+p(5.5,0)+'L'+p(7.1,1.9);}return d;})()},
   dawn:{s:horizon+half+'M12 4.3v6M9.6 6.7L12 4.3l2.4 2.4'},
   dusk:{s:horizon+half+'M12 4.3v6M9.6 7.9l2.4 2.4 2.4-2.4'},
   night:{s:'M14.2 4.2a8.2 8.2 0 1 0 5.6 12.3 6.6 6.6 0 0 1-5.6-12.3z',f:spark(18.6,6.2,2.2)}};})();
-var ICONID=0;function iconSvg(ic,px){var sw=px>=26?1.25:1.3,id='icm'+(ICONID++),bk=ic.b?'<mask id="'+id+'" maskUnits="userSpaceOnUse" x="0" y="0" width="24" height="24"><rect width="24" height="24" fill="#fff"/><path d="'+ic.m+'" fill="#000" stroke="#000" stroke-width="3.2"/></mask><path d="'+ic.b+'" mask="url(#'+id+')"/>':'';return '<svg width="'+px+'" height="'+px+'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="'+sw+'" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+bk+'<path d="'+ic.s+'"/>'+(ic.f?'<path d="'+ic.f+'" fill="currentColor" stroke="none"/>':'')+'</svg>';}
+var ICONID=0;function iconSvg(ic,px){var sw=px>=26?0.85:0.9,id='icm'+(ICONID++),bk=ic.b?'<mask id="'+id+'" maskUnits="userSpaceOnUse" x="0" y="0" width="24" height="24"><rect width="24" height="24" fill="#fff"/><path d="'+ic.m+'" fill="#000" stroke="#000" stroke-width="3.2"/></mask><path d="'+ic.b+'" mask="url(#'+id+')"/>':'';return '<svg width="'+px+'" height="'+px+'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="'+sw+'" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+bk+'<path d="'+ic.s+'"/>'+(ic.f?'<path d="'+ic.f+'" fill="currentColor" stroke="none"/>':'')+'</svg>';}
 
 var SEASONS={spring:'04-15',summer:'07-20',autumn:'11-10',winter:'01-20'};
 function jstNow(){return new Date(Date.now()+9*3600e3);}
@@ -2592,9 +2588,9 @@ var ENVUI=(function(){var st=$i('stage');if(!st)return null;
   '.envp button{flex:none;margin:0;appearance:none;border:0;background:none;width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:var(--mute);cursor:pointer;padding:0}'+
   '.envp button.on{color:var(--ink);background:#f0efec}';
  document.head.appendChild(css);
- var btn=document.createElement('button');btn.type='button';btn.className='envb';btn.setAttribute('aria-label','Weather, season and time of day');btn.innerHTML='<span id="envW"></span><span id="envS"></span><span id="envT"></span>';st.appendChild(btn);
+ var btn=document.createElement('button');btn.type='button';btn.className='envb';btn.setAttribute('aria-label','Season, time of day and weather');btn.innerHTML='<span id="envS"></span><span id="envT"></span><span id="envW"></span>';st.appendChild(btn);
  var pan=document.createElement('div');pan.className='envp';pan.hidden=true;st.appendChild(pan);
- var ROWS=[['wx',['clear','cloudy','overcast','rain','snow','storm','fog']],['season',['spring','summer','autumn','winter']],['time',['dawn','morning','noon','afternoon','dusk','night']]];
+ var ROWS=[['season',['spring','summer','autumn','winter']],['time',['dawn','morning','noon','afternoon','dusk','night']],['wx',['clear','cloudy','overcast','rain','snow','storm','fog']]];
  var TIP={live:'Now',clear:'Clear',cloudy:'Partly cloudy',overcast:'Overcast',rain:'Rain',snow:'Snow',storm:'Thunderstorm',fog:'Fog',spring:'Spring',summer:'Summer',autumn:'Autumn',winter:'Winter',dawn:'Sunrise',morning:'Morning',noon:'Noon',afternoon:'Afternoon',dusk:'Sunset',night:'Night'};
  ROWS.forEach(function(r){var row=document.createElement('div');row.className='envr';[null].concat(r[1]).forEach(function(v){var b=document.createElement('button');b.type='button';b.dataset.k=r[0];b.dataset.v=v===null?'':v;b.setAttribute('aria-label',TIP[v||'live']);b.title=TIP[v||'live'];
    var d=v===null?ICON.live:v==='morning'?ICON.clock(9,0):v==='noon'?ICON.clock(12,0):v==='afternoon'?ICON.clock(3,0):ICON[v];b.innerHTML=iconSvg(d,24);
