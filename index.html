@@ -2655,7 +2655,7 @@ var ENVUI=(function(){var st=$i('stage');if(!st)return null;
  arc.innerHTML='<defs><clipPath id="envUp"><rect id="envUpR" x="0" y="-20" width="'+ARC.W+'" height="60"/></clipPath><clipPath id="envDn"><rect id="envDnR" x="0" y="40" width="'+ARC.W+'" height="60"/></clipPath></defs>'+
   '<line id="envHz" x1="0" x2="'+ARC.W+'" y1="40" y2="40" stroke="#dcd9d2" stroke-width="1"/><g id="envTk" stroke="#dcd9d2" stroke-width="1"></g>'+
   '<path id="envPd" fill="none" stroke="#c4c0b7" stroke-width="1" stroke-dasharray="1.5 3" stroke-linecap="round" clip-path="url(#envDn)"/><path id="envPu" fill="none" stroke="#141414" stroke-width="1" clip-path="url(#envUp)"/>'+
-  '<text id="envSr" text-anchor="end"></text><text id="envSs"></text><rect id="envNw" width="7" height="7" fill="#e0301e"/>'+
+  '<text id="envSr" text-anchor="end"></text><text id="envSs"></text>'+
   '<g id="envKnob"><g class="kn"><circle r="11" fill="#fff" stroke="#141414" stroke-width="1"/><g id="envKnI" transform="translate(-7,-7) scale(.5833)" fill="none" stroke="#141414" stroke-width="1.63"></g></g></g>';
  var tw=document.createElement('div');tw.appendChild(arc);var ts=sec('TIME',tw,'<output id="envTo"></output>');
  var drag=false,raf=0,want=null;
@@ -2702,9 +2702,7 @@ function envShow(){if(!ENVUI)return;var ms=nowMs(),d=new Date(ms+9*3600e3),hh=d.
  [].forEach.call(ENVUI.pan.querySelectorAll('.envo button'),function(b){var on=b.dataset.v===(b.dataset.k==='wx'?wk:sea);b.classList.toggle('on',on);b.setAttribute('aria-pressed',on?'true':'false');});
  envTrack();var h=hh+mm/60;$i('envKnob').setAttribute('transform','translate('+ARC.x(h).toFixed(1)+','+ARC.y(el).toFixed(1)+')');var ki=el>0?'clear':'moon';if(ENVUI.ki!==ki){ENVUI.ki=ki;$i('envKnI').innerHTML=ICON[ki];}
  var hx=ARC.x(h),hy=ARC.y(el),near=hy-12<ARC.hz-4;$i('envSr').style.opacity=near&&ARC.sr!==null&&hx+12>ARC.sr-46&&hx-12<ARC.sr-4?0:1;$i('envSs').style.opacity=near&&ARC.ss!==null&&hx+12>ARC.ss+4&&hx-12<ARC.ss+46?0:1;
- $i('envTo').textContent=t;
- // a red square on the horizon at the real hour, when the picture is not live
- var nw=$i('envNw');if(live)nw.setAttribute('visibility','hidden');else{var r=new Date(Date.now()+9*3600e3),rh=r.getUTCHours()+r.getUTCMinutes()/60;nw.setAttribute('visibility','visible');nw.setAttribute('x',(ARC.x(rh)-3.5).toFixed(1));nw.setAttribute('y',ARC.hz-3.5);}}
+ $i('envTo').textContent=t;}
 setInterval(envShow,5000);
 window.__senEnv={env:function(){return ENV;},temp:function(t){if(!WXLIVE)WXLIVE={cover:WX.cover,code:WX.code,rain:WX.rain,snow:WX.snow,wind:WX.wind,kind:WX.kind,ok:true};WXLIVE.temp=t;envLast='';envShow();}};
 
