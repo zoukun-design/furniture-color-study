@@ -2608,7 +2608,9 @@ var ENVUI=(function(){var st=$i('stage');if(!st)return null;
   '.envb .lv{display:flex;align-items:center;gap:6px;font-size:11px;font-weight:700;letter-spacing:.1em;margin-right:2px}.envb .lv i{width:8px;height:8px;background:#e0301e;display:block;flex:none}.envlv b i{width:9px;height:9px;background:#e0301e;display:block;flex:none}.lt{display:block;line-height:1}@supports (text-box:trim-both cap alphabetic){.lt{text-box:trim-both cap alphabetic}}@supports not (text-box:trim-both cap alphabetic){.envb .lv i,.envlv b i{top:-1px}}'+
   '@keyframes envRing{0%{transform:scale(1);opacity:.5}100%{transform:scale(2.3);opacity:0}}.envb .lv i,.envlv b i{position:relative}.envb .lv i:after,.envlv.on b i:after{content:"";position:absolute;left:0;top:0;width:100%;height:100%;background:#e0301e;animation:envRing 2s cubic-bezier(.2,.6,.35,1) infinite}.envlv b i{transition:background .22s ease}.envlv:not(.on) b i{background:#cfcbc3}@media (prefers-reduced-motion:reduce){.envb .lv i:after,.envlv.on b i:after{animation:none;opacity:0}}'+
   '.envb .cv{color:#a29f97;transition:transform .22s ease;margin-left:-2px}.envb.open .cv{transform:rotate(180deg)}.envb [hidden]{display:none}'+
-  '.envp{position:absolute;top:50px;left:22px;right:22px;z-index:6;max-width:350px;box-sizing:border-box;background:var(--bg);border:1px solid var(--line);border-radius:18px;padding:0 16px 10px;font-family:Barlow,sans-serif;opacity:0;transform:translateY(-4px);transition:opacity .22s ease,transform .22s ease;pointer-events:none}'+
+  '.envbg{position:fixed;left:0;top:0;right:0;bottom:0;z-index:50;background:rgba(255,255,255,.3);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);opacity:0;transition:opacity .22s ease;pointer-events:none}.envbg.open{opacity:1;pointer-events:auto}'+
+  '.envx{position:absolute;left:50%;bottom:-62px;width:44px;height:44px;margin-left:-22px;border-radius:50%;border:1px solid var(--line);background:var(--bg);color:var(--ink);padding:0;display:flex;align-items:center;justify-content:center;cursor:pointer;-webkit-tap-highlight-color:transparent}.envx svg{display:block;width:16px;height:16px}'+
+  '.envp{position:fixed;top:0;left:0;z-index:51;width:346px;box-sizing:border-box;background:var(--bg);border:1px solid var(--line);border-radius:18px;padding:0 16px 10px;font-family:Barlow,sans-serif;opacity:0;transform:translateY(-4px);transition:opacity .22s ease,transform .22s ease;pointer-events:none}'+
   '.envp.open{opacity:1;transform:none;pointer-events:auto}'+
   '.envlv{display:flex;align-items:center;justify-content:space-between;height:56px;cursor:pointer}.envlv b{display:flex;align-items:center;gap:7px;font-size:13px;font-weight:700;letter-spacing:.12em;color:var(--ink)}'+
   '.envlv small{display:block;font-size:12px;color:#8a877f;margin-top:3px;letter-spacing:.01em}'+
@@ -2625,7 +2627,14 @@ var ENVUI=(function(){var st=$i('stage');if(!st)return null;
  document.head.appendChild(css);
  var btn=document.createElement('button');btn.type='button';btn.className='envb';
  btn.innerHTML='<span class="lv" id="envLv"><i></i><span class="lt">LIVE</span></span><span id="envS"></span><span class="tx" id="envT"></span><span id="envW"></span><span class="tp" id="envC"></span><span class="cv">'+iconSvg('chev',12)+'</span>';st.appendChild(btn);
- var pan=document.createElement('div');pan.className='envp';st.appendChild(pan);
+ // the card and the blur behind it live on the page itself, above everything (the pages slide inside a layer of
+ // their own, which nothing in them can rise above). Closed with the round button under the card, or a tap on the blur
+ var pan=document.createElement('div');pan.className='envp';document.body.appendChild(pan);
+ var bg=document.createElement('div');bg.className='envbg';document.body.insertBefore(bg,pan);
+ function place(){var r=btn.getBoundingClientRect(),s=st.getBoundingClientRect();pan.style.top=Math.round(r.bottom+8)+'px';pan.style.left=Math.round(s.left+22)+'px';pan.style.width=Math.round(Math.min(350,s.width-44))+'px';}
+ function setOpen(o){if(o)place();pan.classList.toggle('open',o);btn.classList.toggle('open',o);bg.classList.toggle('open',o);if(o){envTrack();envLast='';envShow();}}
+ window.addEventListener('resize',function(){if(pan.classList.contains('open'))place();});
+ document.addEventListener('keydown',function(e){if(e.key==='Escape'&&pan.classList.contains('open'))setOpen(false);});
  // LIVE
  var lv=document.createElement('div');lv.className='envlv';lv.innerHTML='<div><b><i></i><span class="lt">LIVE</span></b><small>Yokohama &middot; Now</small></div><button type="button" class="envsw" role="switch" aria-label="Live"></button>';pan.appendChild(lv);
  var sw=lv.lastChild;lv.onclick=function(e){e.stopPropagation();if(envLive())envFreeze();else{ENV.wx=null;ENV.season=null;ENV.time=null;}envApply();};
@@ -2650,13 +2659,14 @@ var ENVUI=(function(){var st=$i('stage');if(!st)return null;
  function up(e){drag=false;try{arc.releasePointerCapture(e.pointerId);}catch(_){}}arc.addEventListener('pointerup',up);arc.addEventListener('pointercancel',up);
  arc.addEventListener('click',function(e){e.stopPropagation();});
  sec('WEATHER',opts('wx',['clear','cloudy','overcast','rain','snow','storm','fog']));
- btn.onclick=function(e){e.stopPropagation();var o=pan.classList.toggle('open');btn.classList.toggle('open',o);envTrack();envLast='';envShow();};
+ btn.onclick=function(e){e.stopPropagation();setOpen(!pan.classList.contains('open'));};
+ var cx=document.createElement('button');cx.type='button';cx.className='envx';cx.setAttribute('aria-label','Close');cx.innerHTML='<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" aria-hidden="true"><path d="M3.5 3.5l9 9M12.5 3.5l-9 9"/></svg>';cx.onclick=function(e){e.stopPropagation();setOpen(false);};pan.appendChild(cx);
  // while the card is open, a tap outside it only closes it: the tap never reaches what lies under it (a colour
  // swatch, a photo), from the press to the click
  var eat=false;function out(e){return pan.classList.contains('open')&&!pan.contains(e.target)&&!btn.contains(e.target);}
  ['pointerdown','mousedown','touchstart'].forEach(function(t){window.addEventListener(t,function(e){if(out(e)){eat=true;e.stopPropagation();}},{capture:true,passive:true});});
  ['pointerup','mouseup','touchend'].forEach(function(t){window.addEventListener(t,function(e){if(eat&&!pan.contains(e.target)&&!btn.contains(e.target))e.stopPropagation();},{capture:true,passive:true});});
- window.addEventListener('click',function(e){if(out(e)||(eat&&!pan.contains(e.target)&&!btn.contains(e.target))){e.stopPropagation();e.preventDefault();pan.classList.remove('open');btn.classList.remove('open');}eat=false;},true);
+ window.addEventListener('click',function(e){if(out(e)||(eat&&!pan.contains(e.target)&&!btn.contains(e.target))){e.stopPropagation();e.preventDefault();setOpen(false);}eat=false;},true);
  pan.addEventListener('click',function(e){e.stopPropagation();});
  return {btn:btn,pan:pan,sw:sw,arc:arc};})();
 var envTrackKey='';
