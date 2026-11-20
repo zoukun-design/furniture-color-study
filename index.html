@@ -2778,11 +2778,13 @@ var VIEW=(function(){var panes=[].slice.call(svg.querySelectorAll('polygon[fill=
    var cc=hexOf(keyCol(h));if(grey)cc=hmix(cc,dark>0.5?'#2c323d':'#9aa0a6',0.65);else if(WX.kind==='cloudy')cc=hmix(cc,dark>0.5?'#323947':'#d7dadc',0.3);cc=hexOf2(cc);
    cvis=WX.kind==='fog'?0:Math.round(cl(WX.cover/100,0,1)*clouds.length);var skyL=hexOf2((SKY[2]||SKY[0]).getAttribute('stop-color')),skyM=hexOf2((SKY[1]||SKY[0]).getAttribute('stop-color'));clouds.forEach(function(c,i2){c.g.setAttribute('fill',hexOf2(hmix(cc,hexOf2(hmix(skyL,skyM,c.nz)),0.55-0.3*c.nz)));c.g.style.display=i2<cvis?'':'none';});
    gCloud.setAttribute('opacity',(grey?0.9:0.85-0.3*dark).toFixed(2));
-   // the sun where it is, if it is in the window and not behind a full sky of cloud
-   var sp=skyPos(S.el,S.az);if(sp&&WX.cover<85&&!wet){var warm=1-sm(ph(S.el,0,12));sun.setAttribute('d',poly(disc(sp[0],sp[1],44,24)));sun.setAttribute('fill',hmix('#f2b27e','#fff3da',1-warm));sun.style.display='';}else sun.style.display='none';
+   // (no sun disc: a pale round shape in the pane read as a mark on the glass; the sun shows by the light it sends
+   // into the room)
+   var sp=false;if(sp&&WX.cover<85&&!wet){var warm=1-sm(ph(S.el,0,12));sun.setAttribute('d',poly(disc(sp[0],sp[1],44,24)));sun.setAttribute('fill',hmix('#f2b27e','#fff3da',1-warm));sun.style.display='';}else sun.style.display='none';
    // the moon where it is, lit on the side toward the sun as much as its phase gives
    var M=S.moon,mp=M&&skyPos(M.el,M.az),kl=M?(1-Math.cos(2*Math.PI*M.phase))/2:0;
-   if(mp&&kl>0.03&&WX.cover<85&&!wet){var R=34,sv=VC+(S.az-WFACE)*KV,side=sv>mp[0]?1:-1,o3=[];for(var j=0;j<=16;j++){var a=-Math.PI/2+Math.PI*j/16;o3.push([mp[0]+side*R*Math.cos(a),mp[1]+R*Math.sin(a)]);}
+   // (only once the sky has darkened: by day a pale moon reads as a mark on the glass too)
+   if(mp&&kl>0.03&&dark>0.4&&WX.cover<85&&!wet){var R=34,sv=VC+(S.az-WFACE)*KV,side=sv>mp[0]?1:-1,o3=[];for(var j=0;j<=16;j++){var a=-Math.PI/2+Math.PI*j/16;o3.push([mp[0]+side*R*Math.cos(a),mp[1]+R*Math.sin(a)]);}
     for(j=0;j<=16;j++){var a2=Math.PI/2-Math.PI*j/16;o3.push([mp[0]+side*R*Math.cos(a2)*(1-2*kl),mp[1]+R*Math.sin(a2)]);}
     moon.setAttribute('d',poly(o3));moon.setAttribute('fill','#efeadb');moon.setAttribute('opacity',(0.3+0.7*dark).toFixed(2));moon.style.display='';}else moon.style.display='none';
    var jd=new Date(S.ms+9*3600e3),doy=Math.floor((jd-Date.UTC(jd.getUTCFullYear(),0,1))/864e5),dc=leafCol(doy),nightC=dark>0.5?0.78:0.55*dark;
