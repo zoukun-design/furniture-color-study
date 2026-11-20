@@ -2359,7 +2359,7 @@ function drawDay(force){if(!SUNB.parentNode&&PDB)DB.insertBefore(SUNB,PDB.g);var
  var bias=140-100*night,o0=W([0,0,0]),o1=W([bias-140,0,0]);[SHA,SHB].forEach(function(g){if(g){g.setAttribute('transform','translate('+(o1[0]-o0[0]).toFixed(2)+','+(o1[1]-o0[1]).toFixed(2)+')');g.setAttribute('opacity',(1-0.25*night).toFixed(3));}});SHEEN.forEach(function(g){g.setAttribute('opacity',(0.7+0.3*night).toFixed(3));});
  // sun: up at 6, down at 18.5; it comes in through the east windows from sunrise until about one o'clock
  var dl=(h-5)/13.5,el=Math.sin(Math.PI*cl(dl,0,1))*62*Math.PI/180,az=(-35+(h-5.5)*15)*Math.PI/180;
- var inten=sm(ph(el,0.05,0.22))*(1-sm(ph(az,1.05,1.38)))*(az>-1.3?1:0)*sm(ph(h,6.9,7.4));
+ var inten=sm(ph(el,0.05,0.22))*(1-sm(ph(az,1.05,1.38)))*(az>-1.3?1:0)*sm(ph(h,5.9,6.6));
  pb(sunPool);if(inten>0.01){var kh=1/Math.tan(Math.max(el,0.08)),du=Math.cos(az)*kh,dv=Math.sin(az)*kh,warm=1-sm(ph(el,0.12,0.6));
   var col='rgba(255,'+Math.round(244-34*warm)+','+Math.round(214-62*warm)+',';
   PANES.forEach(function(p){var q=[[p[0],p[2]],[p[1],p[2]],[p[1],p[3]],[p[0],p[3]]].map(function(x){return [x[1]*du,x[0]+x[1]*dv];}),c=clipRoom(q);if(c.length<3)return;
@@ -2401,28 +2401,12 @@ var VIEW=(function(){var panes=[].slice.call(svg.querySelectorAll('polygon[fill=
  function poly(pts){return 'M'+pts.map(function(q){var w=wp(q[0],q[1]);return w[0].toFixed(1)+','+w[1].toFixed(1);}).join('L')+'Z';}
  function disc(v,z,r,n){var o=[];for(var i=0;i<n;i++){var a=2*Math.PI*i/n;o.push([v+r*Math.cos(a),z+r*Math.sin(a)]);}return o;}
  var gStar=mk('g',{},art),moon=mk('path',{},art),sun=mk('path',{},art),gCloud=mk('g',{},art),gFar=mk('g',{},art),gNear=mk('g',{},art),gLit=mk('g',{},art),gTree=mk('g',{},art),gBird=mk('g',{fill:'none','stroke-linecap':'round','stroke-linejoin':'round'},art);
- var stars=[];for(var i=0;i<12;i++){var c=mk('circle',{r:0.7,fill:'#e9ecf4'},gStar),w=wp(rr(400,2950),rr(1780,2060));c.setAttribute('cx',w[0].toFixed(1));c.setAttribute('cy',w[1].toFixed(1));stars.push({e:c,ph:rr(0,6.3),sp:rr(0.6,1.4)});}
- // across the way, some twenty metres off: another building of the university, two floors of it in view and its roof
- // line, sky above. A concrete face in bays: a band of windows on each floor between plain spandrels, a slim pier
- // between the bays; blinds down to different depths; the lights of rooms that work late. A campus tree in front.
- var lit=[],FT=1640,FH=330,BAY=300,gLine=mk('g',{fill:'none','stroke-width':0.45},art),gBlind=mk('g',{},art);
- art.insertBefore(gBlind,gLit);art.insertBefore(gLine,gTree);
- mk('path',{d:poly([[100,760],[3300,760],[3300,FT],[100,FT]])},gFar);
- // a low box or two on the roof behind the parapet
- [[620,260,70],[2140,380,95]].forEach(function(q2){mk('path',{d:poly([[q2[0],FT-4],[q2[0]+q2[1],FT-4],[q2[0]+q2[1],FT+q2[2]],[q2[0],FT+q2[2]]])},gFar);});
- var ln='M'+[wp(100,FT-62),wp(3300,FT-62)].map(function(w){return w[0].toFixed(1)+','+w[1].toFixed(1);}).join('L');
- for(var fl=0;fl<2;fl++){var wt=FT-110-fl*FH,wb=wt-215;
-  for(var bv=120;bv<3300;bv+=BAY){var g0=bv+22,g1=bv+BAY-22;mk('path',{d:poly([[g0,wb],[g1,wb],[g1,wt],[g0,wt]])},gNear);
-   ln+='M'+[wp(g0,wb),wp(g1,wb),wp(g1,wt),wp(g0,wt),wp(g0,wb)].map(function(w){return w[0].toFixed(1)+','+w[1].toFixed(1);}).join('L');
-   var mid=(g0+g1)/2,m0=wp(mid,wb),m1=wp(mid,wt);ln+='M'+m0[0].toFixed(1)+','+m0[1].toFixed(1)+'L'+m1[0].toFixed(1)+','+m1[1].toFixed(1);
-   var bd=rr(0,1)<0.5?rr(0.15,0.75):0;if(bd)mk('path',{d:poly([[g0+1,wt-(wt-wb)*bd],[g1-1,wt-(wt-wb)*bd],[g1-1,wt-1],[g0+1,wt-1]])},gBlind);
-   if(rr(0,1)<0.7)lit.push({e:mk('path',{d:poly([[g0,wb],[g1,wb],[g1,wt],[g0,wt]]),opacity:0},gLit),on:rr(16.8,18.8),off:rr(0,1)<0.15?31:rr(19.8,25.8),mOn:rr(0,1)<0.12?rr(6.0,7.2):99,mOff:rr(7.6,8.4),st:-1});}}
- mk('path',{d:ln},gLine);var beacon=null;
- // the tree between the buildings: a broad crown, its top just past the lower windows
- [[2380,1150,170],[2200,1040,150],[2560,1050,160],[2330,960,190],[2620,930,150],[2120,920,140],[700,960,120],[820,900,110],[580,890,100]].forEach(function(q3){mk('path',{d:poly(disc(q3[0],q3[1],q3[2],22))},gTree);});
+ var stars=[];for(var i=0;i<18;i++){var c=mk('circle',{r:0.7,fill:'#e9ecf4'},gStar),w=wp(rr(400,2950),rr(1250,2060));c.setAttribute('cx',w[0].toFixed(1));c.setAttribute('cy',w[1].toFixed(1));stars.push({e:c,ph:rr(0,6.3),sp:rr(0.6,1.4)});}
+ // only the sky: no scenery is drawn below it (in fact another building of the university stands across the way)
+ var lit=[],beacon=null;
  // clouds: long flat streaks, two or three laid one over another a little apart, one colour, drifting slowly across
  function streak(v0,v1,z,r){var o=[],i;for(i=0;i<=8;i++){var a=Math.PI/2+Math.PI*i/8;o.push([v0+r*Math.cos(a),z+r*Math.sin(a)]);}for(i=0;i<=8;i++){var a2=-Math.PI/2+Math.PI*i/8;o.push([v1+r*Math.cos(a2),z+r*Math.sin(a2)]);}return o;}
- var clouds=[];for(var k=0;k<4;k++){var g=mk('g',{},gCloud),v0=250+k*850+rr(-160,160),z0=[1800,1960,1740,2010][k]+rr(-40,40),L=rr(380,700),th=rr(28,46);
+ var clouds=[];for(var k=0;k<4;k++){var g=mk('g',{},gCloud),v0=250+k*850+rr(-160,160),z0=[1640,1880,1500,1940][k]+rr(-50,50),L=rr(380,700),th=rr(28,46);
   mk('path',{d:poly(streak(v0-L/2,v0+L/2,z0,th))},g);
   if(rr(0,1)<0.9){var L2=L*rr(0.35,0.6),o2=rr(-0.25,0.3)*L;mk('path',{d:poly(streak(v0+o2-L2/2,v0+o2+L2/2,z0+th*1.5,th*0.8))},g);}
   if(rr(0,1)<0.4){var L3=L*rr(0.25,0.45),o3=rr(-0.3,0.3)*L;mk('path',{d:poly(streak(v0+o3-L3/2,v0+o3+L3/2,z0-th*1.4,th*0.6))},g);}
@@ -2436,7 +2420,7 @@ var VIEW=(function(){var panes=[].slice.call(svg.querySelectorAll('polygon[fill=
  var lastH=-9,lastC=-9,bird=null,nextBird=vt+rnd(20000,45000);
  return function(h){var t=vt/1000,dark=Math.max(1-sm(ph(h,4.9,6.4)),sm(ph(h,17.9,19.5)));
   if(Math.abs(h-lastH)>0.01){lastH=h;
-   gFar.setAttribute('fill',keyCol(h,1));gNear.setAttribute('fill',keyCol(h,2));gTree.setAttribute('fill',keyCol(h,3));gLine.setAttribute('stroke',keyCol(h,5));gBlind.setAttribute('fill',keyCol(h,6));
+   
    var cc=keyCol(h,4);clouds.forEach(function(c){c.g.setAttribute('fill',cc);});gCloud.setAttribute('opacity',(0.92-0.3*dark).toFixed(2));
    // lights: each window has its own evening, its own bedtime; a few are on before dawn
    var hh=h<12?h+24:h,lo=(0.35+0.65*dark);lit.forEach(function(L){var on=(hh>=L.on&&hh<L.off)||(h>=L.mOn&&h<L.mOff);var o=on?lo:0;if(Math.abs(o-L.st)>0.02){L.st=o;L.e.setAttribute('opacity',o.toFixed(2));}});
@@ -2452,7 +2436,7 @@ var VIEW=(function(){var panes=[].slice.call(svg.querySelectorAll('polygon[fill=
   // clouds drift ten times a second; the whole sky moves by a few pixels a second
   if(t-lastC>0.1){lastC=t;clouds.forEach(function(c){var v=((c.v0-c.sp*t)%3400+3400)%3400-200,d=v-c.v0,a=wp(0,0),b2=wp(d,0);c.g.setAttribute('transform','translate('+(b2[0]-a[0]).toFixed(2)+','+(b2[1]-a[1]).toFixed(2)+')');});}
   // now and then in daylight a few birds cross, flapping and gliding
-  if(!bird&&vt>nextBird&&h>6.3&&h<17.6){var n=2+Math.floor(rnd(0,3)),dir=Math.random()<0.5?-1:1,z=rnd(1720,1960);bird={t0:t,dir:dir,v0:dir<0?3150:250,b:[]};
+  if(!bird&&vt>nextBird&&h>6.3&&h<17.6){var n=2+Math.floor(rnd(0,3)),dir=Math.random()<0.5?-1:1,z=rnd(1400,1900);bird={t0:t,dir:dir,v0:dir<0?3150:250,b:[]};
    for(var i=0;i<n;i++)bird.b.push({e:mk('path',{stroke:'#454a52','stroke-width':0.9},gBird),dv:i*rnd(70,120)*-dir,dz:rnd(-60,60)+z,ph:rnd(0,6)});}
   if(bird){var bt=t-bird.t0,done=true;bird.b.forEach(function(q){var v=bird.v0+bird.dir*480*bt+q.dv,z=q.dz+30*Math.sin(bt*0.8+q.ph);if(v>100&&v<3300)done=false;
     var fl=Math.sin(bt*11+q.ph),gl=Math.sin(bt*1.3+q.ph)>0.3?0.25:1,a=12+14*fl*gl;q.e.setAttribute('d',poly([[v-30,z+a],[v,z],[v+30,z+a]]).replace(/Z$/,''));});
