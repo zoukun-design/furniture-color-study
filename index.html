@@ -2533,6 +2533,17 @@ var STILL=(function(){var o=[];[DESKA[0]+280,DESKA[1]-280].forEach(function(ul){
  o.push(bx(190,190,0,2890,380,380));   // the concrete column in the corner
  return o;})();
 var PLANTS=[{t:'cyl',b:[330,2660,0],u:[0,0,1],r:150,h:420},{t:'sph',c:[330,2660,1050],r:250},{t:'sph',c:[280,2590,1380],r:210},{t:'sph',c:[400,2740,760],r:220}];
+// the plant's leaves and stems, each its own shadow. The drawing is flat, so each leaf is stood back up from it: on
+// an upright plane facing the viewer through the trunk, set a little nearer or further by its place in the drawing's
+// order (drawn first, furthest), so that as the sun moves the leaves' shadows part and cross like a real crown's
+var PLEAF=(function(){var P=$i('plant');if(!P)return null;var K0=330+2660,out={leaf:[],stem:[]};
+ function up(x,y,K){var d=(x-OX)/(C*S);return [(K+d)/2,(K-d)/2,(OY+K*0.5*S-y)/S];}
+ var L=[].filter.call(P.querySelectorAll('polygon'),function(e){var f=e.getAttribute('fill')||'';return /^#[67][0-9a-f]{5}$/.test(f)&&e.getAttribute('stroke')===f;}),n=L.length;
+ L.forEach(function(e,i){var K=K0+(n>1?-240+480*i/(n-1):0);out.leaf.push(e.getAttribute('points').trim().split(/\s+/).map(function(q){var a=q.split(',');return up(+a[0],+a[1],K);}));});
+ [].forEach.call(P.querySelectorAll('line'),function(e){var st=e.getAttribute('stroke');if(st!=='#7d7266'&&st!=='#7f8a6c')return;
+  out.stem.push({a:up(+e.getAttribute('x1'),+e.getAttribute('y1'),K0),b:up(+e.getAttribute('x2'),+e.getAttribute('y2'),K0),w:(+e.getAttribute('stroke-width')||1)/S});});
+ return out;})();
+(function(){if(!SHADOW)return;['floorS','wallS'].forEach(function(k){SHADOW[k].forEach(function(e){e.setAttribute('fill-opacity',0.7);});});})();
 // what is not hers: the desks, what lies on them, the chair
 function notHers(k){return k==='deskA'||k==='deskB'||k==='deskAprops'||k==='deskBprops'||/^c[A-Z]/.test(k)||(k==='lap'&&prop.lap==='desk')||(k==='mug'&&prop.mug==='desk')||((k==='roll'||k==='rollB')&&prop.roll==='desk')||(k==='stack'&&prop.stackPos==='desk');}
 // what never moves (the desks, their frames, the plant) is cast again only when the sun has moved a little
@@ -2549,13 +2560,23 @@ function drawShadows(){if(!SHADOW)return;var S=SHADOW,ks=['floor','floorS','wall
  function cast(pts,rec,key){var q=proj(pts,rec),r=RB[rec],x0=1e9,x1=-1e9,y0=1e9,y1=-1e9;for(var i=0;i<q.length;i++){var a=q[i];if(a[0]<x0)x0=a[0];if(a[0]>x1)x1=a[0];if(a[1]<y0)y0=a[1];if(a[1]>y1)y1=a[1];}
   if(x1<r[0]||x0>r[1]||y1<r[2]||y0>r[3])return;var h=hull(q);if(h.length<3)return;var c=rec==='floor'?clipRoom(h):rec==='wall'?clipRect(h,[0,ROOM[0],0,2900]):clipRect(h,rec==='A'?DESKA:DESKB);
   if(c.length<3)return;acc[key]+='M'+c.map(function(x){var w=scr(rec,x);return w[0].toFixed(1)+','+w[1].toFixed(1);}).join('L')+'Z';}
+ // a shape cast as it is (a leaf is not convex), turned to one winding so overlapping leaves add up
+ function polyAcc(q,rec,key){var r=RB[rec],x0=1e9,x1=-1e9,y0=1e9,y1=-1e9,ar=0;for(var i=0;i<q.length;i++){var a=q[i],b=q[(i+1)%q.length];if(a[0]<x0)x0=a[0];if(a[0]>x1)x1=a[0];if(a[1]<y0)y0=a[1];if(a[1]>y1)y1=a[1];ar+=a[0]*b[1]-b[0]*a[1];}
+  if(x1<r[0]||x0>r[1]||y1<r[2]||y0>r[3])return;if(ar<0)q=q.slice().reverse();var c=rec==='floor'?clipRoom(q):rec==='wall'?clipRect(q,[0,ROOM[0],0,2900]):clipRect(q,rec==='A'?DESKA:DESKB);
+  if(c.length<3)return;acc[key]+='M'+c.map(function(x){var w=scr(rec,x);return w[0].toFixed(1)+','+w[1].toFixed(1);}).join('L')+'Z';}
+ function castPoly(pts,rec,key){polyAcc(proj(pts,rec),rec,key);}
  var wallOn=dv<-0.02;
  function castAll(list){list.forEach(function(it){var h=it.h||'';cast(it.p,'floor','floor'+h);if(wallOn)cast(it.p,'wall','wall'+h);if(it.top){var zt=0;it.p.forEach(function(P){zt=Math.max(zt,P[2]);});if(zt>TOPZ+2){cast(it.p,'A','A'+h);cast(it.p,'B','B'+h);}}});}
  var key=du.toFixed(3)+','+dv.toFixed(3);
  if(SHC.key!==key){var keep=acc,st=[];acc=blank();
   ['deskA','deskB'].forEach(function(k){(GEO[k]||[]).forEach(function(q){primPts(q).forEach(function(p){st.push({p:p,top:false});});});});
   STILL.forEach(function(q){primPts(q).forEach(function(p){st.push({p:p,top:false});});});castAll(st);
-  PLANTS.forEach(function(q){primPts(q).forEach(function(p){cast(p,'floor','floorS');if(wallOn)cast(p,'wall','wallS');});});
+  // the pot whole; each leaf by its own outline; each stem as a strip of its width
+  primPts(PLANTS[0]).forEach(function(p){cast(p,'floor','floor');if(wallOn)cast(p,'wall','wall');});
+  if(PLEAF){PLEAF.leaf.forEach(function(lf){castPoly(lf,'floor','floorS');if(wallOn)castPoly(lf,'wall','wallS');});
+   PLEAF.stem.forEach(function(sm){['floor'].concat(wallOn?['wall']:[]).forEach(function(rec){var q=proj([sm.a,sm.b],rec),dx=q[1][0]-q[0][0],dy=q[1][1]-q[0][1],l=Math.hypot(dx,dy)||1,nx=-dy/l*sm.w/2,ny=dx/l*sm.w/2;
+     polyAcc([[q[0][0]+nx,q[0][1]+ny],[q[1][0]+nx,q[1][1]+ny],[q[1][0]-nx,q[1][1]-ny],[q[0][0]-nx,q[0][1]-ny]],rec,rec+'S');});});}
+  else PLANTS.forEach(function(q){primPts(q).forEach(function(p){cast(p,'floor','floorS');if(wallOn)cast(p,'wall','wallS');});});
   SHC.key=key;SHC.acc=acc;acc=keep;}
  var list=[];
  for(var k in GEO){if(k==='deskA'||k==='deskB')continue;var h=notHers(k)?'':'H';GEO[k].forEach(function(q){primPts(q).forEach(function(p){list.push({p:p,top:true,h:h});});});}
