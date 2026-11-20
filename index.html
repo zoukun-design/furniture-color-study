@@ -2575,38 +2575,63 @@ function envApply(){var run=window.__senManual?vt:(Date.now()-T_START),sp=T_FAST
  if(ENV.season===null&&ENV.time===null)T_FIX=null;
  else{var n=jstNow(),y=n.getUTCFullYear(),ds=ENV.season?(SEASONS[ENV.season]):null;if(ENV.season==='winter'&&n.getUTCMonth()>=6)y++;
   var base=ds?Date.parse(y+'-'+ds+'T00:00:00+09:00'):Date.UTC(n.getUTCFullYear(),n.getUTCMonth(),n.getUTCDate())-9*3600e3;
-  var hr=ENV.time===null?(n.getUTCHours()+n.getUTCMinutes()/60):ENV.time==='dawn'?sunCross(base,true)+0.2:ENV.time==='dusk'?sunCross(base,false)-0.15:{morning:9,noon:12,afternoon:15,night:21}[ENV.time];
+  var hr=ENV.time===null?(n.getUTCHours()+n.getUTCMinutes()/60):typeof ENV.time==='number'?ENV.time:ENV.time==='dawn'?sunCross(base,true)+0.2:ENV.time==='dusk'?sunCross(base,false)-0.15:{morning:9,noon:12,afternoon:15,night:21}[ENV.time];
   T_FIX=base+hr*3600e3-run*sp;}
  if(ENV.wx){var P={clear:[5,1],cloudy:[60,2],overcast:[100,3],rain:[100,63],snow:[100,73],storm:[100,95],fog:[100,45]}[ENV.wx];WX={cover:P[0],code:P[1],rain:ENV.wx==='rain'?2.5:ENV.wx==='storm'?6:0,snow:ENV.wx==='snow'?1.5:0,wind:ENV.wx==='storm'?9:3,kind:ENV.wx,ok:true};}
  else if(WXLIVE)WX=WXLIVE;
  lastDay=-1;drawDay(true);envShow();}
+// the panel: season, a slider through the hours of the day, weather; a LIVE switch that puts everything back to
+// Yokohama now. The button at the top left shows what the room is under; a small red square (the logo's) means live.
+function elCol(el){var K=[[-90,'#2c3245'],[-12,'#2c3245'],[-6,'#4b4d66'],[-1,'#c9989a'],[3,'#ecc4a0'],[10,'#d9e2e6'],[25,'#bfd4e6'],[90,'#b3cde4']];
+ for(var i=0;i+1<K.length;i++)if(el<=K[i+1][0]){var k=(el-K[i][0])/(K[i+1][0]-K[i][0]);return hexOf2(hmix(K[i][1],K[i+1][1],cl(k,0,1)));}return K[K.length-1][1];}
+function envBase(){var n=jstNow(),y=n.getUTCFullYear(),ds=ENV.season?SEASONS[ENV.season]:null;if(ENV.season==='winter'&&n.getUTCMonth()>=6)y++;
+ return ds?Date.parse(y+'-'+ds+'T00:00:00+09:00'):Date.UTC(n.getUTCFullYear(),n.getUTCMonth(),n.getUTCDate())-9*3600e3;}
 var ENVUI=(function(){var st=$i('stage');if(!st)return null;
  var css=document.createElement('style');css.textContent=
-  '.envb{position:absolute;top:3px;left:22px;z-index:3;display:flex;gap:0;appearance:none;border:0;background:none;padding:0;color:var(--ink);cursor:pointer}'+
-  '.envb span{flex:none;width:34px;height:40px;display:flex;flex-direction:column;align-items:center;justify-content:center;position:relative}.envb span+span:before{content:"";position:absolute;left:0;top:13px;width:1px;height:14px;background:var(--line)}'+
-  '.envb span.ov:after{content:"";position:absolute;bottom:3px;width:3px;height:3px;border-radius:50%;background:currentColor}'+
-  '.envp{position:absolute;top:46px;left:22px;z-index:6;background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:6px 8px;display:flex;flex-direction:column;gap:2px}'+
-  '.envp[hidden]{display:none}.envp .envr{display:flex;flex-direction:row;flex-wrap:nowrap;gap:2px;justify-content:center}.envp .envr+.envr{border-top:1px solid var(--line);padding-top:2px}'+
-  '.envp button{flex:none;margin:0;appearance:none;border:0;background:none;width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:var(--mute);cursor:pointer;padding:0}'+
-  '.envp button.on{color:var(--ink);background:#f0efec}';
+  '.envb{position:absolute;top:8px;left:22px;z-index:3;display:flex;align-items:center;gap:2px;height:32px;padding:0 10px 0 8px;border:0;border-radius:16px;background:#f3f2ef;color:var(--ink);cursor:pointer;-webkit-tap-highlight-color:transparent}'+
+  '.envb .ei{display:flex;align-items:center;justify-content:center;width:26px;height:32px}.envb .lv{width:5px;height:5px;background:#e0301e;margin-left:4px;flex:none}.envb .lv[hidden]{display:none}'+
+  '.envp{position:absolute;top:48px;left:22px;right:22px;z-index:6;max-width:346px;background:var(--bg);border:1px solid var(--line);border-radius:16px;padding:4px 14px 12px;opacity:0;transform:translateY(-4px);transition:opacity .22s ease,transform .22s ease;pointer-events:none}'+
+  '.envp.open{opacity:1;transform:none;pointer-events:auto}'+
+  '.envp dl.envr{display:grid;grid-template-columns:62px 1fr;align-items:center;min-height:48px;margin:0;padding:0;border:0}.envp dl.envr+dl.envr{border-top:1px solid var(--line)}.envp dl.envr dt,.envp dl.envr dd{border:0;padding:0;margin:0;min-height:0}'+
+  '.envr dt{font-family:Barlow,sans-serif}.envo{display:flex;justify-content:space-between}'+
+  '.envo button{position:relative;flex:none;margin:0;appearance:none;border:0;background:none;width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#8a877f;cursor:pointer;padding:0;-webkit-tap-highlight-color:transparent;transition:background .2s,color .2s}'+
+  '.envo button.on{color:var(--ink);background:#f0efec}.envo button.now:after{content:"";position:absolute;bottom:1px;left:50%;width:3px;height:3px;margin-left:-1.5px;background:#e0301e}'+
+  '.envt{display:flex;align-items:center;gap:10px}.envt input{flex:1;min-width:0;-webkit-appearance:none;appearance:none;height:6px;border-radius:3px;outline:none;margin:0;cursor:pointer}'+
+  '.envt input::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;border-radius:50%;background:#fff;border:1px solid var(--ink)}.envt input::-moz-range-thumb{width:16px;height:16px;border-radius:50%;background:#fff;border:1px solid var(--ink)}'+
+  '.envt output{font-family:Barlow,sans-serif;font-size:13px;font-variant-numeric:tabular-nums;width:36px;text-align:right;color:var(--ink)}'+
+  '.envl{margin-top:12px;width:100%;height:36px;border-radius:18px;border:1px solid var(--ink);background:none;color:var(--ink);font-family:Barlow,sans-serif;font-weight:700;font-size:12px;letter-spacing:.12em;display:flex;align-items:center;justify-content:center;gap:8px;cursor:pointer;transition:background .2s,color .2s}'+
+  '.envl i{width:6px;height:6px;background:#e0301e;display:block}.envl.on{background:var(--ink);color:#fff}';
  document.head.appendChild(css);
- var btn=document.createElement('button');btn.type='button';btn.className='envb';btn.setAttribute('aria-label','Season, time of day and weather');btn.innerHTML='<span id="envS"></span><span id="envT"></span><span id="envW"></span>';st.appendChild(btn);
- var pan=document.createElement('div');pan.className='envp';pan.hidden=true;st.appendChild(pan);
- var ROWS=[['season',['spring','summer','autumn','winter']],['time',['dawn','morning','noon','afternoon','dusk','night']],['wx',['clear','cloudy','overcast','rain','snow','storm','fog']]];
- var TIP={live:'Now',clear:'Clear',cloudy:'Partly cloudy',overcast:'Overcast',rain:'Rain',snow:'Snow',storm:'Thunderstorm',fog:'Fog',spring:'Spring',summer:'Summer',autumn:'Autumn',winter:'Winter',dawn:'Sunrise',morning:'Morning',noon:'Noon',afternoon:'Afternoon',dusk:'Sunset',night:'Night'};
- ROWS.forEach(function(r){var row=document.createElement('div');row.className='envr';[null].concat(r[1]).forEach(function(v){var b=document.createElement('button');b.type='button';b.dataset.k=r[0];b.dataset.v=v===null?'':v;b.setAttribute('aria-label',TIP[v||'live']);b.title=TIP[v||'live'];
-   var d=v===null?ICON.live:v==='morning'?ICON.clock(9,0):v==='noon'?ICON.clock(12,0):v==='afternoon'?ICON.clock(3,0):ICON[v];b.innerHTML=iconSvg(d,24);
-   b.onclick=function(e){e.stopPropagation();ENV[r[0]]=v;envApply();};row.appendChild(b);});pan.appendChild(row);});
- btn.onclick=function(e){e.stopPropagation();pan.hidden=!pan.hidden;envShow();};
- document.addEventListener('click',function(e){if(!pan.hidden&&!pan.contains(e.target))pan.hidden=true;});
- return {btn:btn,pan:pan};})();
+ var btn=document.createElement('button');btn.type='button';btn.className='envb';btn.innerHTML='<span class="ei" id="envS"></span><span class="ei" id="envT"></span><span class="ei" id="envW"></span><span class="lv" id="envLv"></span>';st.appendChild(btn);
+ var pan=document.createElement('div');pan.className='envp';st.appendChild(pan);
+ var TIP={clear:'Clear',cloudy:'Partly cloudy',overcast:'Overcast',rain:'Rain',snow:'Snow',storm:'Thunderstorm',fog:'Fog',spring:'Spring',summer:'Summer',autumn:'Autumn',winter:'Winter'};
+ function row(lab,inner){var r=document.createElement('dl');r.className='envr';r.style.margin='0';r.innerHTML='<dt>'+lab+'</dt><dd style="margin:0"></dd>';r.lastChild.appendChild(inner);pan.appendChild(r);}
+ function opts(k,list){var o=document.createElement('div');o.className='envo';list.forEach(function(v){var b=document.createElement('button');b.type='button';b.dataset.k=k;b.dataset.v=v;b.title=TIP[v];b.setAttribute('aria-label',TIP[v]);b.innerHTML=iconSvg(ICON[v],22);
+   b.onclick=function(e){e.stopPropagation();ENV[k]=ENV[k]===v?null:v;envApply();};o.appendChild(b);});return o;}
+ row('SEASON',opts('season',['spring','summer','autumn','winter']));
+ var tw=document.createElement('div');tw.className='envt';tw.innerHTML='<input type="range" min="0" max="1439" step="5" aria-label="Time of day"><output></output>';row('TIME',tw);
+ var rng=tw.firstChild,out=tw.lastChild;
+ rng.addEventListener('input',function(e){e.stopPropagation();ENV.time=(+rng.value)/60;envApply();});rng.addEventListener('click',function(e){e.stopPropagation();});
+ row('WEATHER',opts('wx',['clear','cloudy','overcast','rain','snow','storm','fog']));
+ var lv=document.createElement('button');lv.type='button';lv.className='envl';lv.innerHTML='<i></i>LIVE &middot; YOKOHAMA';lv.onclick=function(e){e.stopPropagation();ENV.wx=null;ENV.season=null;ENV.time=null;envApply();};pan.appendChild(lv);
+ btn.onclick=function(e){e.stopPropagation();pan.classList.toggle('open');envTrack();envShow();};
+ document.addEventListener('click',function(e){if(pan.classList.contains('open')&&!pan.contains(e.target))pan.classList.remove('open');});
+ return {btn:btn,pan:pan,rng:rng,out:out,lv:lv};})();
+// the slider's track is the sky of the chosen day hour by hour, so sunrise and sunset sit where they really are
+var envTrackKey='';
+function envTrack(){if(!ENVUI)return;var base=envBase(),k=base;if(k===envTrackKey)return;envTrackKey=k;var st=[];
+ for(var h=0;h<=24;h+=1){var s=sunAt(base+h*3600e3),a=altAz(s.ha,s.dec);st.push(elCol(a.el)+' '+(h/24*100).toFixed(1)+'%');}
+ ENVUI.rng.style.background='linear-gradient(90deg,'+st.join(',')+')';}
 var envLast='';
-function envShow(){if(!ENVUI)return;var ms=nowMs(),d=new Date(ms+9*3600e3),hh=d.getUTCHours(),mm=d.getUTCMinutes(),k=WX.kind+'|'+seasonOf(ms)+'|'+hh+':'+mm+'|'+ENV.wx+ENV.season+ENV.time;
- if(k!==envLast){envLast=k;var w=$i('envW'),s=$i('envS'),t=$i('envT');w.innerHTML=iconSvg(ICON[WX.kind]||ICON.clear,26);s.innerHTML=iconSvg(ICON[seasonOf(ms)],26);t.innerHTML=iconSvg(ICON.clock(hh,mm),26);
-  w.className=ENV.wx?'ov':'';s.className=ENV.season?'ov':'';t.className=ENV.time?'ov':'';
-  ENVUI.btn.setAttribute('aria-label','Weather: '+WX.kind+', season: '+seasonOf(ms)+', time '+hh+':'+('0'+mm).slice(-2));}
- [].forEach.call(ENVUI.pan.querySelectorAll('button'),function(b){var v=b.dataset.v||null;b.classList.toggle('on',ENV[b.dataset.k]===v);});}
+function envShow(){if(!ENVUI)return;var ms=nowMs(),d=new Date(ms+9*3600e3),hh=d.getUTCHours(),mm=d.getUTCMinutes(),live=ENV.wx===null&&ENV.season===null&&ENV.time===null,
+  k=WX.kind+'|'+seasonOf(ms)+'|'+hh+':'+mm+'|'+ENV.wx+ENV.season+ENV.time;
+ if(k===envLast)return;envLast=k;
+ $i('envS').innerHTML=iconSvg(ICON[seasonOf(ms)],22);$i('envT').innerHTML=iconSvg(ICON.clock(hh,mm),17);$i('envW').innerHTML=iconSvg(ICON[WX.kind]||ICON.clear,22);$i('envLv').hidden=!live;
+ ENVUI.btn.setAttribute('aria-label','Season '+seasonOf(ms)+', '+hh+':'+('0'+mm).slice(-2)+', '+WX.kind+(live?', live':''));
+ [].forEach.call(ENVUI.pan.querySelectorAll('.envo button'),function(b){var v=b.dataset.v,cur=b.dataset.k==='wx'?WX.kind:seasonOf(ms);b.classList.toggle('on',ENV[b.dataset.k]===v);b.classList.toggle('now',ENV[b.dataset.k]===null&&cur===v);});
+ if(document.activeElement!==ENVUI.rng)ENVUI.rng.value=hh*60+mm;ENVUI.out.textContent=hh+':'+('0'+mm).slice(-2);ENVUI.lv.classList.toggle('on',live);envTrack();}
 setInterval(envShow,5000);
+
 
 (function(){var w=QP.get('weather');if(w&&ICON[w])ENV.wx=w;envShow();})();
 var VIEW=(function(){var panes=[].slice.call(svg.querySelectorAll('polygon[fill="url(#skyG)"]'));if(!panes.length)return null;
