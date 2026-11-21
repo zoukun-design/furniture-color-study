@@ -3341,9 +3341,13 @@ function update(){var el=(vt-T0)/1000*(cur&&!QUICK[cur.k]?(cur.k==='dance'?1/0.7
    if(!c.ns)c.ns=rnd(3,5);var sk=(el-c.ns)/4.4;if(sk>=1){c.ns=el+rnd(5,8);sk=-1;}
    var tw=sk>=0?sm(ph(sk,0,0.38))*(1-sm(ph(sk,0.68,1))):0,sideH=M(r,1);
    var sp=sipPose(b,b.bp(140,120,440),N(A(sideH,M(f,0.2))),tw,1);
-   hands.R=H(sp.grip,{rel:true,fast:true,hd:sp.fing,pole:N(mix(N(A(A(M(r,0.62),M(f,-0.4)),[0,0,-0.68])),N(A(A(M(r,0.18),M(f,0.55)),[0,0,-0.82])),tw))});
+   // arriving, the cup comes up from where she carried it to where she holds it, unhurried (about a second), the
+   // cup turning with her hand; only the sips themselves are quick
+   var ea=sm(ph(el,0,1.1)),chd=mugHoldDir(b,1),cpo=N(A(A(M(r,0.22),M(f,-0.7)),[0,0,-0.65])),spo=N(mix(N(A(A(M(r,0.62),M(f,-0.4)),[0,0,-0.68])),N(A(A(M(r,0.18),M(f,0.55)),[0,0,-0.82])),tw));
+   hands.R=H(mix(mugCarry(b,1),sp.grip,ea),{rel:true,fast:ea>=1,hd:N(mix(N(A(M(chd,-1),[0,0,-0.15])),sp.fing,ea)),pole:N(mix(cpo,spo,ea))});
    hands.L=H(hang(b,-1),{rel:true});
-   prop.mug='lift';prop.mugHand='R';prop.mugPos=Sb(HAND.R,Sb(sp.grip,sp.base));prop.mugHd=sp.hd;prop.mugUp=sp.up;prop.mugFace=tw;c.tw=tw;if(tw>0.6)wantTilt=-0.06*sm(ph(tw,0.6,1));}
+   var cb=Sb(HAND.R,A(M(chd,60),[0,0,52])),lb=Sb(HAND.R,Sb(sp.grip,sp.base));
+   prop.mug='lift';prop.mugHand='R';prop.mugPos=mix(cb,lb,ea);prop.mugHd=N(mix(chd,sp.hd,ea));prop.mugUp=N(mix([0,0,1],sp.up||[0,0,1],ea));prop.mugFace=tw*ea;c.tw=tw;if(tw>0.6)wantTilt=-0.06*sm(ph(tw,0.6,1));}
   // without a cup: her hands loosely together in front of her, one resting on the other, elbows easy at her sides
   else if(c.back){hands.L=H(b.bp(212,-12,84),{rel:true,hd:N(A(M(r,0.85),[0,0,-0.5])),pole:N(A(A(M(r,-0.28),M(f,-0.25)),[0,0,-0.9]))});
    hands.R=H(b.bp(204,20,70),{rel:true,hd:N(A(M(r,-0.85),[0,0,-0.55])),pole:N(A(A(M(r,0.28),M(f,-0.25)),[0,0,-0.9]))});}
@@ -3479,9 +3483,17 @@ SCENE.settleOut=function(c,el,b,f){if(c.o0===undefined){c.o0=chair.off;c.p0=chai
 // sitting down, as people rise. Then round to the side of the chair, and her hand turns it back to the desk
 SCENE.leaveSeat=function(c,el,b){if(c.y0===undefined){c.y0=me.yaw;c.F0=me.F.slice();c.yc=c.y0+angTo(c.y0,chairSideYaw());}
  var o={lean:0,tilt:0.2},k=el/1.35;
- if(k<1){me.standUp=true;me.sitK=1-ease(ph(k,0.15,1));o.lean=0.5*Math.sin(Math.PI*cl(k/0.85,0,1));if(k<0.55){hands.L=H(armPad(1,-60),{});hands.R=H(thigh(b,1),{rel:true});}if(me.sitK<0.25)seated=false;}
+ if(k<1){me.standUp=true;me.sitK=1-ease(ph(k,0.15,1));o.lean=0.5*Math.sin(Math.PI*cl(k/0.85,0,1));if(me.sitK<0.25)seated=false;}
  else{me.sitK=0;me.standUp=false;seated=false;}
+ // both hands push up off the armrests, then let go and come down to her sides slowly, together (no hand left on a
+ // thigh that then drops all at once)
+ // (they let go while the arms are still bent, and go along with her as she rises: held on to until the arms are
+ // straight, the rising body would tear them off the rests)
+ if(el<0.36){hands.L=H(armPad(1,-60),{});hands.R=H(armPad(-1,-60),{});}
+ else if(el<1.1){var lw=sm(ph(el,0.36,1.1));hands.L=H(mix(armPad(1,-60),hang(b,-1),lw),{rel:true});hands.R=H(mix(armPad(-1,-60),hang(b,1),lw),{rel:true});}
  if(el>0.98&&el<2.3)stepTo(c,mix(c.F0,CHAIRSIDE,ease(ph(el,0.98,2.05))),c.y0+(c.yc-c.y0)*sm(ph(el,1.02,2.15)));
+ // her right hand goes calmly from her side to the chair's back as she steps round (no swing first, then a grab)
+ if(el>=1.1&&el<=1.65)hands.R=H(mix(hang(b,1),armPad(1,-30),sm(ph(el,1.1,1.75))),{rel:el<1.3,beside:true});
  if(el>1.65&&el<2.85)hands.R=H(armPad(1,-30),{fast:el>1.75,hd:N(A(cv(0,-1),[0,0,-1.3])),beside:true});
  if(el>1.4){var bw3=sm(ph(el,1.4,1.75))*(1-sm(ph(el,2.65,2.95)));o.lean=Math.max(o.lean,0.58*bw3);me.pelZ=-55*bw3;}
  if(el>=2.95)me.pelZ=0;
