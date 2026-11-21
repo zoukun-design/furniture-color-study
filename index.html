@@ -379,6 +379,86 @@ body.splashing .app .logo{visibility:hidden}
 .instc .instt,.instc .instd,.instc .insts{transition:opacity .2s ease}
 .instc.sw .instt,.instc.sw .instd,.instc.sw .insts{opacity:0}
 </style>
+<style id="rsp">
+/* ===== iPad / PC =====
+   tablet  : portrait tablets and tall windows - the phone column, sized so the model fills it
+   wide    : landscape tablets and PCs - the model on the left, the phone's controls in a column on the right */
+
+/* the model hugs its own box, so the corner controls stay on its corners */
+@media (min-width:700px) and (min-height:700px), (min-width:640px) and (min-aspect-ratio:11/10){
+ #stage{container-type:size;padding:0;--mw:min(100cqw - 20px,(100cqh - 8px)*.8859);--mh:calc(var(--mw)*1.1288);--ox:calc((100cqw - var(--mw))/2);--oy:calc((100cqh - var(--mh))/2)}
+ #stage>svg{width:var(--mw);height:var(--mh);flex:none}
+ #stage>.envb{left:calc(var(--ox) + 12px);top:calc(var(--oy) + 6px)}
+ #stage>.stsh{right:calc(var(--ox) + 12px);top:calc(var(--oy) + 1px)}
+ #stage>.shuffle{right:calc(var(--ox) + 7px);bottom:var(--oy)}
+}
+
+@media (min-width:700px) and (min-height:700px) and (max-aspect-ratio:11/10){
+ .app{max-width:clamp(520px,calc((100dvh - 420px)*.8859 + 20px),900px)}
+ .sw{height:52px}
+ .sw i{width:min(40px,80%)}
+ .pv{padding-left:10px;padding-right:10px}
+ .mnc{max-width:clamp(520px,calc((100dvh - 420px)*.8859 + 20px),900px)}
+}
+
+@media (min-width:640px) and (min-aspect-ratio:11/10){
+ .app{--sb:clamp(318px,25vw,350px);--gx:clamp(24px,4vw,64px);--px:clamp(16px,3vw,48px);--py:clamp(10px,2.4vh,28px);
+  display:grid;grid-template-columns:minmax(0,1fr) var(--sb);grid-template-rows:minmax(0,1fr);column-gap:var(--gx);
+  max-width:min(1680px,calc((100dvh - 2*var(--py) - 8px)*.8859 + 20px + var(--sb) + var(--gx) + 2*var(--px)));
+  padding:calc(env(safe-area-inset-top) + var(--py)) calc(env(safe-area-inset-right) + var(--px)) calc(env(safe-area-inset-bottom) + var(--py)) calc(env(safe-area-inset-left) + var(--px))}
+ header{grid-column:2;grid-row:1;min-height:0;padding:0 16px;margin:0 -16px;gap:14px;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:none}
+ header::-webkit-scrollbar{display:none}
+ .vpager{grid-column:1;grid-row:1}
+ header>.panel{padding:12px 0 0;gap:16px;margin-top:auto}
+ header>.panel .row{padding:0;border-radius:0}
+ header>.panel .row.flash{background:none}
+ header>.panel .rh{padding:0}
+ header>.panel .sws{margin:0 -4px}
+ .pv{padding:2px 10px 0}
+ .pv .phwrap{padding-bottom:6px}
+ .gwrap{padding:0 18px 0 0}
+ .pv .ptitle{padding:0 18px 0 0}
+ .card{max-width:min(520px,calc(100dvh - 32px))}
+ .lb{padding-top:calc(env(safe-area-inset-top) + 70px);padding-bottom:calc(env(safe-area-inset-bottom) + 70px)}
+}
+/* the menu takes the colour column's place; the model stays in view */
+html.wide .menu{background:transparent}
+html.wide .mnc{position:absolute;top:0;bottom:0;right:0;left:calc(var(--sbl,0px) - 16px);width:auto;max-width:none;height:auto;margin:0;padding-left:16px;padding-right:calc(100vw - var(--sbr,100vw));background:#fff}
+@media (display-mode:standalone) and (min-width:640px) and (min-aspect-ratio:11/10){
+ .app{padding-top:calc(env(safe-area-inset-top) + var(--py) + 6px);padding-bottom:calc(env(safe-area-inset-bottom) + var(--py))}
+ header{gap:14px;padding-bottom:0}
+}
+
+/* ===== mouse / trackpad ===== */
+.lbnav{display:none}
+@media (hover:hover) and (pointer:fine){
+ .sw::after{content:attr(aria-label);position:absolute;left:50%;bottom:calc(100% - 2px);transform:translate(-50%,3px);z-index:5;padding:5px 9px;border-radius:12px;background:var(--ink);color:#fff;font-size:11px;font-weight:700;line-height:1;white-space:nowrap;pointer-events:none;opacity:0;transition:opacity .2s cubic-bezier(.45,0,.25,1),transform .2s cubic-bezier(.45,0,.25,1)}
+ .sw:hover::after{opacity:1;transform:translate(-50%,0)}
+ .sw:hover i{transform:scale(1.08)}
+ .sw:active i{transform:scale(.94)}
+ .seg button[aria-selected="false"]:hover,.ptabs button[aria-selected="false"]:hover,.lbtabs button[aria-selected="false"]:hover{color:var(--ink)}
+ .ph .phb img{transition:transform .4s cubic-bezier(.45,0,.25,1)}
+ .ph:hover .phb img{transform:scale(1.035)}
+ .mk a:hover{color:var(--ink);text-decoration-color:var(--ink)}
+ .shuffle:hover{border-color:#c9c6bf}
+ .stsh:hover,.mbtn:hover{opacity:.6}
+ .stsh,.mbtn{transition:opacity .2s ease}
+ .mrow:hover b{text-decoration:underline;text-underline-offset:3px;text-decoration-thickness:1px}
+ .mbts button,.instb,.mapp{transition:opacity .2s ease}
+ .mbts button:hover,.instb:hover,.mapp:hover{opacity:.82}
+ .cb:hover,.lbo .ib.rnd:hover,.lbo #lbClose:hover{background:#f0efec}
+ .gdot::before{cursor:pointer}
+ .track{cursor:default}
+ .lbnav{display:flex;flex-direction:column;gap:12px;position:absolute;right:calc(env(safe-area-inset-right) + 28px);top:50%;transform:translateY(-50%);z-index:4}
+ .lb.single .lbnav{display:none}
+ .lbnav button{appearance:none;border:1px solid var(--line);width:44px;height:44px;border-radius:50%;background:#fff;color:var(--ink);display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0;transition:background-color .2s ease}
+ .lbnav button:hover{background:#f0efec}
+}
+.mwh .wl{animation:mwWl 1.6s cubic-bezier(.45,0,.25,1) infinite}
+.mwh .wa{animation:mwWa 1.6s cubic-bezier(.45,0,.25,1) infinite}
+@keyframes mwWl{0%{transform:translateY(0);opacity:0}15%{transform:translateY(0);opacity:1}62%{transform:translateY(10px);opacity:0}100%{transform:translateY(10px);opacity:0}}
+@keyframes mwWa{0%,20%{transform:translateY(-4px);opacity:0}48%{transform:translateY(0);opacity:1}78%{transform:translateY(4px);opacity:0}100%{transform:translateY(4px);opacity:0}}
+</style>
 <script>
 // no pinch / double-tap zoom anywhere in the app (iOS ignores user-scalable=no, so stop the gestures too)
 (function(){function no(e){e.preventDefault();}
@@ -3685,6 +3765,67 @@ window.__sen={geo:function(){return GEO;},inside:function(n,P){var l=GEO&&GEO[n]
  state:function(){return {cur:cur&&cur.k,sub:cur&&cur.s&&cur.s.k,F:me.F.map(Math.round),yaw:+me.yaw.toFixed(2),off:Math.round(chair.off),psi:+chair.psi.toFixed(2),slot:slotKey,seated:seated,lap:prop.lap,mug:prop.mug,book:prop.book,away:me.away};}};
 running=true;requestAnimationFrame(loop);})();
 render();photos();
+// ---- iPad / PC: the colour panel beside the model on wide screens; wheel, trackpad and keys
+(function(){
+ var WQ='(min-width:640px) and (min-aspect-ratio:11/10)',mq=window.matchMedia?matchMedia(WQ):null,
+  panel=$('panel'),home=$('v-sim'),hdr=document.querySelector('.app>header'),FINE=window.matchMedia&&matchMedia('(hover:hover) and (pointer:fine)').matches;
+ function lay(){var w=!!(mq&&mq.matches);document.documentElement.classList.toggle('wide',w);
+  if(w){if(panel.parentNode!==hdr)hdr.appendChild(panel);}else if(panel.parentNode!==home)home.appendChild(panel);
+  vSet(Math.round(vPos),0);gSet(Math.round(gPos),0);side();}
+ function side(){var r=document.querySelector('.tbl').getBoundingClientRect(),d=document.documentElement.style;d.setProperty('--sbl',r.left+'px');d.setProperty('--sbr',r.right+'px');}
+ window.addEventListener('resize',side);if(window.ResizeObserver)new ResizeObserver(side).observe(hdr);
+ // a click beside the menu closes it
+ $('menu').addEventListener('click',function(e){if(e.target===this&&mOpen)setMenu(false);});
+ lay();if(mq){if(mq.addEventListener)mq.addEventListener('change',lay);else if(mq.addListener)mq.addListener(lay);}
+
+ // one page per scroll gesture. A trackpad flick goes on sending events as it coasts, so a gesture
+ // ends after a short pause, or when a fresh push (a sudden rise in speed) starts during the coast.
+ function wheelPages(el,step){var ax={x:0,y:0},lock=false,quiet=0,prev=0;
+  el.addEventListener('wheel',function(e){if(e.ctrlKey)return;
+   var k=e.deltaMode===1?16:e.deltaMode===2?400:1,dx=e.deltaX*k,dy=e.deltaY*k;if(e.shiftKey&&!dx){dx=dy;dy=0;}
+   var mag=Math.max(Math.abs(dx),Math.abs(dy));e.preventDefault();
+   clearTimeout(quiet);quiet=setTimeout(function(){lock=false;ax.x=ax.y=0;prev=0;},150);
+   if(lock&&mag>Math.max(14,prev*2.5))lock=false;prev=mag;if(lock)return;
+   ax.x+=dx;ax.y+=dy;var X=Math.abs(ax.x),Y=Math.abs(ax.y);if(Math.max(X,Y)<26)return;
+   var a=X>Y?'x':'y',d=(a==='x'?ax.x:ax.y)>0?1:-1;ax.x=ax.y=0;if(step(a,d,e))lock=true;},{passive:false});}
+
+ // Preview | Photos sideways (trackpad two-finger swipe, like the phone's swipe); Main | Sub up and down on the photos
+ wheelPages($('vpager'),function(a,d,e){
+  if(a==='x'){var n=d>0?1:0;if(Math.round(vPos)===n)return true;vGo(n,true);return true;}
+  if(VIEW!=='photo'||!$('grid').contains(e.target))return false;
+  var g=d>0?1:0;if(Math.round(gPos)!==g)gGo(g,true);return true;});
+
+ // photo viewer: up and down for the next colour (as the phone's swipe), sideways for the other desk
+ // steps asked for while a photo is still sliding wait their turn (at most two waiting)
+ var Q=[],qt=0;function soon(fn){if(Q.length<2)Q.push(fn);if(!qt)run();}
+ function run(){qt=0;if(!Q.length)return;if(busy||lb.hidden){if(lb.hidden)Q.length=0;else qt=setTimeout(run,30);return;}Q.shift()();if(Q.length)qt=setTimeout(run,30);}
+ wheelPages(lb,function(a,d){$('swHint').classList.remove('show');if(single)return true;
+  if(a==='y'){soon(function(){go(d);});return true;}
+  soon(function(){var k=d>0?'b':'a';if(k!==pk)switchDesk(k);});return true;});
+
+ // keys: arrows move the way a swipe would, wherever no sheet or field is in the way
+ function sheetOpen(){return !lb.hidden||!$('lbx').hidden||!$('shx').hidden||mOpen||!!document.querySelector('.envp.open')||!$('inst').hidden;}
+ document.addEventListener('keydown',function(e){if(e.defaultPrevented||e.altKey||e.ctrlKey||e.metaKey)return;
+  var t=e.target,tag=t&&t.tagName;if(tag==='SELECT'||tag==='INPUT'||tag==='TEXTAREA'||(t&&t.isContentEditable))return;
+  if(!lb.hidden){if(single)return;var k=e.key==='ArrowRight'?'b':e.key==='ArrowLeft'?'a':null;if(k){e.preventDefault();e.stopImmediatePropagation();soon(function(){if(k!==pk)switchDesk(k);});}return;}
+  if(sheetOpen())return;
+  if(e.key==='ArrowRight'||e.key==='ArrowLeft'){e.preventDefault();vGo(e.key==='ArrowRight'?1:0,true);return;}
+  if(VIEW==='photo'&&(e.key==='ArrowDown'||e.key==='ArrowUp')){e.preventDefault();gGo(e.key==='ArrowDown'?1:0,true);}},true);
+
+ if(!FINE)return;
+ // photo viewer: round up / down buttons at the side (the desktop reel's controls) and a scroll hint
+ var CH=function(dn){return '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="'+(dn?'M6 9.5l6 6 6-6':'M6 14.5l6-6 6 6')+'"/></svg>';};
+ var nav=document.createElement('div');nav.className='lbnav';
+ nav.innerHTML='<button type="button" aria-label="Previous color">'+CH(0)+'</button><button type="button" aria-label="Next color">'+CH(1)+'</button>';
+ nav.children[0].onclick=function(){go(-1);};nav.children[1].onclick=function(){go(1);};lb.appendChild(nav);
+ var h=$('swHint');if(h){h.querySelector('.hi').innerHTML='<svg class="mwh" width="80" height="104" viewBox="0 0 80 104" aria-hidden="true"><rect x="23" y="14" width="34" height="54" rx="17" fill="none" stroke="#fff" stroke-width="2"/><line class="wl" x1="40" y1="25" x2="40" y2="33" stroke="#fff" stroke-width="2.4" stroke-linecap="round"/><path class="wa" d="M33 80l7 7 7-7" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+  h.lastElementChild.textContent='Scroll for next color';}
+ // a click on the veil beside the photo closes the viewer, as on the photo card
+ var pd=null;track.addEventListener('pointerdown',function(e){pd=[e.clientX,e.clientY];},true);
+ track.addEventListener('click',function(e){if(!pd||Math.abs(e.clientX-pd[0])+Math.abs(e.clientY-pd[1])>6||busy||lb.hidden)return;
+  var on=SL.some(function(sl){var r=sl.firstChild.getBoundingClientRect();return e.clientX>=r.left&&e.clientX<=r.right&&e.clientY>=r.top&&e.clientY<=r.bottom;});
+  if(!on)fadeClose();});
+})();
 </script>
 </body>
 </html>
