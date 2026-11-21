@@ -2818,10 +2818,11 @@ var VIEW=(function(){var panes=[].slice.call(svg.querySelectorAll('polygon[fill=
    gStar.style.display=dark>0.4&&WX.cover<75&&!wet&&WX.kind!=='fog'?'':'none';}
   // clouds drift and stars twinkle ten times a second, the clouds faster in a wind
   if(t-lastC>0.1){lastC=t;if(dark>0.4&&gStar.style.display!=='none'){var sv2=1-WX.cover/100;stars.forEach(function(s){s.e.setAttribute('opacity',((dark-0.4)/0.6*sv2*(0.45+0.25*Math.sin(t*s.sp+s.ph))).toFixed(2));});}var cs=8+wind*5,sw=1.5+wind*1.6;if(gTrees.parentNode)TREES.forEach(function(T){var a1=Math.sin(t*0.9+T.ph)*sw+Math.sin(t*2.3+T.ph*2)*sw*0.3,o0=wp(T.v,T.z),o1=wp(T.v+a1,T.z);T.g.setAttribute('transform','translate('+(o1[0]-o0[0]).toFixed(2)+','+(o1[1]-o0[1]).toFixed(2)+')');});clouds.forEach(function(c,i2){if(i2>=cvis)return;var span=X1-X0,sx=((c.x0-X0-cs*kz*c.sp*t)%span+span)%span+X0;var sy=c.ay+(sx-c.ax)*c.sx;c.g.setAttribute('transform','translate('+sx.toFixed(2)+','+sy.toFixed(2)+')');});}
-  // rain falls in slanting streaks (more of them the harder it rains), snow drifts down in flakes
+  // rain falls in slanting streaks (more of them the harder it rains), snow drifts down in flakes, swaying, and
+  // carried steadily sideways by the wind (each flake on its own, never all set back at once)
   var nd=WX.kind==='snow'?Math.min(46,14+WX.snow*14):WX.kind==='rain'||WX.kind==='storm'?Math.min(46,12+WX.rain*9):0;
   drops.forEach(function(q,i2){if(i2>=nd){if(q.on){q.e.setAttribute('opacity',0);q.on=false;}return;}q.on=true;
-   if(WX.kind==='snow'){var zz=2100-((t*170*q.s+q.z)%1300),vv=q.v+40*Math.sin(t*0.9*q.s+q.ph)-wind*12*((t*0.5)%1);var w0=wp(vv,zz);q.e.setAttribute('d','M'+w0[0].toFixed(1)+','+w0[1].toFixed(1)+'h0.01');q.e.setAttribute('stroke','#ffffff');q.e.setAttribute('stroke-width',2.6);q.e.setAttribute('opacity',0.95);}
+   if(WX.kind==='snow'){var zz=2100-((t*170*q.s+q.z)%1300),vv=((q.v-wind*22*q.s*t)%2900+2900)%2900+250+40*Math.sin(t*0.9*q.s+q.ph);var w0=wp(vv,zz);q.e.setAttribute('d','M'+w0[0].toFixed(1)+','+w0[1].toFixed(1)+'h0.01');q.e.setAttribute('stroke','#ffffff');q.e.setAttribute('stroke-width',2.6);q.e.setAttribute('opacity',0.95);}
    else{var z1=2150-((t*2600*q.s+q.z*3)%1350),sl=-wind*9,vv2=((q.v+sl*0.1*t*60)%2900+2900)%2900+250;q.e.setAttribute('d',line([[vv2,z1],[vv2+sl,z1-90]]));q.e.setAttribute('stroke',dark>0.5?'#7f8a9a':'#f2f5f8');q.e.setAttribute('stroke-width',0.6);q.e.setAttribute('opacity',0.75);}});
   // a thunderstorm lights the sky now and then
   // lightning often: every one to four and a half seconds, a third of the time followed straight away by another,
