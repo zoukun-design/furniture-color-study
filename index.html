@@ -431,6 +431,12 @@ html.wide .mnc{position:absolute;top:0;bottom:0;right:0;left:calc(var(--sbl,0px)
 
 /* ===== mouse / trackpad ===== */
 .lbnav{display:none}
+/* drawing costs nothing it doesn't have to: hints animate only while showing, the LIVE ring rests with the room, and
+   only the desks in the drawing answer the pointer (the page needn't test every shape under a resting mouse) */
+#swHint:not(.show) svg *{animation:none!important}
+.sen-rest .envb .lv i:after{animation-play-state:paused}
+#stage>svg{pointer-events:none}
+#stage>svg .aTop,#stage>svg .aSideU,#stage>svg .aSideV,#stage>svg .bTop,#stage>svg .bSideU,#stage>svg .bSideV{pointer-events:visiblePainted}
 @media (hover:hover) and (pointer:fine){
  .sw::after{content:attr(aria-label);position:absolute;left:50%;bottom:calc(100% - 2px);transform:translate(-50%,3px);z-index:5;padding:5px 9px;border-radius:12px;background:var(--ink);color:#fff;font-size:11px;font-weight:700;line-height:1;white-space:nowrap;pointer-events:none;opacity:0;transition:opacity .2s cubic-bezier(.45,0,.25,1),transform .2s cubic-bezier(.45,0,.25,1)}
  .sw:hover::after{opacity:1;transform:translate(-50%,0)}
@@ -2480,7 +2486,8 @@ var AMB=mk('rect',{x:VBA.x,y:VBA.y,width:VBA.width,height:VBA.height,fill:'#ffff
 var lastDay=-1,sunPool=pool(SUNG),SHEEN=[].slice.call(svg.querySelectorAll('.glassSheen'));
 // where the sun falls it also casts: desks and the chair throw shadows into the patches (a mask cut from the patches,
 // so outside the sun nothing changes); patches land on the desk tops too, under the things on them and over the drawing
-var SMK=mk('mask',{id:'sunMask',maskUnits:'userSpaceOnUse',x:-200,y:-200,width:1400,height:1500},defs);mk('rect',{x:-200,y:-200,width:1400,height:1500,fill:'#fff'},SMK);
+var SMK=mk('mask',{id:'sunMask'},defs);   // (the mask's region is the patches' own box, so a change in it redraws only around them)
+mk('rect',{x:-200,y:-200,width:1400,height:1500,fill:'#fff'},SMK);
 var smPool=pool(mk('g',{},SMK));SUNG.setAttribute('mask','url(#sunMask)');
 var SUNA=mk('g',{'pointer-events':'none'});DA.insertBefore(SUNA,DA.firstChild);var saPool=pool(SUNA);
 var SUNB=mk('g',{'pointer-events':'none'});var sbPool=pool(SUNB);
@@ -2585,7 +2592,7 @@ function sunLit(P,du,dv){if(du<0.02)return 0;var s=P[0]/du,qv=P[1]-s*dv,qz=P[2]+
 // books and roll, the plant) is projected along the sunlight onto each surface the sun reaches: the floor, the side
 // wall and the two desk tops. The shadows cut the light out of the patches and put the shade back in its place.
 var SUNV={on:false,du:0,dv:0,inten:0};
-var SHADOW=(function(){function m(id){var mm=mk('mask',{id:id,maskUnits:'userSpaceOnUse',x:-200,y:-200,width:1400,height:1500},defs);mk('rect',{x:-200,y:-200,width:1400,height:1500,fill:'#fff'},mm);return mm;}
+var SHADOW=(function(){function m(id){var mm=mk('mask',{id:id},defs);mk('rect',{x:-200,y:-200,width:1400,height:1500,fill:'#fff'},mm);return mm;}
  var mW=m('sunMaskW'),mA=m('sunMaskA'),mB=m('sunMaskB');SUNW.setAttribute('mask','url(#sunMaskW)');SUNA.setAttribute('mask','url(#sunMaskA)');SUNB.setAttribute('mask','url(#sunMaskB)');
  function pair(cut,shadeAfter,soft){var a=mk('path',{fill:'#000'},cut),b=mk('path',{fill:'#fff'});if(soft){a.setAttribute('fill-opacity',0.5);b.setAttribute('fill-opacity',0.5);}
   if(shadeAfter)shadeAfter.parentNode.insertBefore(b,shadeAfter.nextSibling);return [a,b];}
@@ -3751,7 +3758,14 @@ function danceUpdate(c,el,b){var t=el,beat=2*Math.PI*2.1*t,f=b.f,r=b.r,sh=functi
 // ---------- running ----------
 function tick(ms){dt=Math.min(0.05,ms/1000);vt+=dt*1000;if(!cur)next();update();draw();}
 var running=false,last=0,manual=!!window.__senManual;   // __senManual: start stopped, for frame-exact checks
-function loop(now){if(!running||manual)return;if(!svg.getClientRects().length){last=0;setTimeout(function(){requestAnimationFrame(loop);},400);return;}
+// she waits, frozen, while nobody can see her: the room slid away to the photos, or a sheet over it (the page says
+// when, through __senIdle). A screen that refreshes faster than 60 times a second still gets her at 60.
+var senShown=true;if(window.ResizeObserver)new ResizeObserver(function(es){var r=es[es.length-1].contentRect;senShown=r.width>0&&r.height>0;}).observe(svg);   // (asking the page each frame whether it is laid out made it lay itself out first)
+var senAsleep=false;function senSleep(on){if(on===senAsleep)return;senAsleep=on;document.documentElement.classList.toggle('sen-rest',on);}
+function loop(now){if(!running||manual)return;
+ if(!senShown||(window.__senIdle&&window.__senIdle())){senSleep(true);last=0;setTimeout(function(){requestAnimationFrame(loop);},120);return;}
+ senSleep(false);
+ if(last&&now-last<10){requestAnimationFrame(loop);return;}
  tick(last?now-last:16.7);last=now;requestAnimationFrame(loop);}
 // she starts at the window, looking out
 step({k:'gaze',len:rnd(4,6),back:true});lastKind='gaze';
@@ -3776,6 +3790,10 @@ render();photos();
  window.addEventListener('resize',side);if(window.ResizeObserver)new ResizeObserver(side).observe(hdr);
  // a click beside the menu closes it
  $('menu').addEventListener('click',function(e){if(e.target===this&&mOpen)setMenu(false);});
+ // the room's animation rests while the room can't be seen: it has slid aside for the photos (or is being dragged
+ // there), or a sheet covers it (the photo viewer, the photo card and the share sheet blur whatever is under them,
+ // and a moving room under a blur is the costliest thing the page can draw; the phone's menu is opaque)
+ window.__senIdle=function(){return vPos>0.02||!lb.hidden||!$('lbx').hidden||!$('shx').hidden||!$('inst').hidden||(mOpen&&!(mq&&mq.matches));};
  lay();if(mq){if(mq.addEventListener)mq.addEventListener('change',lay);else if(mq.addListener)mq.addListener(lay);}
 
  // one page per scroll gesture. A trackpad flick goes on sending events as it coasts, so a gesture
