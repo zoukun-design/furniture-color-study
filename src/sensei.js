@@ -601,6 +601,7 @@ var DESKA=[450,1850,0,800],DESKB=[1950,2650,400,1850],SHA=$i('shadA'),SHB=$i('sh
 function clipRect(poly,r){var c=[[0,1,r[0]],[0,-1,-r[1]],[1,1,r[2]],[1,-1,-r[3]]];c.forEach(function(e){var out=[];for(var i=0;i<poly.length;i++){var a=poly[i],b=poly[(i+1)%poly.length],da=e[1]*a[e[0]]-e[2],db=e[1]*b[e[0]]-e[2];
   if(da>=0)out.push(a);if((da>=0)!==(db>=0)){var k=da/(da-db);out.push([a[0]+(b[0]-a[0])*k,a[1]+(b[1]-a[1])*k]);}}poly=out;});return poly;}
 function hull2(p){return hull(p);}
+var SUNQ=0.0015;   // the step of the sun's direction: about 4 mm (under a pixel) where the light from the top of a pane lands
 function drawDay(force){if(!SUNB.parentNode&&PDB)DB.insertBefore(SUNB,PDB.g);var h=dayHour();if(!force&&Math.abs(h-lastDay)<0.004&&(me.away||me.op<0.3))return;lastDay=h;
  for(var i=0;i+1<SKYK.length;i++)if(h>=SKYK[i][0]&&h<=SKYK[i+1][0]){var k=(h-SKYK[i][0])/(SKYK[i+1][0]-SKYK[i][0]),k2=k*k*(3-2*k);
   var gy=WX.kind==='overcast'||WX.kind==='rain'||WX.kind==='snow'||WX.kind==='storm'||WX.kind==='fog'?(WX.kind==='fog'?0.85:WX.kind==='storm'?0.8:0.78):WX.kind==='cloudy'?0.2:0;
@@ -613,20 +614,21 @@ function drawDay(force){if(!SUNB.parentNode&&PDB)DB.insertBefore(SUNB,PDB.g);var
  // the real sun: the windows face east-south-east (bearing WFACE), so the bearing off that is the angle the light comes in at (south is +v, and
  // light from the south-east travels toward the north)
  var el=SKYNOW.el*RAD,az=(WFACE-SKYNOW.az)*RAD,clr=WX.kind==='clear'?1:WX.kind==='cloudy'?0.6:0.05;
- var inten=sm(ph(el,0.02,0.2))*(1-sm(ph(az,1.05,1.38)))*(az>-1.3?1:0)*clr;
- pb(sunPool);pb(swPool);if(inten>0.06){var kh=1/Math.tan(Math.max(el,0.08)),du=Math.cos(az)*kh,dv=Math.sin(az)*kh,warm=1-sm(ph(el,0.12,0.6));
+ // (in small steps: the patches move on by a fraction of a pixel every few seconds, not a little every frame)
+ var inten=Math.round(100*sm(ph(el,0.02,0.2))*(1-sm(ph(az,1.05,1.38)))*(az>-1.3?1:0)*clr)/100;
+ pb(sunPool);pb(swPool);if(inten>0.06){var kh=1/Math.tan(Math.max(el,0.08)),du=Math.round(Math.cos(az)*kh/SUNQ)*SUNQ,dv=Math.round(Math.sin(az)*kh/SUNQ)*SUNQ,warm=Math.round(20*(1-sm(ph(el,0.12,0.6))))/20;
   // sunlight multiplies what it falls on: each surface comes up by the same factor in its own colour (a white wall
   // stays white, the pale floor goes golden, the black desk only to a dark warm grey). A colour-dodge layer of colour b
   // gives base/(1-b), so b=1-1/factor
   var fk=[0.52,0.48,0.40-0.1*warm].map(function(k){return 1+k*inten;}),cold='rgb('+fk.map(function(f){return Math.round(255*(1-1/f));}).join(',')+')';if(LIGHT){pb(LIGHT.pS);pb(LIGHT.pA);pb(LIGHT.pB);}pb(saPool);pb(sbPool);
   PANES.forEach(function(p){var q=[[p[0],p[2]],[p[1],p[2]],[p[1],p[3]],[p[0],p[3]]].map(function(x){return [x[1]*du,x[0]+x[1]*dv];}),c=clipRoom(q);   // (the floor patch may lie outside the room while the light still lands on the desks and the side wall)
-   if(c.length>2){var cpts=c.map(function(x){return W([x[0],x[1],0]);});pa(sunPool,pd(cpts),cold);if(LIGHT)pa(LIGHT.pS,pd(cpts),'rgba(0,0,0,'+(0.95*inten).toFixed(3)+')');}
+   if(c.length>2){var cpts=c.map(function(x){return W([x[0],x[1],0]);});pa(sunPool,pd(cpts),cold);if(LIGHT)pa(LIGHT.pS,pd(cpts),'rgba(255,255,255,'+(0.95*inten).toFixed(3)+')');}
    // the same window's light at desk-top height, on each desk top it reaches
    [[DESKA,saPool,'pA'],[DESKB,sbPool,'pB']].forEach(function(dk){var dd=[[p[0],p[2]],[p[1],p[2]],[p[1],p[3]],[p[0],p[3]]].map(function(x){var h2=x[1]-TOPZ;return [h2*du,x[0]+h2*dv];}),dc=clipRect(dd,dk[0]);
-    if(dc.length>2){var dp=pd(dc.map(function(x){return W([x[0],x[1],TOPZ+1]);}));pa(dk[1],dp,cold);if(LIGHT)pa(LIGHT[dk[2]],dp,'rgba(0,0,0,'+(0.95*inten).toFixed(3)+')');}});
+    if(dc.length>2){var dp=pd(dc.map(function(x){return W([x[0],x[1],TOPZ+1]);}));pa(dk[1],dp,cold);if(LIGHT)pa(LIGHT[dk[2]],dp,'rgba(255,255,255,'+(0.95*inten).toFixed(3)+')');}});
    // the rest of that window's light, coming in toward the south, lands on the side wall before it reaches the floor
    if(dv<-0.02){var wq=[[p[0],p[2]],[p[1],p[2]],[p[1],p[3]],[p[0],p[3]]].map(function(x){var d=-x[0]/dv;return [d*du,x[1]-d];}),wc=clipRect(wq,[8,ROOM[0]-8,0,2890]);
-    if(wc.length>2){var wp2=pd(wc.map(function(x){return W([x[0],0,x[1]]);}));pa(swPool,wp2,cold);if(LIGHT)pa(LIGHT.pS,wp2,'rgba(0,0,0,'+(0.95*inten).toFixed(3)+')');}}});  // shadows cast into the light: each desk top and the chair, flattened onto the floor along the sun
+    if(wc.length>2){var wp2=pd(wc.map(function(x){return W([x[0],0,x[1]]);}));pa(swPool,wp2,cold);if(LIGHT)pa(LIGHT.pS,wp2,'rgba(255,255,255,'+(0.95*inten).toFixed(3)+')');}}});  // shadows cast into the light: each desk top and the chair, flattened onto the floor along the sun
   SUNV={on:true,du:du,dv:dv,inten:inten};
   // how far the sun is on her, the plant by the window and the chair
   if(LIGHT){var bb2=body(),pl=bb2.pel,ld=function(pts){var n=0;pts.forEach(function(P){n+=sunLit(P,du,dv);});return n/pts.length;};
@@ -636,7 +638,7 @@ function drawDay(force){if(!SUNB.parentNode&&PDB)DB.insertBefore(SUNB,PDB.g);var
  pe(saPool);pe(sbPool);if(LIGHT){pe(LIGHT.pS);pe(LIGHT.pA);pe(LIGHT.pB);
   // the shade over everything the sun is not on: deeper the stronger the sun, a little cool (the sky's light)
   var shOn=inten>0.06;LIGHT.SHD.style.display=shOn?'':'none';LIGHT.live(shOn);if(shOn){LIGHT.SHD.setAttribute('fill',hexOf2(hmix('#ffffff','#dcdfe6',Math.min(1,inten))));
-   [['her','her'],['plant','plant'],['chair','chair']].forEach(function(k){var g=(1-0.92*LIGHT.lit[k[0]]).toFixed(3);LIGHT.F[k[1]].setAttribute('values','0 0 0 0 '+g+' 0 0 0 0 '+g+' 0 0 0 0 '+g+' 0 0 0 1 0');});}}
+}}
  pe(sunPool);pe(swPool);
  // the light in the room as a whole: the hour, the weather and the lamps colour everything in it a little. Night: the
  // ceiling lights, a touch warmer and dimmer than day; dusk and dawn: amber from the low sky; morning sun: warm;
@@ -648,7 +650,7 @@ function drawDay(force){if(!SUNB.parentNode&&PDB)DB.insertBefore(SUNB,PDB.g);var
  if(gry>0&&dayK>0){tc=hexOf2(hmix(tc.charAt(0)==='#'?tc:'#ffffff','#d3d9df',gry*dayK*0.8));ta=Math.max(ta,0.3*gry*dayK);}
  // while the sun is in the room the shade layer carries this tint as well (one layer over the room instead of two)
  if(LIGHT&&LIGHT.SHD.style.display!=='none'){var a1=hx(hexOf2(tc)),s1=hx(LIGHT.SHD.getAttribute('fill')),m1=s1.map(function(v,i){return Math.round(v*(255-ta*(255-a1[i]))/255);});
-  LIGHT.SHD.setAttribute('fill','#'+m1.map(function(v){return ('0'+v.toString(16)).slice(-2);}).join(''));AMB.style.display='none';}
+  LIGHT.SHD.setAttribute('fill','#'+m1.map(function(v){return ('0'+v.toString(16)).slice(-2);}).join(''));AMB.style.display='none';LIGHT.tint(m1);}
  else{AMB.style.display='';AMB.setAttribute('fill',tc);AMB.setAttribute('opacity',ta.toFixed(3));}}
 function hexOf2(c){var m=c.match(/\d+/g);return m&&c.charAt(0)!=='#'?'#'+m.slice(0,3).map(function(x){return ('0'+(+x).toString(16)).slice(-2);}).join(''):c;}
 // ---------- the view out of the window: a town under the sky, painted on the plane of the glass ----------
@@ -670,12 +672,12 @@ function wrapBetween(a,b,id){var g=mk('g',{id:id});a.parentNode.insertBefore(g,a
 var LIGHT=(function(){var ca=$i('chairShadow'),la=$i('laptop'),sb=$i('slotB'),dbp=$i('deskBProps');if(!ca||!la||!sb||!dbp)return null;
  wrapBetween(ca,la,'deskAStatic');wrapBetween(sb,dbp,'deskBStatic');la.parentNode.insertBefore(SUNA,la);SHG.id='senSheet';PDB.g.id='senDBProps';
  [SUNG,SUNW,SUNA,SUNB].forEach(function(g){g.style.mixBlendMode='color-dodge';});
- var LM=mk('mask',{id:'litMask',maskUnits:'userSpaceOnUse',x:VBA.x,y:VBA.y,width:VBA.width,height:VBA.height},defs);roomSil(LM,'#fff');[].forEach.call(svg.querySelectorAll('polygon[fill="url(#skyG)"]'),function(p){mk('polygon',{points:p.getAttribute('points'),fill:'#000'},LM);});
+ var LM=mk('g',{id:'senShade',fill:'#ffffff','pointer-events':'none',style:'mix-blend-mode:multiply;display:none'},defs);roomSil(LM,'inherit');[].forEach.call(svg.querySelectorAll('polygon[fill="url(#skyG)"]'),function(p){mk('polygon',{points:p.getAttribute('points'),fill:'#fff'},LM);});
  function sil(id,g){var f=mk('filter',{id:id,x:'-10%',y:'-10%',width:'120%',height:'120%','color-interpolation-filters':'sRGB'},defs),m=mk('feColorMatrix',{type:'matrix',values:'0 0 0 0 '+g+' 0 0 0 0 '+g+' 0 0 0 0 '+g+' 0 0 0 1 0'},f);return m;}
  var XL='http://www.w3.org/1999/xlink',F={w:sil('silW',1),her:sil('silHer',1),plant:sil('silPlant',1),chair:sil('silChair',1)};
  // the desks' frames never move: their silhouettes are copied into the mask once, plain white, instead of being
  // re-filtered every frame
- function still(id){var src=$i(id),c=src.cloneNode(true);c.removeAttribute('id');[].forEach.call(c.querySelectorAll('*'),function(e){e.removeAttribute('id');if(e.getAttribute('fill')&&e.getAttribute('fill')!=='none')e.setAttribute('fill','#fff');if(e.getAttribute('stroke')&&e.getAttribute('stroke')!=='none')e.setAttribute('stroke','#fff');e.removeAttribute('opacity');e.removeAttribute('fill-opacity');e.removeAttribute('mask');e.removeAttribute('filter');});LM.appendChild(c);}
+ function still(id){var src=$i(id),c=src.cloneNode(true);c.removeAttribute('id');[].forEach.call(c.querySelectorAll('*'),function(e){e.removeAttribute('id');e.removeAttribute('class');if(e.getAttribute('fill')&&e.getAttribute('fill')!=='none')e.setAttribute('fill','inherit');if(e.getAttribute('stroke')&&e.getAttribute('stroke')!=='none')e.setAttribute('stroke','currentColor');e.removeAttribute('opacity');e.removeAttribute('fill-opacity');e.removeAttribute('mask');e.removeAttribute('filter');});LM.appendChild(c);}
  // the copies are tied to their originals only while the shade is shown: otherwise every move she makes would have
  // the browser rebuild copies nobody sees
  var USES=[],live=true;function setLive(on){if(on===live)return;live=on;USES.forEach(function(u){var h=on?u._h:'#senNone';u.setAttribute('href',h);u.setAttributeNS(XL,'xlink:href',h);});}
@@ -684,12 +686,17 @@ var LIGHT=(function(){var ca=$i('chairShadow'),la=$i('laptop'),sb=$i('slotB'),db
  still('deskAStatic');var pA=pool(mk('g',{},LM));
  use('laptop');use('mug');use('slotFront','her');use('chair','chair');use('chairUp','chair');use('slotB','her');still('deskBStatic');
  // the drawing on the sub desk only as its sheet of paper (its lines and lettering are no use in a mask)
- var pr=SHG.querySelector('rect'),SHS=mk('g',{'clip-path':'url(#senSheetClip)'},LM);mk('rect',{x:pr.getAttribute('x'),y:pr.getAttribute('y'),width:pr.getAttribute('width'),height:pr.getAttribute('height'),fill:'#fff'},SHS);
+ var pr=SHG.querySelector('rect'),SHS=mk('g',{'clip-path':'url(#senSheetClip)'},LM);mk('rect',{x:pr.getAttribute('x'),y:pr.getAttribute('y'),width:pr.getAttribute('width'),height:pr.getAttribute('height'),fill:'inherit'},SHS);
  var pB=pool(mk('g',{},LM));use('senDBProps');use('senOverB','her');use('senTop','her');   // (she, her low parts and the plant move between the slots: each slot once, in scene order)
- var SHD=mk('rect',{x:VBA.x,y:VBA.y,width:VBA.width,height:VBA.height,fill:'#ffffff','pointer-events':'none',mask:'url(#litMask)',style:'mix-blend-mode:multiply;display:none'});svg.appendChild(SHD);
+ svg.appendChild(LM);var SHD=LM;
  var lit={her:0,plant:0,chair:0};
+ // the shade's colour, and the silhouettes in it: one that the sun is on by g is shade where it is not, white (no
+ // change) where it is
+ function tint(c){var k=c.map(function(v){return v/255;});LM.style.color='rgb('+c.join(',')+')';
+  [['w',null],['her','her'],['plant','plant'],['chair','chair']].forEach(function(f){var g=f[1]?1-0.92*lit[f[1]]:1,v=k.map(function(x){return (1-g+x*g).toFixed(3);});
+   F[f[0]].setAttribute('values','0 0 0 0 '+v[0]+' 0 0 0 0 '+v[1]+' 0 0 0 0 '+v[2]+' 0 0 0 1 0');});}
  setLive(false);
- return {SHD:SHD,pS:pS,pSh:pSh,pA:pA,pB:pB,F:F,lit:lit,live:setLive,sheet:SHS};})();
+ return {SHD:SHD,pS:pS,pSh:pSh,pA:pA,pB:pB,F:F,lit:lit,live:setLive,sheet:SHS,tint:tint};})();
 // is a point in the sun? Back along the light toward the window it must come out through a pane
 function sunLit(P,du,dv){if(du<0.02)return 0;var s=P[0]/du,qv=P[1]-s*dv,qz=P[2]+s;for(var i=0;i<PANES.length;i++){var p=PANES[i];if(qv>=p[0]&&qv<=p[1]&&qz>=p[2]&&qz<=p[3])return 1;}return 0;}
 
@@ -700,7 +707,7 @@ function sunLit(P,du,dv){if(du<0.02)return 0;var s=P[0]/du,qv=P[1]-s*dv,qz=P[2]+
 var SUNV={on:false,du:0,dv:0,inten:0};
 var SHADOW=(function(){function m(id){var mm=mk('mask',{id:id},defs);mk('rect',{x:-200,y:-200,width:1400,height:1500,fill:'#fff'},mm);return mm;}
  var mW=m('sunMaskW'),mA=m('sunMaskA'),mB=m('sunMaskB');SUNW.setAttribute('mask','url(#sunMaskW)');SUNA.setAttribute('mask','url(#sunMaskA)');SUNB.setAttribute('mask','url(#sunMaskB)');
- function pair(cut,shadeAfter,soft){var a=mk('path',{fill:'#000'},cut),b=mk('path',{fill:'#fff'});if(soft){a.setAttribute('fill-opacity',0.5);b.setAttribute('fill-opacity',0.5);}
+ function pair(cut,shadeAfter,soft){var a=mk('path',{fill:'#000'},cut),b=mk('path',{fill:'inherit'});if(soft){a.setAttribute('fill-opacity',0.5);b.setAttribute('fill-opacity',0.5);}
   if(shadeAfter)shadeAfter.parentNode.insertBefore(b,shadeAfter.nextSibling);return [a,b];}
  var lm=LIGHT?LIGHT.pSh.g:null;
  return {floor:pair(SMK,lm),floorS:pair(SMK,lm),wall:pair(mW,lm),wallS:pair(mW,lm),A:pair(mA,LIGHT?LIGHT.pA.g:null),B:pair(mB,LIGHT?LIGHT.pB.g:null),

@@ -61,10 +61,15 @@ reads, drinks coffee at the window, and the sky, sun, weather and season follow 
 - `SVGElement.prototype.setAttribute` is patched to skip identical values. Avoid needless attribute churn.
 - Scene order is handled by "slots" (`SLOT.top` = `#senTop`, `slotFront`, `slotB`, `senOverB`). She, her low parts and the plant
   move between slots for correct depth. Created with `createElementNS` (a null-namespace `<g>` once made her invisible).
-- Light: `litMask` + the shade rect `SHD` (multiply over the room; her slots are `<use>`d into the mask with a silhouette filter).
-  Sun patches `sunG` etc. are color-dodge groups masked by `sunMask*`. Those masks use the default objectBoundingBox region
-  so a change repaints only around the patches. **SHD still repaints the whole room every frame while the sun is in
-  (mornings to ~13:00 on clear days).** This is the main remaining performance cost. A fix needs a change to how the shade is built.
+- Light: the shade `SHD` is the group `#senShade` (multiply, last in the svg): the mask's former content drawn in the shade
+  colour (`fill` on the group, `color` for strokes; white = no shade). Sun patches are white `rgba(255,255,255,a)` paths;
+  her slots are `<use>`d with silhouette filters whose colour is `1-g+shade*g` (`LIGHT.tint`). Unlike a mask, a change
+  repaints only the shapes that change. (The old masked rect repainted the whole room every frame in the sun; tiling it
+  did not help: a mask is redrawn whole for every shape it is on.) The desks' copies drop their CSS classes so they are
+  shaded like everything else (before, a desk's own colour weakened its shade).
+  The sun's direction and strength move in small steps (`SUNQ`, inten in 0.01): the patches change every few seconds.
+  Sun patches `sunG` etc. are color-dodge groups masked by `sunMask*` (default objectBoundingBox region).
+  Phone (4× throttle) at 10:30 clear: raster 17 → 9 ms, paint 6.7 → 4.6 ms.
 - Shadows: solids projected along the sunlight per surface; static shadow cache `SHC`; bbox reject. Plant shadows per leaf (`PLEAF`).
 - Her fade: door-anchored, about 1 s smoothstep; her shadows fade with her.
 - Hands: spring (om 10, fast 20, slow 6, acceleration cap). `HLAST` holds the target over a step-boundary frame.
@@ -92,7 +97,7 @@ reads, drinks coffee at the window, and the sky, sun, weather and season follow 
 
 ## Open / offered, not decided
 
-- Performance in the sunny state (SHD full repaint): asked which device felt heavy. No answer yet.
+- Performance in the sunny state: halved (see Light). Still more than in the afternoon (raster ~9 vs ~1.5 ms).
 - Offered, unanswered:
   - reorder the sky panel to TIME → SEASON → WEATHER to match the pill;
   - fix the near-arm elbow bend when standing up;
